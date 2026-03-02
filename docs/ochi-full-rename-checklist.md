@@ -4,6 +4,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 ## Trạng thái thực thi trong commit này
 
+- [x] **Thông báo CLI cho env path chuyển sang Ochi**: hiển thị `~/.ochi/.env` thay vì `~/.openfang/.env` cho các lệnh config key.
 - [x] **Env var alias ưu tiên OCHI**: hỗ trợ `OCHI_HOME` trước, sau đó fallback `OPENFANG_HOME`.
 - [x] **Home dir mặc định ưu tiên `.ochi`**: nếu `~/.ochi` tồn tại sẽ dùng trước, nếu không có thì dùng `~/.openfang` để tương thích ngược.
 - [x] **Config path mặc định đi theo home resolver mới**.

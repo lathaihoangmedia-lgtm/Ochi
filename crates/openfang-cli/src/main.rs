@@ -394,12 +394,12 @@ enum ConfigCommands {
         /// Dotted key path to remove (e.g. "api.cors_origin").
         key: String,
     },
-    /// Save an API key to ~/.openfang/.env (prompts interactively).
+    /// Save an API key to ~/.ochi/.env (prompts interactively).
     SetKey {
         /// Provider name (groq, anthropic, openai, gemini, deepseek, etc.).
         provider: String,
     },
-    /// Remove an API key from ~/.openfang/.env.
+    /// Remove an API key from ~/.ochi/.env.
     DeleteKey {
         /// Provider name.
         provider: String,
@@ -743,7 +743,7 @@ fn init_tracing_file() {
 }
 
 fn main() {
-    // Load ~/.openfang/.env into process environment (system env takes priority).
+    // Load ~/.ochi/.env into process environment (system env takes priority).
     dotenv::load_dotenv();
 
     let cli = Cli::parse();
@@ -3397,7 +3397,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             // Save token to .env
             match dotenv::save_env_key("TELEGRAM_BOT_TOKEN", &token) {
-                Ok(()) => ui::success("Token saved to ~/.openfang/.env"),
+                Ok(()) => ui::success("Token saved to ~/.ochi/.env"),
                 Err(_) => println!("    export TELEGRAM_BOT_TOKEN={token}"),
             }
 
@@ -3427,7 +3427,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
             maybe_write_channel_config("discord", config_block);
 
             match dotenv::save_env_key("DISCORD_BOT_TOKEN", &token) {
-                Ok(()) => ui::success("Token saved to ~/.openfang/.env"),
+                Ok(()) => ui::success("Token saved to ~/.ochi/.env"),
                 Err(_) => println!("    export DISCORD_BOT_TOKEN={token}"),
             }
 
@@ -3455,13 +3455,13 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             if !app_token.is_empty() {
                 match dotenv::save_env_key("SLACK_APP_TOKEN", &app_token) {
-                    Ok(()) => ui::success("App token saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("App token saved to ~/.ochi/.env"),
                     Err(_) => println!("    export SLACK_APP_TOKEN={app_token}"),
                 }
             }
             if !bot_token.is_empty() {
                 match dotenv::save_env_key("SLACK_BOT_TOKEN", &bot_token) {
-                    Ok(()) => ui::success("Bot token saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Bot token saved to ~/.ochi/.env"),
                     Err(_) => println!("    export SLACK_BOT_TOKEN={bot_token}"),
                 }
             }
@@ -3495,7 +3495,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
             ] {
                 if !val.is_empty() {
                     match dotenv::save_env_key(key, val) {
-                        Ok(()) => ui::success(&format!("{key} saved to ~/.openfang/.env")),
+                        Ok(()) => ui::success(&format!("{key} saved to ~/.ochi/.env")),
                         Err(_) => println!("    export {key}={val}"),
                     }
                 }
@@ -3527,7 +3527,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             if !password.is_empty() {
                 match dotenv::save_env_key("EMAIL_PASSWORD", &password) {
-                    Ok(()) => ui::success("Password saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Password saved to ~/.ochi/.env"),
                     Err(_) => println!("    export EMAIL_PASSWORD=your_app_password"),
                 }
             } else {
@@ -3561,7 +3561,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             if !phone.is_empty() {
                 match dotenv::save_env_key("SIGNAL_PHONE", &phone) {
-                    Ok(()) => ui::success("Phone saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Phone saved to ~/.ochi/.env"),
                     Err(_) => println!("    export SIGNAL_PHONE={phone}"),
                 }
             }
@@ -3596,7 +3596,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
             let _ = dotenv::save_env_key("MATRIX_HOMESERVER", &homeserver);
             if !token.is_empty() {
                 match dotenv::save_env_key("MATRIX_ACCESS_TOKEN", &token) {
-                    Ok(()) => ui::success("Token saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Token saved to ~/.ochi/.env"),
                     Err(_) => println!("    export MATRIX_ACCESS_TOKEN={token}"),
                 }
             }
@@ -4088,7 +4088,7 @@ fn cmd_config_set_key(provider: &str) {
 
     match dotenv::save_env_key(&env_var, &key) {
         Ok(()) => {
-            ui::success(&format!("Saved {env_var} to ~/.openfang/.env"));
+            ui::success(&format!("Saved {env_var} to ~/.ochi/.env"));
             // Test the key
             print!("  Testing key... ");
             io::stdout().flush().unwrap();
@@ -4109,7 +4109,7 @@ fn cmd_config_delete_key(provider: &str) {
     let env_var = provider_to_env_var(provider);
 
     match dotenv::remove_env_key(&env_var) {
-        Ok(()) => ui::success(&format!("Removed {env_var} from ~/.openfang/.env")),
+        Ok(()) => ui::success(&format!("Removed {env_var} from ~/.ochi/.env")),
         Err(e) => {
             ui::error(&format!("Failed to remove key: {e}"));
             std::process::exit(1);
