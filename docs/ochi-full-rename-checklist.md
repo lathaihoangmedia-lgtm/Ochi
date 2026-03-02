@@ -7,6 +7,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - [x] **Env var alias ưu tiên OCHI**: hỗ trợ `OCHI_HOME` trước, sau đó fallback `OPENFANG_HOME`.
 - [x] **Home dir mặc định ưu tiên `.ochi`**: nếu `~/.ochi` tồn tại sẽ dùng trước, nếu không có thì dùng `~/.openfang` để tương thích ngược.
 - [x] **Config path mặc định đi theo home resolver mới**.
+- [x] **CLI alias `ochi`**: thêm binary `ochi` và map sang luồng CLI tương thích hiện tại.
 
 ## Phase 1 — Compatibility layer (không phá build)
 
@@ -15,7 +16,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
   - [x] `OPENFANG_HOME` (legacy)
   - [x] `~/.ochi` ưu tiên nếu đã tồn tại
   - [x] fallback `~/.openfang`
-- [ ] Bổ sung alias CLI command (`ochi` -> `openfang`) ở mức binary/package.
+- [x] Bổ sung alias CLI command (`ochi` -> `openfang`) ở mức binary/package.
 - [ ] Chuẩn hóa thông báo UI: hiển thị Ochi, nhưng vẫn chấp nhận đường dẫn/biến môi trường legacy.
 
 ## Phase 2 — Binary & runtime rename
