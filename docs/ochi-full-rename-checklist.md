@@ -2,27 +2,28 @@
 
 Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi ro, không làm gãy runtime hiện tại.
 
-## Trạng thái thực thi trong commit này
+## Trạng thái rà soát hiện tại
 
-- [x] **Thông báo CLI cho env path chuyển sang Ochi**: hiển thị `~/.ochi/.env` thay vì `~/.openfang/.env` cho các lệnh config key.
-- [x] **Env var alias ưu tiên OCHI**: hỗ trợ `OCHI_HOME` trước, sau đó fallback `OPENFANG_HOME`.
-- [x] **Home dir mặc định ưu tiên `.ochi`**: nếu `~/.ochi` tồn tại sẽ dùng trước, nếu không có thì dùng `~/.openfang` để tương thích ngược.
-- [x] **Config path mặc định đi theo home resolver mới**.
+- [x] **Thông báo CLI cho config key đã chuyển sang Ochi**: các thông báo `config set-key/delete-key` đang hiển thị `~/.ochi/.env`.
+- [x] **Resolver home/config ở core đã ưu tiên OCHI**: `OCHI_HOME` -> `OPENFANG_HOME` -> `~/.ochi` -> `~/.openfang`.
+- [x] **Config path mặc định ở kernel đã đi theo home resolver mới** (`openfang_home().join("config.toml")`).
+- [ ] **CLI helper còn hardcode `.openfang` ở nhiều chỗ** (`openfang_home()` trong CLI vẫn trả về `~/.openfang`, nhiều hint/log path chưa chuẩn hóa).
 
 ## Phase 1 — Compatibility layer (không phá build)
 
-- [x] Resolver home/config:
+- [x] Resolver home/config ở tầng core:
   - [x] `OCHI_HOME` (mới)
   - [x] `OPENFANG_HOME` (legacy)
   - [x] `~/.ochi` ưu tiên nếu đã tồn tại
   - [x] fallback `~/.openfang`
-- [ ] Bổ sung alias CLI command (`ochi` -> `openfang`) ở mức binary/package.
-- [ ] Chuẩn hóa thông báo UI: hiển thị Ochi, nhưng vẫn chấp nhận đường dẫn/biến môi trường legacy.
+- [x] Bổ sung alias CLI command (`ochi` song song với `openfang`) ở mức binary/package.
+- [ ] Chuẩn hóa thông báo UI/CLI toàn cục: hiển thị Ochi nhất quán, nhưng vẫn chấp nhận đường dẫn/biến môi trường legacy.
+- [ ] Dọn các hardcode đường dẫn `.openfang` còn sót trong CLI/TUI/help text.
 
 ## Phase 2 — Binary & runtime rename
 
-- [ ] Đổi binary chính từ `openfang` sang `ochi`.
-- [ ] Giữ shim executable `openfang` (deprecation window) để gọi sang `ochi`.
+- [ ] Đổi binary **chính** từ `openfang` sang `ochi` (hiện tại đang dual-bin, chưa cutover primary).
+- [ ] Giữ shim executable `openfang` (deprecation window) để gọi sang `ochi` sau khi cutover.
 - [ ] Cập nhật service/unit/script cài đặt để chạy `ochi`.
 - [ ] Cập nhật Dockerfile:
   - [ ] build/copy `ochi`
