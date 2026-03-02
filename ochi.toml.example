@@ -1,0 +1,73 @@
+# Ochi Agent OS — Cấu hình mặc định
+# Sao chép vào ~/.ochi/config.toml và tùy chỉnh.
+
+# Cài đặt máy chủ API
+# api_key = ""                               # Đặt để bật xác thực Bearer (khuyến nghị)
+# api_listen = "127.0.0.1:50051"             # Địa chỉ liên kết API HTTP (sử dụng 0.0.0.0 cho công khai)
+
+[default_model]
+# Chuỗi provider sẽ được thử tuần tự cho đến khi có kết quả thành công
+# Ưu tiên các model có khả năng xử lý tiếng Việt tốt nhất
+providers = ["wit_ai", "zalo_ai", "manus_provider", "openai"]
+
+# Cấu hình chi tiết cho từng provider
+[provider.wit_ai]
+provider = "http_json"
+api_key_env = "WIT_AI_TOKEN"
+base_url = "https://api.wit.ai/message?v=20240516&q="
+# Cần thêm cấu hình để parse response của Wit.ai, ví dụ:
+# response_path = "$.intents[0].name"
+# text_path = "$.text"
+
+[provider.zalo_ai]
+provider = "http_json"
+api_key_env = "ZALO_AI_TOKEN"
+base_url = "https://api.zalo.ai/v1/tts/synthesize"
+# Cần thêm cấu hình để parse response của Zalo AI, ví dụ:
+# response_path = "$.data.url"
+
+[provider.manus_provider]
+provider = "grpc"
+api_key_env = "MANUS_API_KEY"
+endpoint = "api.manus.im:443"
+
+[provider.openai]
+provider = "openai"
+model = "gpt-4.1-mini"
+api_key_env = "OPENAI_API_KEY"
+
+[memory]
+decay_rate = 0.05                         # Tốc độ suy giảm độ tin cậy của bộ nhớ
+# sqlite_path = "~/.ochi/data/ochi.db"   # Tùy chọn: đường dẫn DB tùy chỉnh
+
+[network]
+listen_addr = "127.0.0.1:4200"           # Địa chỉ nghe OFP
+# shared_secret = ""                      # Bắt buộc cho xác thực P2P
+
+# Nén phiên (quản lý ngữ cảnh dựa trên LLM)
+# [compaction]
+# threshold = 80                          # Nén khi số lượng tin nhắn vượt quá ngưỡng này
+# keep_recent = 20                        # Giữ lại số lượng tin nhắn gần đây sau khi nén
+# max_summary_tokens = 1024               # Số token tối đa cho tóm tắt LLM
+
+# Hiển thị theo dõi sử dụng
+# usage_footer = "Full"                   # "Off", "Tokens", "Cost", hoặc "Full"
+
+# Bộ điều hợp kênh (cấu hình token qua biến môi trường)
+# [telegram]
+# bot_token_env = "TELEGRAM_BOT_TOKEN"
+# allowed_users = []                      # Trống = cho phép tất cả
+
+# [discord]
+# bot_token_env = "DISCORD_BOT_TOKEN"
+# guild_ids = []                          # Trống = tất cả guild
+
+# [slack]
+# bot_token_env = "SLACK_BOT_TOKEN"
+# app_token_env = "SLACK_APP_TOKEN"
+
+# Kết nối máy chủ MCP
+# [[mcp_servers]]
+# name = "filesystem"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
