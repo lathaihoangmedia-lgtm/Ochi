@@ -4,6 +4,9 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 ## Trạng thái thực thi trong commit này
 
+- [x] **Alias CLI `ochi` hoạt động ở mức package/binary**: đã khai báo cả `openfang` và `ochi` binary trong crate CLI.
+- [x] **Chuẩn hóa brand UI CLI sang Ochi**: thông báo/hint/help text chính hiển thị Ochi, vẫn giữ tương thích lệnh legacy qua binary `openfang`.
+- [x] **Thông báo CLI cho env path chuyển sang Ochi**: hiển thị `~/.ochi/.env` thay vì `~/.openfang/.env` cho các lệnh config key.
 - [x] **Env var alias ưu tiên OCHI**: hỗ trợ `OCHI_HOME` trước, sau đó fallback `OPENFANG_HOME`.
 - [x] **Home dir mặc định ưu tiên `.ochi`**: nếu `~/.ochi` tồn tại sẽ dùng trước, nếu không có thì dùng `~/.openfang` để tương thích ngược.
 - [x] **Config path mặc định đi theo home resolver mới**.
@@ -15,8 +18,8 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
   - [x] `OPENFANG_HOME` (legacy)
   - [x] `~/.ochi` ưu tiên nếu đã tồn tại
   - [x] fallback `~/.openfang`
-- [ ] Bổ sung alias CLI command (`ochi` -> `openfang`) ở mức binary/package.
-- [ ] Chuẩn hóa thông báo UI: hiển thị Ochi, nhưng vẫn chấp nhận đường dẫn/biến môi trường legacy.
+- [x] Bổ sung alias CLI command (`ochi` -> `openfang`) ở mức binary/package.
+- [x] Chuẩn hóa thông báo UI: hiển thị Ochi, nhưng vẫn chấp nhận đường dẫn/biến môi trường legacy.
 
 ## Phase 2 — Binary & runtime rename
 
