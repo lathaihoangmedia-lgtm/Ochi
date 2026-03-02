@@ -4088,7 +4088,10 @@ fn cmd_config_set_key(provider: &str) {
 
     match dotenv::save_env_key(&env_var, &key) {
         Ok(()) => {
-            ui::success(&format!("Saved {env_var} to ~/.openfang/.env"));
+            ui::success(&format!(
+                "Saved {env_var} to {}",
+                openfang_home().join(".env").display()
+            ));
             // Test the key
             print!("  Testing key... ");
             io::stdout().flush().unwrap();
@@ -4109,7 +4112,10 @@ fn cmd_config_delete_key(provider: &str) {
     let env_var = provider_to_env_var(provider);
 
     match dotenv::remove_env_key(&env_var) {
-        Ok(()) => ui::success(&format!("Removed {env_var} from ~/.openfang/.env")),
+        Ok(()) => ui::success(&format!(
+            "Removed {env_var} from {}",
+            openfang_home().join(".env").display()
+        )),
         Err(e) => {
             ui::error(&format!("Failed to remove key: {e}"));
             std::process::exit(1);
@@ -4150,12 +4156,7 @@ fn cmd_quick_chat(config: Option<PathBuf>, agent: Option<String>) {
 // ---------------------------------------------------------------------------
 
 pub(crate) fn openfang_home() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or_else(|| {
-            eprintln!("Error: Could not determine home directory");
-            std::process::exit(1);
-        })
-        .join(".openfang")
+    openfang_kernel::config::openfang_home()
 }
 
 fn prompt_input(prompt: &str) -> String {
