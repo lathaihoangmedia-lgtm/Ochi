@@ -1169,7 +1169,7 @@ fn default_language() -> String {
 
 impl Default for KernelConfig {
     fn default() -> Self {
-        let home_dir = dirs_next_home().join(".openfang");
+        let home_dir = default_home_dir();
         Self {
             data_dir: home_dir.join("data"),
             home_dir,
@@ -1215,6 +1215,35 @@ impl Default for KernelConfig {
             oauth: OAuthConfig::default(),
         }
     }
+}
+
+fn default_home_dir() -> PathBuf {
+    if let Ok(path) = std::env::var("OCHI_HOME") {
+        let trimmed = path.trim();
+        if !trimmed.is_empty() {
+            return PathBuf::from(trimmed);
+        }
+    }
+
+    if let Ok(path) = std::env::var("OPENFANG_HOME") {
+        let trimmed = path.trim();
+        if !trimmed.is_empty() {
+            return PathBuf::from(trimmed);
+        }
+    }
+
+    let home = dirs_next_home();
+    let ochi_dir = home.join(".ochi");
+    if ochi_dir.exists() {
+        return ochi_dir;
+    }
+
+    let openfang_dir = home.join(".openfang");
+    if openfang_dir.exists() {
+        return openfang_dir;
+    }
+
+    ochi_dir
 }
 
 impl KernelConfig {
