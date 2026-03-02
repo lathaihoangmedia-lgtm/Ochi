@@ -225,17 +225,37 @@ pub fn deep_merge_toml(base: &mut toml::Value, overlay: &toml::Value) {
 
 /// Get the default config file path.
 pub fn default_config_path() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or_else(std::env::temp_dir)
-        .join(".openfang")
-        .join("config.toml")
+    openfang_home().join("config.toml")
 }
 
 /// Get the default OpenFang home directory.
 pub fn openfang_home() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or_else(std::env::temp_dir)
-        .join(".openfang")
+    if let Ok(path) = std::env::var("OCHI_HOME") {
+        let trimmed = path.trim();
+        if !trimmed.is_empty() {
+            return PathBuf::from(trimmed);
+        }
+    }
+
+    if let Ok(path) = std::env::var("OPENFANG_HOME") {
+        let trimmed = path.trim();
+        if !trimmed.is_empty() {
+            return PathBuf::from(trimmed);
+        }
+    }
+
+    let home = dirs::home_dir().unwrap_or_else(std::env::temp_dir);
+    let ochi_dir = home.join(".ochi");
+    if ochi_dir.exists() {
+        return ochi_dir;
+    }
+
+    let openfang_dir = home.join(".openfang");
+    if openfang_dir.exists() {
+        return openfang_dir;
+    }
+
+    ochi_dir
 }
 
 #[cfg(test)]
