@@ -49,6 +49,22 @@ Ochi được tổ chức theo một cấu trúc phân cấp Agent độc đáo:
 - Kế hoạch triển khai chi tiết: `docs/ochi-brand-roadmap.md`.
 - Chính sách blockchain: chỉ chấp thuận **Hyperledger Fabric** (xem `docs/hyperledger-fabric-policy.md`).
 
+## Contribution
+
+Repository đã để **public** để thuận tiện cộng tác qua GitHub (issues/PR/discussions) và tận dụng các ưu đãi hệ sinh thái GitHub cho dự án mã nguồn mở.
+
+- Trước khi đóng góp, đọc `CONTRIBUTING.md` để nắm quy ước coding, test và quy trình pull request.
+- Với thay đổi tài liệu public-facing, ưu tiên dùng brand **Ochi** và bám theo kế hoạch tại `docs/ochi-brand-roadmap.md`.
+- Nếu thay đổi liên quan migration/rename kỹ thuật, tham khảo thêm `MIGRATION.md` để tránh phá vỡ tương thích.
+
+## Dịch thuật
+
+Định hướng hiện tại là **Việt hóa sâu sắc**, nhưng vẫn giữ tài liệu song ngữ ở những phần cần cho cộng đồng quốc tế.
+
+- Nội dung public-facing ưu tiên tiếng Việt, thống nhất thuật ngữ theo hệ Ochi (9 Đại Tác Tử, 108 Agent).
+- Khi dịch/chuẩn hóa thuật ngữ, cập nhật đồng bộ với roadmap thương hiệu trong `docs/ochi-brand-roadmap.md`.
+- Tránh đưa lại tên legacy vào tài liệu public-facing, trừ khi cần ghi chú migration rõ ràng.
+
 ## Bản quyền
 
 © 2026 LaBeeTechMedia. Tất cả quyền được bảo lưu.
