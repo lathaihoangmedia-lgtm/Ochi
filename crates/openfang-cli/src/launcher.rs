@@ -11,6 +11,7 @@ use ratatui::widgets::{List, ListItem, ListState, Paragraph};
 
 use crate::tui::theme;
 use crate::ui;
+use openfang_kernel::config::openfang_home;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -43,7 +44,7 @@ fn is_first_run() -> bool {
         Some(h) => h,
         None => return true,
     };
-    !home.join(".openfang").join("config.toml").exists()
+    !openfang_home().join("config.toml").exists()
 }
 
 fn has_openclaw() -> bool {

@@ -7,7 +7,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - [x] **Thông báo CLI cho config key đã chuyển sang Ochi**: các thông báo `config set-key/delete-key` đang hiển thị `~/.ochi/.env`.
 - [x] **Resolver home/config ở core đã ưu tiên OCHI**: `OCHI_HOME` -> `OPENFANG_HOME` -> `~/.ochi` -> `~/.openfang`.
 - [x] **Config path mặc định ở kernel đã đi theo home resolver mới** (`openfang_home().join("config.toml")`).
-- [ ] **CLI helper còn hardcode `.openfang` ở nhiều chỗ** (`openfang_home()` trong CLI vẫn trả về `~/.openfang`, nhiều hint/log path chưa chuẩn hóa).
+- [x] **CLI helper còn hardcode `.openfang` ở nhiều chỗ** (`openfang_home()` trong CLI đã dùng core resolver và chuẩn hóa hint/log path sang `~/.ochi`).
 
 ## Phase 1 — Compatibility layer (không phá build)
 
@@ -17,8 +17,8 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
   - [x] `~/.ochi` ưu tiên nếu đã tồn tại
   - [x] fallback `~/.openfang`
 - [x] Bổ sung alias CLI command (`ochi` song song với `openfang`) ở mức binary/package.
-- [ ] Chuẩn hóa thông báo UI/CLI toàn cục: hiển thị Ochi nhất quán, nhưng vẫn chấp nhận đường dẫn/biến môi trường legacy.
-- [ ] Dọn các hardcode đường dẫn `.openfang` còn sót trong CLI/TUI/help text.
+- [x] Chuẩn hóa thông báo UI/CLI toàn cục: hiển thị Ochi nhất quán, nhưng vẫn chấp nhận đường dẫn/biến môi trường legacy.
+- [x] Dọn các hardcode đường dẫn `.openfang` còn sót trong CLI/TUI/help text.
 
 ## Phase 2 — Binary & runtime rename
 
