@@ -105,7 +105,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize OpenFang (create ~/.openfang/ and default config).
+    /// Initialize OpenFang (create ~/.ochi/ and default config).
     Init {
         /// Quick mode: no prompts, just write config + .env (for CI/scripts).
         #[arg(long)]
@@ -716,7 +716,7 @@ fn init_tracing_stderr() {
 /// Redirect tracing to a log file so it doesn't corrupt the ratatui TUI.
 fn init_tracing_file() {
     let log_dir = dirs::home_dir()
-        .map(|h| h.join(".openfang"))
+        .map(|h| h.join(".ochi"))
         .unwrap_or_else(|| std::path::PathBuf::from("."));
     let _ = std::fs::create_dir_all(&log_dir);
     let log_path = log_dir.join("tui.log");
@@ -951,7 +951,7 @@ pub(crate) fn restrict_dir_permissions(path: &std::path::Path) {
 pub(crate) fn restrict_dir_permissions(_path: &std::path::Path) {}
 
 pub(crate) fn find_daemon() -> Option<String> {
-    let home_dir = dirs::home_dir()?.join(".openfang");
+    let home_dir = openfang_home();
     let info = read_daemon_info(&home_dir)?;
 
     // Normalize listen address: replace 0.0.0.0 with 127.0.0.1 to avoid
@@ -992,7 +992,7 @@ pub(crate) fn daemon_json(
             if status.is_server_error() {
                 ui::error_with_fix(
                     &format!("Daemon returned error ({})", status),
-                    "Check daemon logs: ~/.openfang/tui.log",
+                    "Check daemon logs: ~/.ochi/tui.log",
                 );
             }
             body
@@ -1033,7 +1033,7 @@ fn cmd_init(quick: bool) {
         }
     };
 
-    let openfang_dir = home.join(".openfang");
+    let openfang_dir = openfang_home();
 
     // --- Ensure directories exist ---
     if !openfang_dir.exists() {
@@ -1348,12 +1348,10 @@ fn cmd_stop() {
                         }
                     }
                     // Still alive — force kill via PID
-                    if let Some(home) = dirs::home_dir() {
-                        let of_dir = home.join(".openfang");
-                        if let Some(info) = read_daemon_info(&of_dir) {
-                            force_kill_pid(info.pid);
-                            let _ = std::fs::remove_file(of_dir.join("daemon.json"));
-                        }
+                    let of_dir = openfang_home();
+                    if let Some(info) = read_daemon_info(&of_dir) {
+                        force_kill_pid(info.pid);
+                        let _ = std::fs::remove_file(of_dir.join("daemon.json"));
                     }
                     ui::success("Daemon stopped (forced)");
                 }
@@ -1791,127 +1789,121 @@ fn cmd_doctor(json: bool, repair: bool) {
         println!();
     }
 
-    let home = dirs::home_dir();
-    if let Some(h) = &home {
-        let openfang_dir = h.join(".openfang");
+    let openfang_dir = openfang_home();
 
-        // --- Check 1: OpenFang directory ---
-        if openfang_dir.exists() {
-            if !json {
-                ui::check_ok(&format!("OpenFang directory: {}", openfang_dir.display()));
+    // --- Check 1: OpenFang directory ---
+    if openfang_dir.exists() {
+        if !json {
+            ui::check_ok(&format!("OpenFang directory: {}", openfang_dir.display()));
+        }
+        checks.push(serde_json::json!({"check": "openfang_dir", "status": "ok", "path": openfang_dir.display().to_string()}));
+    } else if repair {
+        if !json {
+            ui::check_fail("OpenFang directory not found.");
+        }
+        let answer = prompt_input("    Create it now? [Y/n] ");
+        if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
+            if std::fs::create_dir_all(&openfang_dir).is_ok() {
+                restrict_dir_permissions(&openfang_dir);
+                for sub in ["data", "agents"] {
+                    let _ = std::fs::create_dir_all(openfang_dir.join(sub));
+                }
+                if !json {
+                    ui::check_ok("Created OpenFang directory");
+                }
+                repaired = true;
+            } else {
+                if !json {
+                    ui::check_fail("Failed to create directory");
+                }
+                all_ok = false;
             }
-            checks.push(serde_json::json!({"check": "openfang_dir", "status": "ok", "path": openfang_dir.display().to_string()}));
-        } else if repair {
-            if !json {
-                ui::check_fail("OpenFang directory not found.");
-            }
-            let answer = prompt_input("    Create it now? [Y/n] ");
-            if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
-                if std::fs::create_dir_all(&openfang_dir).is_ok() {
-                    restrict_dir_permissions(&openfang_dir);
-                    for sub in ["data", "agents"] {
-                        let _ = std::fs::create_dir_all(openfang_dir.join(sub));
-                    }
+        } else {
+            all_ok = false;
+        }
+        checks.push(serde_json::json!({"check": "openfang_dir", "status": if repaired { "repaired" } else { "fail" }}));
+    } else {
+        if !json {
+            ui::check_fail("OpenFang directory not found. Run `openfang init` first.");
+        }
+        checks.push(serde_json::json!({"check": "openfang_dir", "status": "fail"}));
+        all_ok = false;
+    }
+
+    // --- Check 2: .env file exists + permissions ---
+    let env_path = openfang_dir.join(".env");
+    if env_path.exists() {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Ok(meta) = std::fs::metadata(&env_path) {
+                let mode = meta.permissions().mode() & 0o777;
+                if mode == 0o600 {
                     if !json {
-                        ui::check_ok("Created OpenFang directory");
+                        ui::check_ok(".env file (permissions OK)");
+                    }
+                } else if repair {
+                    let _ =
+                        std::fs::set_permissions(&env_path, std::fs::Permissions::from_mode(0o600));
+                    if !json {
+                        ui::check_ok(".env file (permissions fixed to 0600)");
                     }
                     repaired = true;
                 } else {
                     if !json {
-                        ui::check_fail("Failed to create directory");
+                        ui::check_warn(&format!(
+                            ".env file has loose permissions ({:o}), should be 0600",
+                            mode
+                        ));
                     }
-                    all_ok = false;
                 }
             } else {
-                all_ok = false;
-            }
-            checks.push(serde_json::json!({"check": "openfang_dir", "status": if repaired { "repaired" } else { "fail" }}));
-        } else {
-            if !json {
-                ui::check_fail("OpenFang directory not found. Run `openfang init` first.");
-            }
-            checks.push(serde_json::json!({"check": "openfang_dir", "status": "fail"}));
-            all_ok = false;
-        }
-
-        // --- Check 2: .env file exists + permissions ---
-        let env_path = openfang_dir.join(".env");
-        if env_path.exists() {
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                if let Ok(meta) = std::fs::metadata(&env_path) {
-                    let mode = meta.permissions().mode() & 0o777;
-                    if mode == 0o600 {
-                        if !json {
-                            ui::check_ok(".env file (permissions OK)");
-                        }
-                    } else if repair {
-                        let _ = std::fs::set_permissions(
-                            &env_path,
-                            std::fs::Permissions::from_mode(0o600),
-                        );
-                        if !json {
-                            ui::check_ok(".env file (permissions fixed to 0600)");
-                        }
-                        repaired = true;
-                    } else {
-                        if !json {
-                            ui::check_warn(&format!(
-                                ".env file has loose permissions ({:o}), should be 0600",
-                                mode
-                            ));
-                        }
-                    }
-                } else {
-                    if !json {
-                        ui::check_ok(".env file");
-                    }
-                }
-            }
-            #[cfg(not(unix))]
-            {
                 if !json {
                     ui::check_ok(".env file");
                 }
             }
-            checks.push(serde_json::json!({"check": "env_file", "status": "ok"}));
-        } else {
-            if !json {
-                ui::check_warn(
-                    ".env file not found (create with: openfang config set-key <provider>)",
-                );
-            }
-            checks.push(serde_json::json!({"check": "env_file", "status": "warn"}));
         }
-
-        // --- Check 3: Config TOML syntax validation ---
-        let config_path = openfang_dir.join("config.toml");
-        if config_path.exists() {
-            let config_content = std::fs::read_to_string(&config_path).unwrap_or_default();
-            match toml::from_str::<toml::Value>(&config_content) {
-                Ok(_) => {
-                    if !json {
-                        ui::check_ok(&format!("Config file: {}", config_path.display()));
-                    }
-                    checks.push(serde_json::json!({"check": "config_file", "status": "ok"}));
-                }
-                Err(e) => {
-                    if !json {
-                        ui::check_fail(&format!("Config file has syntax errors: {e}"));
-                        ui::hint("Fix with: openfang config edit");
-                    }
-                    checks.push(serde_json::json!({"check": "config_syntax", "status": "fail", "error": e.to_string()}));
-                    all_ok = false;
-                }
-            }
-        } else if repair {
+        #[cfg(not(unix))]
+        {
             if !json {
-                ui::check_fail("Config file not found.");
+                ui::check_ok(".env file");
             }
-            let answer = prompt_input("    Create default config? [Y/n] ");
-            if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
-                let default_config = r#"# OpenFang Agent OS configuration
+        }
+        checks.push(serde_json::json!({"check": "env_file", "status": "ok"}));
+    } else {
+        if !json {
+            ui::check_warn(".env file not found (create with: openfang config set-key <provider>)");
+        }
+        checks.push(serde_json::json!({"check": "env_file", "status": "warn"}));
+    }
+
+    // --- Check 3: Config TOML syntax validation ---
+    let config_path = openfang_dir.join("config.toml");
+    if config_path.exists() {
+        let config_content = std::fs::read_to_string(&config_path).unwrap_or_default();
+        match toml::from_str::<toml::Value>(&config_content) {
+            Ok(_) => {
+                if !json {
+                    ui::check_ok(&format!("Config file: {}", config_path.display()));
+                }
+                checks.push(serde_json::json!({"check": "config_file", "status": "ok"}));
+            }
+            Err(e) => {
+                if !json {
+                    ui::check_fail(&format!("Config file has syntax errors: {e}"));
+                    ui::hint("Fix with: openfang config edit");
+                }
+                checks.push(serde_json::json!({"check": "config_syntax", "status": "fail", "error": e.to_string()}));
+                all_ok = false;
+            }
+        }
+    } else if repair {
+        if !json {
+            ui::check_fail("Config file not found.");
+        }
+        let answer = prompt_input("    Create default config? [Y/n] ");
+        if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
+            let default_config = r#"# OpenFang Agent OS configuration
 # See https://github.com/RightNow-AI/openfang for documentation
 
 # For Docker, change to "0.0.0.0:4200" or set OPENFANG_LISTEN env var.
@@ -1925,183 +1917,174 @@ api_key_env = "GROQ_API_KEY"
 [memory]
 decay_rate = 0.05
 "#;
-                let _ = std::fs::create_dir_all(&openfang_dir);
-                if std::fs::write(&config_path, default_config).is_ok() {
-                    restrict_file_permissions(&config_path);
-                    if !json {
-                        ui::check_ok("Created default config.toml");
-                    }
-                    repaired = true;
-                } else {
-                    if !json {
-                        ui::check_fail("Failed to create config.toml");
-                    }
-                    all_ok = false;
-                }
-            } else {
-                all_ok = false;
-            }
-            checks.push(serde_json::json!({"check": "config_file", "status": if repaired { "repaired" } else { "fail" }}));
-        } else {
-            if !json {
-                ui::check_fail("Config file not found.");
-            }
-            checks.push(serde_json::json!({"check": "config_file", "status": "fail"}));
-            all_ok = false;
-        }
-
-        // --- Check 4: Port 4200 availability ---
-        if !json {
-            println!();
-        }
-        let daemon_running = find_daemon();
-        if let Some(ref base) = daemon_running {
-            if !json {
-                ui::check_ok(&format!("Daemon running at {base}"));
-            }
-            checks.push(serde_json::json!({"check": "daemon", "status": "ok", "url": base}));
-        } else {
-            if !json {
-                ui::check_warn("Daemon not running (start with `openfang start`)");
-            }
-            checks.push(serde_json::json!({"check": "daemon", "status": "warn"}));
-
-            // Check if port 4200 is available
-            match std::net::TcpListener::bind("127.0.0.1:4200") {
-                Ok(_) => {
-                    if !json {
-                        ui::check_ok("Port 4200 is available");
-                    }
-                    checks.push(serde_json::json!({"check": "port_4200", "status": "ok"}));
-                }
-                Err(_) => {
-                    if !json {
-                        ui::check_warn("Port 4200 is in use by another process");
-                    }
-                    checks.push(serde_json::json!({"check": "port_4200", "status": "warn"}));
-                }
-            }
-        }
-
-        // --- Check 5: Stale daemon.json ---
-        let daemon_json_path = openfang_dir.join("daemon.json");
-        if daemon_json_path.exists() && daemon_running.is_none() {
-            if repair {
-                let _ = std::fs::remove_file(&daemon_json_path);
+            let _ = std::fs::create_dir_all(&openfang_dir);
+            if std::fs::write(&config_path, default_config).is_ok() {
+                restrict_file_permissions(&config_path);
                 if !json {
-                    ui::check_ok("Removed stale daemon.json");
+                    ui::check_ok("Created default config.toml");
                 }
                 repaired = true;
-            } else if !json {
-                ui::check_warn(
-                    "Stale daemon.json found (daemon not running). Run with --repair to clean up.",
-                );
-            }
-            checks.push(serde_json::json!({"check": "stale_daemon_json", "status": if repair { "repaired" } else { "warn" }}));
-        }
-
-        // --- Check 6: Database file ---
-        let db_path = openfang_dir.join("data").join("openfang.db");
-        if db_path.exists() {
-            // Quick SQLite magic bytes check
-            if let Ok(bytes) = std::fs::read(&db_path) {
-                if bytes.len() >= 16 && bytes.starts_with(b"SQLite format 3") {
-                    if !json {
-                        ui::check_ok("Database file (valid SQLite)");
-                    }
-                    checks.push(serde_json::json!({"check": "database", "status": "ok"}));
-                } else {
-                    if !json {
-                        ui::check_fail("Database file exists but is not valid SQLite");
-                    }
-                    checks.push(serde_json::json!({"check": "database", "status": "fail"}));
-                    all_ok = false;
+            } else {
+                if !json {
+                    ui::check_fail("Failed to create config.toml");
                 }
+                all_ok = false;
             }
         } else {
-            if !json {
-                ui::check_warn("No database file (will be created on first run)");
-            }
-            checks.push(serde_json::json!({"check": "database", "status": "warn"}));
+            all_ok = false;
         }
-
-        // --- Check 7: Disk space ---
-        #[cfg(unix)]
-        {
-            if let Ok(output) = std::process::Command::new("df")
-                .args(["-m", &openfang_dir.display().to_string()])
-                .output()
-            {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                // Parse the available MB from df output (4th column of 2nd line)
-                if let Some(line) = stdout.lines().nth(1) {
-                    let cols: Vec<&str> = line.split_whitespace().collect();
-                    if cols.len() >= 4 {
-                        if let Ok(available_mb) = cols[3].parse::<u64>() {
-                            if available_mb < 100 {
-                                if !json {
-                                    ui::check_warn(&format!(
-                                        "Low disk space: {available_mb}MB available"
-                                    ));
-                                }
-                                checks.push(serde_json::json!({"check": "disk_space", "status": "warn", "available_mb": available_mb}));
-                            } else {
-                                if !json {
-                                    ui::check_ok(&format!(
-                                        "Disk space: {available_mb}MB available"
-                                    ));
-                                }
-                                checks.push(serde_json::json!({"check": "disk_space", "status": "ok", "available_mb": available_mb}));
-                            }
-                        }
-                    }
-                }
-            }
+        checks.push(serde_json::json!({"check": "config_file", "status": if repaired { "repaired" } else { "fail" }}));
+    } else {
+        if !json {
+            ui::check_fail("Config file not found.");
         }
+        checks.push(serde_json::json!({"check": "config_file", "status": "fail"}));
+        all_ok = false;
+    }
 
-        // --- Check 8: Agent manifests parse correctly ---
-        let agents_dir = openfang_dir.join("agents");
-        if agents_dir.exists() {
-            let mut agent_errors = Vec::new();
-            if let Ok(entries) = std::fs::read_dir(&agents_dir) {
-                for entry in entries.flatten() {
-                    let path = entry.path();
-                    if path.extension().and_then(|e| e.to_str()) == Some("toml") {
-                        if let Ok(content) = std::fs::read_to_string(&path) {
-                            if let Err(e) = toml::from_str::<AgentManifest>(&content) {
-                                agent_errors.push((
-                                    path.file_name()
-                                        .unwrap_or_default()
-                                        .to_string_lossy()
-                                        .to_string(),
-                                    e.to_string(),
-                                ));
-                            }
-                        }
-                    }
-                }
-            }
-            if agent_errors.is_empty() {
+    // --- Check 4: Port 4200 availability ---
+    if !json {
+        println!();
+    }
+    let daemon_running = find_daemon();
+    if let Some(ref base) = daemon_running {
+        if !json {
+            ui::check_ok(&format!("Daemon running at {base}"));
+        }
+        checks.push(serde_json::json!({"check": "daemon", "status": "ok", "url": base}));
+    } else {
+        if !json {
+            ui::check_warn("Daemon not running (start with `openfang start`)");
+        }
+        checks.push(serde_json::json!({"check": "daemon", "status": "warn"}));
+
+        // Check if port 4200 is available
+        match std::net::TcpListener::bind("127.0.0.1:4200") {
+            Ok(_) => {
                 if !json {
-                    ui::check_ok("Agent manifests are valid");
+                    ui::check_ok("Port 4200 is available");
                 }
-                checks.push(serde_json::json!({"check": "agent_manifests", "status": "ok"}));
+                checks.push(serde_json::json!({"check": "port_4200", "status": "ok"}));
+            }
+            Err(_) => {
+                if !json {
+                    ui::check_warn("Port 4200 is in use by another process");
+                }
+                checks.push(serde_json::json!({"check": "port_4200", "status": "warn"}));
+            }
+        }
+    }
+
+    // --- Check 5: Stale daemon.json ---
+    let daemon_json_path = openfang_dir.join("daemon.json");
+    if daemon_json_path.exists() && daemon_running.is_none() {
+        if repair {
+            let _ = std::fs::remove_file(&daemon_json_path);
+            if !json {
+                ui::check_ok("Removed stale daemon.json");
+            }
+            repaired = true;
+        } else if !json {
+            ui::check_warn(
+                "Stale daemon.json found (daemon not running). Run with --repair to clean up.",
+            );
+        }
+        checks.push(serde_json::json!({"check": "stale_daemon_json", "status": if repair { "repaired" } else { "warn" }}));
+    }
+
+    // --- Check 6: Database file ---
+    let db_path = openfang_dir.join("data").join("openfang.db");
+    if db_path.exists() {
+        // Quick SQLite magic bytes check
+        if let Ok(bytes) = std::fs::read(&db_path) {
+            if bytes.len() >= 16 && bytes.starts_with(b"SQLite format 3") {
+                if !json {
+                    ui::check_ok("Database file (valid SQLite)");
+                }
+                checks.push(serde_json::json!({"check": "database", "status": "ok"}));
             } else {
-                for (file, err) in &agent_errors {
-                    if !json {
-                        ui::check_fail(&format!("Invalid manifest {file}: {err}"));
-                    }
+                if !json {
+                    ui::check_fail("Database file exists but is not valid SQLite");
                 }
-                checks.push(serde_json::json!({"check": "agent_manifests", "status": "fail", "errors": agent_errors.len()}));
+                checks.push(serde_json::json!({"check": "database", "status": "fail"}));
                 all_ok = false;
             }
         }
     } else {
         if !json {
-            ui::check_fail("Could not determine home directory");
+            ui::check_warn("No database file (will be created on first run)");
         }
-        checks.push(serde_json::json!({"check": "home_dir", "status": "fail"}));
-        all_ok = false;
+        checks.push(serde_json::json!({"check": "database", "status": "warn"}));
+    }
+
+    // --- Check 7: Disk space ---
+    #[cfg(unix)]
+    {
+        if let Ok(output) = std::process::Command::new("df")
+            .args(["-m", &openfang_dir.display().to_string()])
+            .output()
+        {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            // Parse the available MB from df output (4th column of 2nd line)
+            if let Some(line) = stdout.lines().nth(1) {
+                let cols: Vec<&str> = line.split_whitespace().collect();
+                if cols.len() >= 4 {
+                    if let Ok(available_mb) = cols[3].parse::<u64>() {
+                        if available_mb < 100 {
+                            if !json {
+                                ui::check_warn(&format!(
+                                    "Low disk space: {available_mb}MB available"
+                                ));
+                            }
+                            checks.push(serde_json::json!({"check": "disk_space", "status": "warn", "available_mb": available_mb}));
+                        } else {
+                            if !json {
+                                ui::check_ok(&format!("Disk space: {available_mb}MB available"));
+                            }
+                            checks.push(serde_json::json!({"check": "disk_space", "status": "ok", "available_mb": available_mb}));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Check 8: Agent manifests parse correctly ---
+    let agents_dir = openfang_dir.join("agents");
+    if agents_dir.exists() {
+        let mut agent_errors = Vec::new();
+        if let Ok(entries) = std::fs::read_dir(&agents_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|e| e.to_str()) == Some("toml") {
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        if let Err(e) = toml::from_str::<AgentManifest>(&content) {
+                            agent_errors.push((
+                                path.file_name()
+                                    .unwrap_or_default()
+                                    .to_string_lossy()
+                                    .to_string(),
+                                e.to_string(),
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        if agent_errors.is_empty() {
+            if !json {
+                ui::check_ok("Agent manifests are valid");
+            }
+            checks.push(serde_json::json!({"check": "agent_manifests", "status": "ok"}));
+        } else {
+            for (file, err) in &agent_errors {
+                if !json {
+                    ui::check_fail(&format!("Invalid manifest {file}: {err}"));
+                }
+            }
+            checks.push(serde_json::json!({"check": "agent_manifests", "status": "fail", "errors": agent_errors.len()}));
+            all_ok = false;
+        }
     }
 
     // --- LLM providers ---
@@ -2198,8 +2181,8 @@ decay_rate = 0.05
     }
 
     // --- Check 11: .env keys vs config api_key_env consistency ---
-    if let Some(ref h) = home {
-        let openfang_dir = h.join(".openfang");
+    {
+        let openfang_dir = openfang_home();
         let config_path = openfang_dir.join("config.toml");
         if config_path.exists() {
             let config_str = std::fs::read_to_string(&config_path).unwrap_or_default();
@@ -2224,8 +2207,8 @@ decay_rate = 0.05
     }
 
     // --- Check 12: Config deserialization into KernelConfig ---
-    if let Some(ref h) = home {
-        let openfang_dir = h.join(".openfang");
+    {
+        let openfang_dir = openfang_home();
         let config_path = openfang_dir.join("config.toml");
         if config_path.exists() {
             if !json {
@@ -2329,10 +2312,7 @@ decay_rate = 0.05
         if !json {
             println!("\n  Skills:");
         }
-        let skills_dir = home
-            .as_ref()
-            .map(|h| h.join(".openfang").join("skills"))
-            .unwrap_or_else(|| std::path::PathBuf::from("skills"));
+        let skills_dir = openfang_home().join("skills");
         let mut skill_reg = openfang_skills::registry::SkillRegistry::new(skills_dir.clone());
         skill_reg.load_bundled();
         let bundled_count = skill_reg.count();
@@ -2393,11 +2373,11 @@ decay_rate = 0.05
     }
 
     // --- Check 14: Extension registry health ---
-    if let Some(ref h) = home {
+    {
         if !json {
             println!("\n  Extensions:");
         }
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
         let mut ext_registry =
             openfang_extensions::registry::IntegrationRegistry::new(&openfang_dir);
         ext_registry.load_bundled();
@@ -3013,7 +2993,7 @@ fn cmd_migrate(args: MigrateArgs) {
             eprintln!("Error: Could not determine home directory");
             std::process::exit(1);
         })
-        .join(".openfang");
+        .join(".ochi");
 
     println!("Migrating from {} ({})...", source, source_dir.display());
     if args.dry_run {
@@ -3696,7 +3676,7 @@ fn cmd_channel_toggle(channel: &str, enable: bool) {
         }
     } else {
         println!("Note: Channel {channel} will be {action} when the daemon starts.");
-        println!("Edit ~/.openfang/config.toml to persist this change.");
+        println!("Edit ~/.ochi/config.toml to persist this change.");
     }
 }
 
@@ -4150,12 +4130,7 @@ fn cmd_quick_chat(config: Option<PathBuf>, agent: Option<String>) {
 // ---------------------------------------------------------------------------
 
 pub(crate) fn openfang_home() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or_else(|| {
-            eprintln!("Error: Could not determine home directory");
-            std::process::exit(1);
-        })
-        .join(".openfang")
+    openfang_kernel::config::openfang_home()
 }
 
 fn prompt_input(prompt: &str) -> String {
@@ -4969,7 +4944,7 @@ fn cmd_sessions(agent: Option<&str>, json: bool) {
 
 fn cmd_logs(lines: usize, follow: bool) {
     let log_path = dirs::home_dir()
-        .map(|h| h.join(".openfang").join("tui.log"))
+        .map(|h| h.join(".ochi").join("tui.log"))
         .unwrap_or_else(|| PathBuf::from("tui.log"));
 
     if !log_path.exists() {
@@ -5501,7 +5476,7 @@ fn cmd_system_version(json: bool) {
 
 fn cmd_reset(confirm: bool) {
     let openfang_dir = match dirs::home_dir() {
-        Some(h) => h.join(".openfang"),
+        Some(h) => h.join(".ochi"),
         None => {
             ui::error("Could not determine home directory");
             std::process::exit(1);
