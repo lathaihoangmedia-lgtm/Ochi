@@ -40,7 +40,15 @@ Ochi được tổ chức theo một cấu trúc phân cấp Agent độc đáo:
 
 ## Bắt đầu
 
-Để bắt đầu với Ochi, vui lòng tham khảo tài liệu chi tiết trong thư mục `docs/` và các ví dụ cấu hình trong `openfang.toml.example` (sẽ được đổi tên thành `ochi.toml.example`).
+Để bắt đầu với Ochi, vui lòng tham khảo tài liệu chi tiết trong thư mục `docs/` và ví dụ cấu hình trong `ochi.toml.example`.
+
+
+## Brand & repo tham chiếu
+
+- Brand thống nhất: **Ochi**.
+- Upstream kế thừa kỹ thuật: **OpenFang** (`https://github.com/RightNow-AI/openfang`).
+- Hệ sinh thái tham chiếu: **Ophiuchus--agent** (`https://github.com/lathaihoangmedia-lgtm/Ophiuchus--agent`).
+- Kế hoạch triển khai chi tiết: `docs/ochi-brand-roadmap.md`.
 
 ## Bản quyền
 
