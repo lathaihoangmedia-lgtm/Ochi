@@ -14,7 +14,7 @@ pub struct AgentTemplate {
 
 /// Discover template directories. Checks:
 /// 1. The repo `agents/` dir (for dev builds)
-/// 2. `~/.openfang/agents/` (installed templates)
+/// 2. `~/.ochi/agents/` (installed templates)
 /// 3. `OPENFANG_AGENTS_DIR` env var
 pub fn discover_template_dirs() -> Vec<PathBuf> {
     let mut dirs = Vec::new();
@@ -36,11 +36,9 @@ pub fn discover_template_dirs() -> Vec<PathBuf> {
     }
 
     // Installed templates
-    if let Some(home) = dirs::home_dir() {
-        let agents = home.join(".openfang").join("agents");
-        if agents.is_dir() && !dirs.contains(&agents) {
-            dirs.push(agents);
-        }
+    let agents = openfang_kernel::config::openfang_home().join("agents");
+    if agents.is_dir() && !dirs.contains(&agents) {
+        dirs.push(agents);
     }
 
     // Environment override

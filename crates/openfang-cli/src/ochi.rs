@@ -59,8 +59,8 @@ const AFTER_HELP: &str = "\
 \x1b[1mHint:\x1b[0m Commands suffixed with [*] have subcommands. Run `<command> --help` for details.
 
 \x1b[1;36mExamples:\x1b[0m
-  openfang init                 Initialize config and data directories
-  openfang start                Start the kernel daemon
+  ochi init                 Initialize config and data directories
+  ochi start                Start the kernel daemon
   openfang tui                  Launch the interactive terminal dashboard
   openfang chat                 Quick chat with the default agent
   openfang agent new coder      Spawn a new agent from a template
@@ -71,8 +71,8 @@ const AFTER_HELP: &str = "\
   openfang cron list            List scheduled jobs
 
 \x1b[1;36mQuick Start:\x1b[0m
-  1. openfang init              Set up config + API key
-  2. openfang start             Launch the daemon
+  1. ochi init              Set up config + API key
+  2. ochi start             Launch the daemon
   3. openfang chat              Start chatting!
 
 \x1b[1;36mMore:\x1b[0m
@@ -101,7 +101,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize OpenFang (create ~/.openfang/ and default config).
+    /// Initialize OpenFang (create ~/.ochi/ and default config).
     Init {
         /// Quick mode: no prompts, just write config + .env (for CI/scripts).
         #[arg(long)]
@@ -390,12 +390,12 @@ enum ConfigCommands {
         /// Dotted key path to remove (e.g. "api.cors_origin").
         key: String,
     },
-    /// Save an API key to ~/.openfang/.env (prompts interactively).
+    /// Save an API key to ~/.ochi/.env (prompts interactively).
     SetKey {
         /// Provider name (groq, anthropic, openai, gemini, deepseek, etc.).
         provider: String,
     },
-    /// Remove an API key from ~/.openfang/.env.
+    /// Remove an API key from ~/.ochi/.env.
     DeleteKey {
         /// Provider name.
         provider: String,
@@ -711,9 +711,7 @@ fn init_tracing_stderr() {
 
 /// Redirect tracing to a log file so it doesn't corrupt the ratatui TUI.
 fn init_tracing_file() {
-    let log_dir = dirs::home_dir()
-        .map(|h| h.join(".openfang"))
-        .unwrap_or_else(|| std::path::PathBuf::from("."));
+    let log_dir = openfang_home();
     let _ = std::fs::create_dir_all(&log_dir);
     let log_path = log_dir.join("tui.log");
 
@@ -739,7 +737,7 @@ fn init_tracing_file() {
 }
 
 fn main() {
-    // Load ~/.openfang/.env into process environment (system env takes priority).
+    // Load ~/.ochi/.env into process environment (system env takes priority).
     dotenv::load_dotenv();
 
     let cli = Cli::parse();
@@ -947,7 +945,7 @@ pub(crate) fn restrict_dir_permissions(path: &std::path::Path) {
 pub(crate) fn restrict_dir_permissions(_path: &std::path::Path) {}
 
 pub(crate) fn find_daemon() -> Option<String> {
-    let home_dir = dirs::home_dir()?.join(".openfang");
+    let home_dir = openfang_home();
     let info = read_daemon_info(&home_dir)?;
 
     // Normalize listen address: replace 0.0.0.0 with 127.0.0.1 to avoid
@@ -988,7 +986,7 @@ pub(crate) fn daemon_json(
             if status.is_server_error() {
                 ui::error_with_fix(
                     &format!("Daemon returned error ({})", status),
-                    "Check daemon logs: ~/.openfang/tui.log",
+                    "Check daemon logs: ~/.ochi/tui.log",
                 );
             }
             body
@@ -998,17 +996,17 @@ pub(crate) fn daemon_json(
             if msg.contains("timed out") || msg.contains("Timeout") {
                 ui::error_with_fix(
                     "Request timed out",
-                    "The agent may be processing a complex request. Try again, or check `openfang status`",
+                    "The agent may be processing a complex request. Try again, or check `ochi status`",
                 );
             } else if msg.contains("Connection refused") || msg.contains("connect") {
                 ui::error_with_fix(
                     "Cannot connect to daemon",
-                    "Is the daemon running? Start it with: openfang start",
+                    "Is the daemon running? Start it with: ochi start",
                 );
             } else {
                 ui::error_with_fix(
                     &format!("Daemon communication error: {msg}"),
-                    "Check `openfang status` or restart: openfang start",
+                    "Check `ochi status` or restart: ochi start",
                 );
             }
             std::process::exit(1);
@@ -1029,7 +1027,7 @@ fn cmd_init(quick: bool) {
         }
     };
 
-    let openfang_dir = home.join(".openfang");
+    let openfang_dir = openfang_home();
 
     // --- Ensure directories exist ---
     if !openfang_dir.exists() {
@@ -1074,12 +1072,12 @@ fn cmd_init_quick(openfang_dir: &std::path::Path) {
     write_config_if_missing(openfang_dir, provider, model, api_key_env);
 
     ui::blank();
-    ui::success("OpenFang initialized (quick mode)");
+    ui::success("Ochi initialized (quick mode)");
     ui::kv("Provider", provider);
     ui::kv("Model", model);
     ui::blank();
     ui::next_steps(&[
-        "Start the daemon:  openfang start",
+        "Start the daemon:  ochi start",
         "Chat:              openfang chat",
     ]);
 }
@@ -1097,7 +1095,7 @@ fn cmd_init_interactive(openfang_dir: &std::path::Path) {
         } => {
             // Print summary after TUI restores terminal
             ui::blank();
-            ui::success("OpenFang initialized!");
+            ui::success("Ochi initialized!");
             ui::kv("Provider", &provider);
             ui::kv("Model", &model);
 
@@ -1119,7 +1117,7 @@ fn cmd_init_interactive(openfang_dir: &std::path::Path) {
                             ui::hint(&format!("Could not open browser. Visit: {url}"));
                         }
                     } else {
-                        ui::error("Daemon is not running. Start it with: openfang start");
+                        ui::error("Daemon is not running. Start it with: ochi start");
                     }
                 }
                 LaunchChoice::Chat => {
@@ -1241,7 +1239,7 @@ fn write_config_if_missing(
         ui::check_ok(&format!("Config already exists: {}", config_path.display()));
     } else {
         let default_config = format!(
-            r#"# OpenFang Agent OS configuration
+            r#"# Ochi Agent OS configuration
 # See https://github.com/RightNow-AI/openfang for documentation
 
 # For Docker, change to "0.0.0.0:4200" or set OPENFANG_LISTEN env var.
@@ -1269,7 +1267,7 @@ fn cmd_start(config: Option<PathBuf>) {
     if let Some(base) = find_daemon() {
         ui::error_with_fix(
             &format!("Daemon already running at {base}"),
-            "Use `openfang status` to check it, or stop it first",
+            "Use `ochi status` to check it, or stop it first",
         );
         std::process::exit(1);
     }
@@ -1345,7 +1343,7 @@ fn cmd_stop() {
                     }
                     // Still alive — force kill via PID
                     if let Some(home) = dirs::home_dir() {
-                        let of_dir = home.join(".openfang");
+                        let of_dir = openfang_home();
                         if let Some(info) = read_daemon_info(&of_dir) {
                             force_kill_pid(info.pid);
                             let _ = std::fs::remove_file(of_dir.join("daemon.json"));
@@ -1364,7 +1362,7 @@ fn cmd_stop() {
         None => {
             ui::warn_with_fix(
                 "No running daemon found",
-                "Is it running? Check with: openfang status",
+                "Is it running? Check with: ochi status",
             );
         }
     }
@@ -1396,7 +1394,7 @@ fn boot_kernel_error(e: &openfang_kernel::error::KernelError) {
     } else if msg.contains("database") || msg.contains("locked") || msg.contains("sqlite") {
         ui::error_with_fix(
             "Database error (file may be locked)",
-            "Check if another OpenFang process is running: openfang status",
+            "Check if another OpenFang process is running: ochi status",
         );
     } else if msg.contains("key") || msg.contains("API") || msg.contains("auth") {
         ui::error_with_fix(
@@ -1455,7 +1453,7 @@ fn cmd_agent_spawn(config: Option<PathBuf>, manifest_path: PathBuf) {
                 println!("Agent spawned (in-process mode).");
                 println!("  ID: {id}");
                 println!("\n  Note: Agent will be lost when this process exits.");
-                println!("  For persistent agents, use `openfang start` first.");
+                println!("  For persistent agents, use `ochi start` first.");
             }
             Err(e) => {
                 eprintln!("Failed to spawn agent: {e}");
@@ -1585,7 +1583,7 @@ fn cmd_agent_new(config: Option<PathBuf>, template_name: Option<String>) {
     if all_templates.is_empty() {
         ui::error_with_fix(
             "No agent templates found",
-            "Run `openfang init` to set up the agents directory",
+            "Run `ochi init` to set up the agents directory",
         );
         std::process::exit(1);
     }
@@ -1681,7 +1679,7 @@ fn spawn_template_agent(config: Option<PathBuf>, template: &templates::AgentTemp
                 ui::blank();
                 ui::hint(&format!("Chat: openfang chat {}", template.name));
                 ui::hint("Note: Agent will be lost when this process exits");
-                ui::hint("For persistent agents, use `openfang start` first");
+                ui::hint("For persistent agents, use `ochi start` first");
             }
             Err(e) => {
                 ui::error(&format!("Failed to spawn agent: {e}"));
@@ -1765,7 +1763,7 @@ fn cmd_status(config: Option<PathBuf>, json: bool) {
         ui::kv("Data dir", &kernel.config.data_dir.display().to_string());
         ui::kv_warn("Daemon", "NOT RUNNING");
         ui::blank();
-        ui::hint("Run `openfang start` to launch the daemon");
+        ui::hint("Run `ochi start` to launch the daemon");
 
         if agent_count > 0 {
             ui::blank();
@@ -1789,17 +1787,17 @@ fn cmd_doctor(json: bool, repair: bool) {
 
     let home = dirs::home_dir();
     if let Some(h) = &home {
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
 
-        // --- Check 1: OpenFang directory ---
+        // --- Check 1: Ochi directory ---
         if openfang_dir.exists() {
             if !json {
-                ui::check_ok(&format!("OpenFang directory: {}", openfang_dir.display()));
+                ui::check_ok(&format!("Ochi directory: {}", openfang_dir.display()));
             }
             checks.push(serde_json::json!({"check": "openfang_dir", "status": "ok", "path": openfang_dir.display().to_string()}));
         } else if repair {
             if !json {
-                ui::check_fail("OpenFang directory not found.");
+                ui::check_fail("Ochi directory not found.");
             }
             let answer = prompt_input("    Create it now? [Y/n] ");
             if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
@@ -1809,7 +1807,7 @@ fn cmd_doctor(json: bool, repair: bool) {
                         let _ = std::fs::create_dir_all(openfang_dir.join(sub));
                     }
                     if !json {
-                        ui::check_ok("Created OpenFang directory");
+                        ui::check_ok("Created Ochi directory");
                     }
                     repaired = true;
                 } else {
@@ -1824,7 +1822,7 @@ fn cmd_doctor(json: bool, repair: bool) {
             checks.push(serde_json::json!({"check": "openfang_dir", "status": if repaired { "repaired" } else { "fail" }}));
         } else {
             if !json {
-                ui::check_fail("OpenFang directory not found. Run `openfang init` first.");
+                ui::check_fail("Ochi directory not found. Run `ochi init` first.");
             }
             checks.push(serde_json::json!({"check": "openfang_dir", "status": "fail"}));
             all_ok = false;
@@ -1907,7 +1905,7 @@ fn cmd_doctor(json: bool, repair: bool) {
             }
             let answer = prompt_input("    Create default config? [Y/n] ");
             if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
-                let default_config = r#"# OpenFang Agent OS configuration
+                let default_config = r#"# Ochi Agent OS configuration
 # See https://github.com/RightNow-AI/openfang for documentation
 
 # For Docker, change to "0.0.0.0:4200" or set OPENFANG_LISTEN env var.
@@ -1958,7 +1956,7 @@ decay_rate = 0.05
             checks.push(serde_json::json!({"check": "daemon", "status": "ok", "url": base}));
         } else {
             if !json {
-                ui::check_warn("Daemon not running (start with `openfang start`)");
+                ui::check_warn("Daemon not running (start with `ochi start`)");
             }
             checks.push(serde_json::json!({"check": "daemon", "status": "warn"}));
 
@@ -2195,7 +2193,7 @@ decay_rate = 0.05
 
     // --- Check 11: .env keys vs config api_key_env consistency ---
     if let Some(ref h) = home {
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
         let config_path = openfang_dir.join("config.toml");
         if config_path.exists() {
             let config_str = std::fs::read_to_string(&config_path).unwrap_or_default();
@@ -2221,7 +2219,7 @@ decay_rate = 0.05
 
     // --- Check 12: Config deserialization into KernelConfig ---
     if let Some(ref h) = home {
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
         let config_path = openfang_dir.join("config.toml");
         if config_path.exists() {
             if !json {
@@ -2327,7 +2325,7 @@ decay_rate = 0.05
         }
         let skills_dir = home
             .as_ref()
-            .map(|h| h.join(".openfang").join("skills"))
+            .map(|_| openfang_home().join("skills"))
             .unwrap_or_else(|| std::path::PathBuf::from("skills"));
         let mut skill_reg = openfang_skills::registry::SkillRegistry::new(skills_dir.clone());
         skill_reg.load_bundled();
@@ -2393,7 +2391,7 @@ decay_rate = 0.05
         if !json {
             println!("\n  Extensions:");
         }
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
         let mut ext_registry =
             openfang_extensions::registry::IntegrationRegistry::new(&openfang_dir);
         ext_registry.load_bundled();
@@ -2622,8 +2620,8 @@ decay_rate = 0.05
     } else {
         println!();
         if all_ok {
-            ui::success("All checks passed! OpenFang is ready.");
-            ui::hint("Start the daemon: openfang start");
+            ui::success("All checks passed! Ochi is ready.");
+            ui::hint("Start the daemon: ochi start");
         } else if repaired {
             ui::success("Repairs applied. Re-run `openfang doctor` to verify.");
         } else {
@@ -2653,7 +2651,7 @@ fn cmd_dashboard() {
             Err(e) => {
                 ui::error_with_fix(
                     &format!("Could not start daemon: {e}"),
-                    "Start it manually: openfang start",
+                    "Start it manually: ochi start",
                 );
                 std::process::exit(1);
             }
@@ -2964,7 +2962,7 @@ fn require_daemon(command: &str) -> String {
     find_daemon().unwrap_or_else(|| {
         ui::error_with_fix(
             &format!("`openfang {command}` requires a running daemon"),
-            "Start the daemon: openfang start",
+            "Start the daemon: ochi start",
         );
         ui::hint("Or try `openfang chat` which works without a daemon");
         std::process::exit(1);
@@ -3009,7 +3007,7 @@ fn cmd_migrate(args: MigrateArgs) {
             eprintln!("Error: Could not determine home directory");
             std::process::exit(1);
         })
-        .join(".openfang");
+        .join(".ochi");
 
     println!("Migrating from {} ({})...", source, source_dir.display());
     if args.dry_run {
@@ -3291,7 +3289,7 @@ fn cmd_channel_list() {
     let config_path = home.join("config.toml");
 
     if !config_path.exists() {
-        println!("No configuration found. Run `openfang init` first.");
+        println!("No configuration found. Run `ochi init` first.");
         return;
     }
 
@@ -3393,7 +3391,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             // Save token to .env
             match dotenv::save_env_key("TELEGRAM_BOT_TOKEN", &token) {
-                Ok(()) => ui::success("Token saved to ~/.openfang/.env"),
+                Ok(()) => ui::success("Token saved to ~/.ochi/.env"),
                 Err(_) => println!("    export TELEGRAM_BOT_TOKEN={token}"),
             }
 
@@ -3423,7 +3421,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
             maybe_write_channel_config("discord", config_block);
 
             match dotenv::save_env_key("DISCORD_BOT_TOKEN", &token) {
-                Ok(()) => ui::success("Token saved to ~/.openfang/.env"),
+                Ok(()) => ui::success("Token saved to ~/.ochi/.env"),
                 Err(_) => println!("    export DISCORD_BOT_TOKEN={token}"),
             }
 
@@ -3451,13 +3449,13 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             if !app_token.is_empty() {
                 match dotenv::save_env_key("SLACK_APP_TOKEN", &app_token) {
-                    Ok(()) => ui::success("App token saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("App token saved to ~/.ochi/.env"),
                     Err(_) => println!("    export SLACK_APP_TOKEN={app_token}"),
                 }
             }
             if !bot_token.is_empty() {
                 match dotenv::save_env_key("SLACK_BOT_TOKEN", &bot_token) {
-                    Ok(()) => ui::success("Bot token saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Bot token saved to ~/.ochi/.env"),
                     Err(_) => println!("    export SLACK_BOT_TOKEN={bot_token}"),
                 }
             }
@@ -3491,7 +3489,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
             ] {
                 if !val.is_empty() {
                     match dotenv::save_env_key(key, val) {
-                        Ok(()) => ui::success(&format!("{key} saved to ~/.openfang/.env")),
+                        Ok(()) => ui::success(&format!("{key} saved to ~/.ochi/.env")),
                         Err(_) => println!("    export {key}={val}"),
                     }
                 }
@@ -3523,7 +3521,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             if !password.is_empty() {
                 match dotenv::save_env_key("EMAIL_PASSWORD", &password) {
-                    Ok(()) => ui::success("Password saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Password saved to ~/.ochi/.env"),
                     Err(_) => println!("    export EMAIL_PASSWORD=your_app_password"),
                 }
             } else {
@@ -3557,7 +3555,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
 
             if !phone.is_empty() {
                 match dotenv::save_env_key("SIGNAL_PHONE", &phone) {
-                    Ok(()) => ui::success("Phone saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Phone saved to ~/.ochi/.env"),
                     Err(_) => println!("    export SIGNAL_PHONE={phone}"),
                 }
             }
@@ -3592,7 +3590,7 @@ fn cmd_channel_setup(channel: Option<&str>) {
             let _ = dotenv::save_env_key("MATRIX_HOMESERVER", &homeserver);
             if !token.is_empty() {
                 match dotenv::save_env_key("MATRIX_ACCESS_TOKEN", &token) {
-                    Ok(()) => ui::success("Token saved to ~/.openfang/.env"),
+                    Ok(()) => ui::success("Token saved to ~/.ochi/.env"),
                     Err(_) => println!("    export MATRIX_ACCESS_TOKEN={token}"),
                 }
             }
@@ -3617,7 +3615,7 @@ fn maybe_write_channel_config(channel: &str, config_block: &str) {
     let config_path = home.join("config.toml");
 
     if !config_path.exists() {
-        ui::hint("No config.toml found. Run `openfang init` first.");
+        ui::hint("No config.toml found. Run `ochi init` first.");
         return;
     }
 
@@ -3646,7 +3644,7 @@ fn notify_daemon_restart() {
     if find_daemon().is_some() {
         ui::check_warn("Restart the daemon to activate this channel");
     } else {
-        ui::hint("Start the daemon: openfang start");
+        ui::hint("Start the daemon: ochi start");
     }
 }
 
@@ -3667,7 +3665,7 @@ fn cmd_channel_test(channel: &str) {
             );
         }
     } else {
-        eprintln!("Channel test requires a running daemon. Start with: openfang start");
+        eprintln!("Channel test requires a running daemon. Start with: ochi start");
         std::process::exit(1);
     }
 }
@@ -3692,7 +3690,7 @@ fn cmd_channel_toggle(channel: &str, enable: bool) {
         }
     } else {
         println!("Note: Channel {channel} will be {action} when the daemon starts.");
-        println!("Edit ~/.openfang/config.toml to persist this change.");
+        println!("Edit ~/.ochi/config.toml to persist this change.");
     }
 }
 
@@ -3783,7 +3781,7 @@ pub(crate) fn test_api_key(provider: &str, env_var: &str) -> bool {
 // Background daemon start
 // ---------------------------------------------------------------------------
 
-/// Spawn `openfang start` as a detached background process.
+/// Spawn `ochi start` as a detached background process.
 ///
 /// Polls for daemon health for up to 10 seconds. Returns the daemon URL on success.
 pub(crate) fn start_daemon_background() -> Result<String, String> {
@@ -3836,7 +3834,7 @@ fn cmd_config_show() {
 
     if !config_path.exists() {
         println!("No configuration found at: {}", config_path.display());
-        println!("Run `openfang init` to create one.");
+        println!("Run `ochi init` to create one.");
         return;
     }
 
@@ -3884,7 +3882,7 @@ fn cmd_config_get(key: &str) {
     let config_path = home.join("config.toml");
 
     if !config_path.exists() {
-        ui::error_with_fix("No config file found", "Run `openfang init` first");
+        ui::error_with_fix("No config file found", "Run `ochi init` first");
         std::process::exit(1);
     }
 
@@ -3928,7 +3926,7 @@ fn cmd_config_set(key: &str, value: &str) {
     let config_path = home.join("config.toml");
 
     if !config_path.exists() {
-        ui::error_with_fix("No config file found", "Run `openfang init` first");
+        ui::error_with_fix("No config file found", "Run `ochi init` first");
         std::process::exit(1);
     }
 
@@ -4012,7 +4010,7 @@ fn cmd_config_unset(key: &str) {
     let config_path = home.join("config.toml");
 
     if !config_path.exists() {
-        ui::error_with_fix("No config file found", "Run `openfang init` first");
+        ui::error_with_fix("No config file found", "Run `ochi init` first");
         std::process::exit(1);
     }
 
@@ -4084,7 +4082,7 @@ fn cmd_config_set_key(provider: &str) {
 
     match dotenv::save_env_key(&env_var, &key) {
         Ok(()) => {
-            ui::success(&format!("Saved {env_var} to ~/.openfang/.env"));
+            ui::success(&format!("Saved {env_var} to ~/.ochi/.env"));
             // Test the key
             print!("  Testing key... ");
             io::stdout().flush().unwrap();
@@ -4105,7 +4103,7 @@ fn cmd_config_delete_key(provider: &str) {
     let env_var = provider_to_env_var(provider);
 
     match dotenv::remove_env_key(&env_var) {
-        Ok(()) => ui::success(&format!("Removed {env_var} from ~/.openfang/.env")),
+        Ok(()) => ui::success(&format!("Removed {env_var} from ~/.ochi/.env")),
         Err(e) => {
             ui::error(&format!("Failed to remove key: {e}"));
             std::process::exit(1);
@@ -4146,12 +4144,7 @@ fn cmd_quick_chat(config: Option<PathBuf>, agent: Option<String>) {
 // ---------------------------------------------------------------------------
 
 pub(crate) fn openfang_home() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or_else(|| {
-            eprintln!("Error: Could not determine home directory");
-            std::process::exit(1);
-        })
-        .join(".openfang")
+    openfang_kernel::config::openfang_home()
 }
 
 fn prompt_input(prompt: &str) -> String {
@@ -4964,9 +4957,7 @@ fn cmd_sessions(agent: Option<&str>, json: bool) {
 }
 
 fn cmd_logs(lines: usize, follow: bool) {
-    let log_path = dirs::home_dir()
-        .map(|h| h.join(".openfang").join("tui.log"))
-        .unwrap_or_else(|| PathBuf::from("tui.log"));
+    let log_path = openfang_home().join("tui.log");
 
     if !log_path.exists() {
         ui::error_with_fix(
@@ -5044,7 +5035,7 @@ fn cmd_health(json: bool) {
                 std::process::exit(1);
             }
             ui::error("Daemon is not running.");
-            ui::hint("Start it with: openfang start");
+            ui::hint("Start it with: ochi start");
             std::process::exit(1);
         }
     }
@@ -5449,7 +5440,7 @@ fn cmd_system_info(json: bool) {
             );
             return;
         }
-        ui::section("OpenFang System Info");
+        ui::section("Ochi System Info");
         ui::blank();
         ui::kv("Version", env!("CARGO_PKG_VERSION"));
         ui::kv("Status", body["status"].as_str().unwrap_or("?"));
@@ -5476,11 +5467,11 @@ fn cmd_system_info(json: bool) {
             );
             return;
         }
-        ui::section("OpenFang System Info");
+        ui::section("Ochi System Info");
         ui::blank();
         ui::kv("Version", env!("CARGO_PKG_VERSION"));
         ui::kv_warn("Daemon", "NOT RUNNING");
-        ui::hint("Start with: openfang start");
+        ui::hint("Start with: ochi start");
     }
 }
 
@@ -5497,7 +5488,7 @@ fn cmd_system_version(json: bool) {
 
 fn cmd_reset(confirm: bool) {
     let openfang_dir = match dirs::home_dir() {
-        Some(h) => h.join(".openfang"),
+        Some(_) => openfang_home(),
         None => {
             ui::error("Could not determine home directory");
             std::process::exit(1);

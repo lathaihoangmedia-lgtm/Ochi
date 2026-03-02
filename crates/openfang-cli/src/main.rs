@@ -105,7 +105,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize OpenFang (create ~/.openfang/ and default config).
+    /// Initialize OpenFang (create ~/.ochi/ and default config).
     Init {
         /// Quick mode: no prompts, just write config + .env (for CI/scripts).
         #[arg(long)]
@@ -716,7 +716,7 @@ fn init_tracing_stderr() {
 /// Redirect tracing to a log file so it doesn't corrupt the ratatui TUI.
 fn init_tracing_file() {
     let log_dir = dirs::home_dir()
-        .map(|h| h.join(".openfang"))
+        .map(|_| openfang_home())
         .unwrap_or_else(|| std::path::PathBuf::from("."));
     let _ = std::fs::create_dir_all(&log_dir);
     let log_path = log_dir.join("tui.log");
@@ -951,7 +951,7 @@ pub(crate) fn restrict_dir_permissions(path: &std::path::Path) {
 pub(crate) fn restrict_dir_permissions(_path: &std::path::Path) {}
 
 pub(crate) fn find_daemon() -> Option<String> {
-    let home_dir = dirs::home_dir()?.join(".openfang");
+    let home_dir = openfang_home();
     let info = read_daemon_info(&home_dir)?;
 
     // Normalize listen address: replace 0.0.0.0 with 127.0.0.1 to avoid
@@ -992,7 +992,7 @@ pub(crate) fn daemon_json(
             if status.is_server_error() {
                 ui::error_with_fix(
                     &format!("Daemon returned error ({})", status),
-                    "Check daemon logs: ~/.openfang/tui.log",
+                    "Check daemon logs: ~/.ochi/tui.log",
                 );
             }
             body
@@ -1033,7 +1033,7 @@ fn cmd_init(quick: bool) {
         }
     };
 
-    let openfang_dir = home.join(".openfang");
+    let openfang_dir = openfang_home();
 
     // --- Ensure directories exist ---
     if !openfang_dir.exists() {
@@ -1349,7 +1349,7 @@ fn cmd_stop() {
                     }
                     // Still alive — force kill via PID
                     if let Some(home) = dirs::home_dir() {
-                        let of_dir = home.join(".openfang");
+                        let of_dir = openfang_home();
                         if let Some(info) = read_daemon_info(&of_dir) {
                             force_kill_pid(info.pid);
                             let _ = std::fs::remove_file(of_dir.join("daemon.json"));
@@ -1793,7 +1793,7 @@ fn cmd_doctor(json: bool, repair: bool) {
 
     let home = dirs::home_dir();
     if let Some(h) = &home {
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
 
         // --- Check 1: OpenFang directory ---
         if openfang_dir.exists() {
@@ -2199,7 +2199,7 @@ decay_rate = 0.05
 
     // --- Check 11: .env keys vs config api_key_env consistency ---
     if let Some(ref h) = home {
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
         let config_path = openfang_dir.join("config.toml");
         if config_path.exists() {
             let config_str = std::fs::read_to_string(&config_path).unwrap_or_default();
@@ -2225,7 +2225,7 @@ decay_rate = 0.05
 
     // --- Check 12: Config deserialization into KernelConfig ---
     if let Some(ref h) = home {
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
         let config_path = openfang_dir.join("config.toml");
         if config_path.exists() {
             if !json {
@@ -2331,7 +2331,7 @@ decay_rate = 0.05
         }
         let skills_dir = home
             .as_ref()
-            .map(|h| h.join(".openfang").join("skills"))
+            .map(|_| openfang_home().join("skills"))
             .unwrap_or_else(|| std::path::PathBuf::from("skills"));
         let mut skill_reg = openfang_skills::registry::SkillRegistry::new(skills_dir.clone());
         skill_reg.load_bundled();
@@ -2397,7 +2397,7 @@ decay_rate = 0.05
         if !json {
             println!("\n  Extensions:");
         }
-        let openfang_dir = h.join(".openfang");
+        let openfang_dir = openfang_home();
         let mut ext_registry =
             openfang_extensions::registry::IntegrationRegistry::new(&openfang_dir);
         ext_registry.load_bundled();
@@ -3013,7 +3013,7 @@ fn cmd_migrate(args: MigrateArgs) {
             eprintln!("Error: Could not determine home directory");
             std::process::exit(1);
         })
-        .join(".openfang");
+        .join(".ochi");
 
     println!("Migrating from {} ({})...", source, source_dir.display());
     if args.dry_run {
@@ -3696,7 +3696,7 @@ fn cmd_channel_toggle(channel: &str, enable: bool) {
         }
     } else {
         println!("Note: Channel {channel} will be {action} when the daemon starts.");
-        println!("Edit ~/.openfang/config.toml to persist this change.");
+        println!("Edit ~/.ochi/config.toml to persist this change.");
     }
 }
 
@@ -4150,12 +4150,7 @@ fn cmd_quick_chat(config: Option<PathBuf>, agent: Option<String>) {
 // ---------------------------------------------------------------------------
 
 pub(crate) fn openfang_home() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or_else(|| {
-            eprintln!("Error: Could not determine home directory");
-            std::process::exit(1);
-        })
-        .join(".openfang")
+    openfang_kernel::config::openfang_home()
 }
 
 fn prompt_input(prompt: &str) -> String {
@@ -4969,7 +4964,7 @@ fn cmd_sessions(agent: Option<&str>, json: bool) {
 
 fn cmd_logs(lines: usize, follow: bool) {
     let log_path = dirs::home_dir()
-        .map(|h| h.join(".openfang").join("tui.log"))
+        .map(|_| openfang_home().join("tui.log"))
         .unwrap_or_else(|| PathBuf::from("tui.log"));
 
     if !log_path.exists() {
@@ -5501,7 +5496,7 @@ fn cmd_system_version(json: bool) {
 
 fn cmd_reset(confirm: bool) {
     let openfang_dir = match dirs::home_dir() {
-        Some(h) => h.join(".openfang"),
+        Some(_) => openfang_home(),
         None => {
             ui::error("Could not determine home directory");
             std::process::exit(1);
