@@ -1,119 +1,92 @@
-# SDK Migration Guide: OpenFang → Ochi
+# SDK Migration Guide: OpenFang -> Ochi
 
-This guide explains how to migrate SDK usage from legacy OpenFang naming to the new Ochi naming while preserving backward compatibility.
+Tài liệu này hướng dẫn migration SDK từ naming cũ (`OpenFang`) sang naming mới (`Ochi`) theo hướng **không phá vỡ tương thích ngược**.
 
-> TL;DR: prefer Ochi package/module names in all new code. Legacy OpenFang names still work during the transition window.
+## 1) JavaScript/TypeScript SDK
 
----
+### Package name
+- Mới: `@ochi/sdk`
+- Cũ: `@openfang/sdk` (legacy naming trong codebase cũ)
 
-## Scope
-
-This migration guide covers:
-
-- JavaScript package rename: `@openfang/sdk` → `@ochi/sdk`
-- Python module rename guidance: prefer `ochi_client` and `ochi_sdk`
-- Compatibility aliases still available for existing code
-- Publish and release checklist for SDK maintainers
-
----
-
-## JavaScript SDK
-
-### Package rename
-
-| Legacy | Current (preferred) |
-|---|---|
-| `@openfang/sdk` | `@ochi/sdk` |
-
-### Install
-
+### Cài đặt
 ```bash
 npm install @ochi/sdk
 ```
 
-### Import migration
-
-Prefer `Ochi` in new code:
-
+### Import khuyến nghị
 ```js
 const { Ochi } = require("@ochi/sdk");
+const client = new Ochi("http://localhost:3000");
 ```
 
-Compatibility alias remains available:
+### Tương thích ngược
+SDK vẫn giữ export cũ để tránh gãy mã hiện có:
+- `OpenFang`
+- `OpenFangError`
 
-```js
-const { OpenFang } = require("@ochi/sdk");
-```
-
-### Quick codemod hints
-
-- Replace `@openfang/sdk` with `@ochi/sdk`
-- Replace type/class references from `OpenFang` to `Ochi` (optional but recommended)
-- Keep `OpenFang` only if you need to minimize churn in a large legacy codebase
+Bạn có thể migrate dần sang:
+- `Ochi`
+- `OchiError`
 
 ---
 
-## Python SDK
+## 2) Python SDK
 
-Python distribution currently ships both new and legacy module names for compatibility.
+### Package name
+- Mới: `ochi`
+- Cũ: `openfang` (legacy)
 
-### Preferred imports
+### Cài đặt
+```bash
+pip install ochi
+```
 
+### Import khuyến nghị
 ```python
 from ochi_client import Ochi
-from ochi_sdk import Agent
+
+client = Ochi("http://localhost:3000")
 ```
 
-### Legacy imports still supported
+### Tương thích ngược
+Vẫn hỗ trợ module cũ:
+- `openfang_client`
+- `openfang_sdk`
 
-```python
-from openfang_client import OpenFang
-from openfang_sdk import Agent
+Và bổ sung module mới:
+- `ochi_client`
+- `ochi_sdk`
+
+Alias tương thích:
+- `Ochi` (alias từ implementation cũ)
+- `OchiError` (alias từ `OpenFangError`)
+
+---
+
+## 3) Checklist migration cho team
+
+1. Đổi lệnh cài đặt trong docs/scripts sang package mới (`@ochi/sdk`, `ochi`).
+2. Đổi import mới (`Ochi`) trong ví dụ public-facing.
+3. Giữ alias cũ tối thiểu 2-3 phiên bản ổn định trước khi xem xét deprecate.
+4. Thông báo migration trong release notes khi cắt bỏ alias legacy.
+
+
+## 4) Local home directory migration
+
+Khi chuyển runtime từ đường dẫn cũ sang mới, chạy script migration an toàn:
+
+```bash
+# kiểm tra kế hoạch trước
+scripts/migrate-home.sh --dry-run
+
+# chạy migrate thật
+scripts/migrate-home.sh --yes
 ```
 
-### Migration notes
+Rollback nếu cần:
 
-- For application code that calls Ochi over HTTP/SSE, migrate to `ochi_client`.
-- For agent implementation code, migrate to `ochi_sdk`.
-- Existing code using `openfang_client` / `openfang_sdk` can continue running during the transition window.
+```bash
+scripts/migrate-home.sh --rollback <BACKUP_PATH> --target ~/.ochi
+```
 
----
-
-## Compatibility Matrix
-
-| Surface | Preferred | Legacy alias support |
-|---|---|---|
-| JS package | `@ochi/sdk` | `OpenFang` export alias in package API |
-| Python HTTP client module | `ochi_client` | `openfang_client` |
-| Python agent SDK module | `ochi_sdk` | `openfang_sdk` |
-
----
-
-## SDK Publish Checklist (Maintainers)
-
-Use this checklist for each SDK release:
-
-1. **Versioning**
-   - Bump package version (npm / Python).
-   - Ensure release notes call out compatibility status.
-2. **Naming checks**
-   - JS package remains `@ochi/sdk`.
-   - Python package metadata includes both new and legacy module exports during deprecation period.
-3. **Examples & docs**
-   - Examples use Ochi-first imports by default.
-   - Migration snippets for legacy names remain documented.
-4. **Validation**
-   - Smoke test JS basic + streaming examples.
-   - Smoke test Python basic + streaming examples.
-5. **Announcement**
-   - Mention migration timeline and deprecation window for OpenFang aliases.
-
----
-
-## Recommended Migration Rollout
-
-1. Update internal codebases to Ochi-first imports.
-2. Keep legacy aliases enabled for at least 2–3 stable releases.
-3. Add deprecation warnings in release notes before alias removal.
-4. Remove legacy alias support only after timeline is announced and documented.
-
+Script này merge theo nguyên tắc **không ghi đè file đã tồn tại ở `~/.ochi`**, và tự tạo backup snapshot để rollback.
