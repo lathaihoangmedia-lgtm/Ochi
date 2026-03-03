@@ -252,21 +252,21 @@ These are features where OpenFang can leapfrog OpenClaw.
 
 ### 3.3 JavaScript/Python SDK -- DONE
 
-**Status: COMPLETE** — Created `sdk/javascript/` (@openfang/sdk) with full REST client: agent CRUD, streaming via SSE, sessions, workflows, skills, channels, memory KV, triggers, schedules + TypeScript declarations. Created `sdk/python/openfang_client.py` (zero-dependency stdlib urllib) with same coverage. Both include basic + streaming examples. Python `setup.py` for pip install.
+**Status: COMPLETE** — Created `sdk/javascript/` (@ochi/sdk, có alias API tương thích `OpenFang` trong code export) with full REST client: agent CRUD, streaming via SSE, sessions, workflows, skills, channels, memory KV, triggers, schedules + TypeScript declarations. Created `sdk/python/openfang_client.py` (zero-dependency stdlib urllib) with same coverage. Both include basic + streaming examples. Python `setup.py` for pip install.
 
 **Problem (was):** No official client libraries. Developers must raw-fetch the API.
 
 **What to do:**
 1. Create `sdks/javascript/` — thin wrapper around REST API
    - Agent CRUD, message send, streaming via EventSource, file upload
-   - Publish to npm as `@openfang/sdk`
+   - Publish to npm as `@ochi/sdk` (duy trì API alias chuyển tiếp trong SDK)
 2. Create `sdks/python/` — thin wrapper with httpx
    - Same operations
    - Publish to PyPI as `openfang`
 3. Include usage examples in README
 
 **Done when:**
-- `npm install @openfang/sdk` works
+- `npm install @ochi/sdk` works
 - `pip install openfang` works
 - Basic example: create agent, send message, get response
 
