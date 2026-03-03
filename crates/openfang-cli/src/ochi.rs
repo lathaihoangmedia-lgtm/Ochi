@@ -8,6 +8,7 @@ pub mod table;
 mod templates;
 mod tui;
 mod ui;
+pub mod ochi_orchestrator;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
@@ -271,6 +272,11 @@ enum Commands {
         /// Skip confirmation prompt.
         #[arg(long)]
         confirm: bool,
+    },
+    /// Dispatch a task to the Ochi Grand Agents.
+    Dispatch {
+        /// The task description to dispatch.
+        task: String,
     },
 }
 
@@ -916,6 +922,11 @@ fn main() {
             SystemCommands::Version { json } => cmd_system_version(json),
         },
         Some(Commands::Reset { confirm }) => cmd_reset(confirm),
+        Some(Commands::Dispatch { task }) => {
+            let orchestrator = ochi_orchestrator::OchiOrchestrator::new(cli.config);
+            let result = orchestrator.dispatch(&task);
+            println!("{}", result.green());
+        }
     }
 }
 
