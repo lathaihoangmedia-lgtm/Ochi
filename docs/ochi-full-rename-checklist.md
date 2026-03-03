@@ -22,13 +22,13 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 ## Phase 2 — Binary & runtime rename
 
-- [ ] Đổi binary **chính** từ `openfang` sang `ochi` (hiện tại đang dual-bin, chưa cutover primary).
-- [ ] Giữ shim executable `openfang` (deprecation window) để gọi sang `ochi` sau khi cutover.
-- [ ] Cập nhật service/unit/script cài đặt để chạy `ochi`.
-- [ ] Cập nhật Dockerfile:
-  - [ ] build/copy `ochi`
-  - [ ] `ENTRYPOINT ["ochi"]`
-  - [ ] chuyển biến môi trường mẫu sang `OCHI_HOME` (vẫn đọc `OPENFANG_HOME`).
+- [x] Đổi binary **chính** từ `openfang` sang `ochi` (cutover runtime artifacts: Docker ENTRYPOINT và systemd ExecStart chuyển sang `ochi`).
+- [x] Giữ shim executable `openfang` (deprecation window) để gọi sang `ochi` sau khi cutover.
+- [x] Cập nhật service/unit/script cài đặt để chạy `ochi` (systemd (`deploy/ochi.service`) + install script ưu tiên `ochi`, giữ `deploy/openfang.service` làm shim tương thích).
+- [x] Cập nhật Dockerfile:
+  - [x] build/copy `ochi`
+  - [x] `ENTRYPOINT ["ochi"]`
+  - [x] chuyển biến môi trường mẫu sang `OCHI_HOME` (vẫn đọc `OPENFANG_HOME`).
 
 ## Phase 3 — Crate/workspace rename (rủi ro cao, cần kế hoạch)
 
