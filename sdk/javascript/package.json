@@ -1,14 +1,14 @@
 {
-  "name": "@openfang/sdk",
+  "name": "@ochi/sdk",
   "version": "0.1.0",
-  "description": "Official JavaScript/TypeScript client for the OpenFang Agent OS REST API",
+  "description": "Official JavaScript/TypeScript client for the Ochi Agent OS REST API",
   "main": "index.js",
   "types": "index.d.ts",
-  "keywords": ["openfang", "agent", "ai", "llm", "sdk"],
+  "keywords": ["ochi", "openfang", "agent", "ai", "llm", "sdk"],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/openfang/openfang"
+    "url": "https://github.com/RightNow-AI/Ochi"
   },
   "engines": {
     "node": ">=18.0.0"
