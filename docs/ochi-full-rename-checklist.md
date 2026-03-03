@@ -54,6 +54,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - [x] **B0 đã khởi động**: chạy baseline và ghi nhận rào cản môi trường cho workspace đầy đủ.
 - [x] **B1 đã bắt đầu (bước tương thích)**: thêm crate chuyển tiếp `ochi-types` re-export từ `openfang-types`.
 - [ ] B1 chưa đổi thư mục/package gốc `openfang-types` (giữ an toàn để migrate dần dependency graph).
+- [x] **B2 đã bắt đầu (leaf extensions)**: migrate dependency `openfang-channels` và `openfang-skills` sang `ochi-types` qua alias.
 
 **Kết quả baseline B0 (batch log ngắn):**
 - `cargo metadata --no-deps` ✅
@@ -70,6 +71,10 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - Kiểm tra nhanh: `cargo check -p openfang-wire` pass sau migration dependency.
 - Đã migrate dependency của `openfang-memory` sang compat crate `ochi-types` (giữ import path `openfang_types` qua dependency alias).
 - Kiểm tra nhanh: `cargo check -p openfang-memory` pass sau migration dependency.
+- Đã migrate dependency của `openfang-channels` sang compat crate `ochi-types` (dependency alias).
+- Kiểm tra nhanh: `cargo check -p openfang-channels` pass sau migration dependency.
+- Đã migrate dependency của `openfang-skills` sang compat crate `ochi-types` (dependency alias).
+- Kiểm tra nhanh: `cargo check -p openfang-skills` pass sau migration dependency.
 
 ### Checklist kỹ thuật cho mỗi batch
 

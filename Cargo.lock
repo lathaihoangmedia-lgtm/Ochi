@@ -3923,7 +3923,7 @@ dependencies = [
  "lettre",
  "mailparse",
  "native-tls",
- "openfang-types",
+ "ochi-types",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
@@ -4147,7 +4147,7 @@ version = "0.2.3"
 dependencies = [
  "chrono",
  "hex",
- "openfang-types",
+ "ochi-types",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
