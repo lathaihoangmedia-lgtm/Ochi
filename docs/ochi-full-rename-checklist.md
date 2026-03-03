@@ -39,9 +39,9 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 ## Phase 4 — SDK & package ecosystem
 
-- [ ] JS SDK: `@openfang/sdk` -> `@ochi/sdk`.
-- [ ] Python package: `openfang` -> `ochi` (kèm package alias hoặc metapackage).
-- [ ] Cập nhật docs publish/migration cho người dùng SDK.
+- [x] JS SDK: `@openfang/sdk` -> `@ochi/sdk` (giữ export alias tương thích ngược cho `OpenFang`).
+- [x] Python package: `openfang` -> `ochi` (đã đổi package metadata + thêm module alias `ochi_*` và giữ tương thích `openfang_*`).
+- [x] Cập nhật docs publish/migration cho người dùng SDK (`docs/sdk-migration.md`, examples Python dùng import Ochi).
 
 ## Phase 5 — Data/config migration tooling
 
