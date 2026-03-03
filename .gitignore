@@ -1,45 +1,78 @@
-# Build
+# =============================================================
+# Ochi — .gitignore
+# Những file/thư mục này sẽ KHÔNG được Git theo dõi
+# =============================================================
+
+# ── Rust build artifacts ──────────────────────────────────────
 /target
 **/*.rs.bk
 *.pdb
 
-# Environment & secrets
+# ── Môi trường & bí mật (QUAN TRỌNG: không bao giờ commit!) ──
 .env
 .env.*
 !.env.example
+*.secret
+secrets/
 
-# Database
+# ── Cơ sở dữ liệu cục bộ ─────────────────────────────────────
 *.db
 *.db-shm
 *.db-wal
 *.sqlite
 *.sqlite3
 
-# User config (may contain API keys)
+# ── Cấu hình người dùng (có thể chứa API key) ────────────────
 config.toml
 
-# Certificates & keys
+# ── Chứng chỉ & khóa bảo mật ─────────────────────────────────
 *.pem
 *.key
 *.cert
 *.p12
 *.pfx
+*.crt
 
-# Runtime artifacts
+# ── File runtime tạm thời ────────────────────────────────────
 collector_hand_state.json
 collector_knowledge_base.json
 predictions_database.json
 prediction_report_*.md
 BUILD_LOG.md
 
-# OS
-.DS_Store
-Thumbs.db
+# ── Node.js (packages/whatsapp-gateway, sdk/javascript) ──────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+dist/
 
-# IDE & tools
+# ── Python (sdk/python) ───────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# ── Hệ điều hành ─────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# ── IDE & công cụ lập trình ───────────────────────────────────
 .idea/
 .vscode/
+*.code-workspace
 .claude/
 *.swp
 *.swo
 *~
+.direnv/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
