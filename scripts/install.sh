@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
-# OpenFang installer — works on Linux, macOS, WSL
+# Ochi installer — works on Linux, macOS, WSL
 # Usage: curl -sSf https://openfang.sh | sh
 #
 # Environment variables:
-#   OPENFANG_INSTALL_DIR  — custom install directory (default: ~/.openfang/bin)
-#   OPENFANG_VERSION      — install a specific version tag (default: latest)
+#   OCHI_INSTALL_DIR      — custom install directory (default: ~/.ochi/bin)
+#   OPENFANG_INSTALL_DIR  — legacy install directory override
+#   OCHI_VERSION          — install a specific version tag (default: latest)
+#   OPENFANG_VERSION      — legacy version override
 
 set -euo pipefail
 
 REPO="RightNow-AI/openfang"
-INSTALL_DIR="${OPENFANG_INSTALL_DIR:-$HOME/.openfang/bin}"
+INSTALL_DIR="${OCHI_INSTALL_DIR:-${OPENFANG_INSTALL_DIR:-$HOME/.ochi/bin}}"
+REQUESTED_VERSION="${OCHI_VERSION:-${OPENFANG_VERSION:-}}"
+
+print_install_help() {
+    echo "    cargo install --git https://github.com/$REPO openfang-cli --bin ochi"
+}
 
 detect_platform() {
     OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -31,7 +38,7 @@ detect_platform() {
             echo "    https://github.com/$REPO/releases/latest"
             echo ""
             echo "  Or install via cargo:"
-            echo "    cargo install --git https://github.com/$REPO openfang-cli"
+            print_install_help
             exit 1
             ;;
         *) echo "  Unsupported OS: $OS"; exit 1 ;;
@@ -42,13 +49,13 @@ install() {
     detect_platform
 
     echo ""
-    echo "  OpenFang Installer"
-    echo "  =================="
+    echo "  Ochi Installer"
+    echo "  =============="
     echo ""
 
     # Get latest version
-    if [ -n "${OPENFANG_VERSION:-}" ]; then
-        VERSION="$OPENFANG_VERSION"
+    if [ -n "$REQUESTED_VERSION" ]; then
+        VERSION="$REQUESTED_VERSION"
         echo "  Using specified version: $VERSION"
     else
         echo "  Fetching latest release..."
@@ -58,14 +65,14 @@ install() {
     if [ -z "$VERSION" ]; then
         echo "  Could not determine latest version."
         echo "  Install from source instead:"
-        echo "    cargo install --git https://github.com/$REPO openfang-cli"
+        print_install_help
         exit 1
     fi
 
     URL="https://github.com/$REPO/releases/download/$VERSION/openfang-$PLATFORM.tar.gz"
     CHECKSUM_URL="$URL.sha256"
 
-    echo "  Installing OpenFang $VERSION for $PLATFORM..."
+    echo "  Installing Ochi $VERSION for $PLATFORM..."
     mkdir -p "$INSTALL_DIR"
 
     # Download to temp
@@ -79,7 +86,7 @@ install() {
     if ! curl -fsSL "$URL" -o "$ARCHIVE" 2>/dev/null; then
         echo "  Download failed. The release may not exist for your platform."
         echo "  Install from source instead:"
-        echo "    cargo install --git https://github.com/$REPO openfang-cli"
+        print_install_help
         exit 1
     fi
 
@@ -108,7 +115,22 @@ install() {
 
     # Extract
     tar xzf "$ARCHIVE" -C "$INSTALL_DIR"
-    chmod +x "$INSTALL_DIR/openfang"
+
+    # Prefer ochi binary; create compatibility shim if only openfang exists
+    if [ -f "$INSTALL_DIR/ochi" ]; then
+        chmod +x "$INSTALL_DIR/ochi"
+    elif [ -f "$INSTALL_DIR/openfang" ]; then
+        chmod +x "$INSTALL_DIR/openfang"
+        ln -sf "$INSTALL_DIR/openfang" "$INSTALL_DIR/ochi"
+    else
+        echo "  Could not find ochi/openfang binary in archive."
+        exit 1
+    fi
+
+    # Keep openfang compatibility shim if only ochi exists
+    if [ ! -f "$INSTALL_DIR/openfang" ] && [ -f "$INSTALL_DIR/ochi" ]; then
+        ln -sf "$INSTALL_DIR/ochi" "$INSTALL_DIR/openfang"
+    fi
 
     # Add to PATH
     SHELL_RC=""
@@ -118,7 +140,7 @@ install() {
         */fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
     esac
 
-    if [ -n "$SHELL_RC" ] && ! grep -q "openfang" "$SHELL_RC" 2>/dev/null; then
+    if [ -n "$SHELL_RC" ] && ! grep -q "$INSTALL_DIR" "$SHELL_RC" 2>/dev/null; then
         case "${SHELL:-}" in
             */fish)
                 mkdir -p "$(dirname "$SHELL_RC")"
@@ -132,21 +154,21 @@ install() {
     fi
 
     # Verify installation
-    if "$INSTALL_DIR/openfang" --version >/dev/null 2>&1; then
-        INSTALLED_VERSION=$("$INSTALL_DIR/openfang" --version 2>/dev/null || echo "$VERSION")
+    if "$INSTALL_DIR/ochi" --version >/dev/null 2>&1; then
+        INSTALLED_VERSION=$("$INSTALL_DIR/ochi" --version 2>/dev/null || echo "$VERSION")
         echo ""
-        echo "  OpenFang installed successfully! ($INSTALLED_VERSION)"
+        echo "  Ochi installed successfully! ($INSTALLED_VERSION)"
     else
         echo ""
-        echo "  OpenFang binary installed to $INSTALL_DIR/openfang"
+        echo "  Ochi binary installed to $INSTALL_DIR/ochi"
     fi
 
     echo ""
     echo "  Get started:"
-    echo "    openfang init"
+    echo "    ochi init"
     echo ""
-    echo "  The setup wizard will guide you through provider selection"
-    echo "  and configuration."
+    echo "  Compatibility alias remains available:"
+    echo "    openfang init"
     echo ""
 }
 
