@@ -7,12 +7,14 @@ This guide covers migrating from OpenClaw (and other frameworks) to Ochi. The mi
 ## Table of Contents
 
 - [Quick Migration](#quick-migration)
+- [Rename Mapping (Legacy → Current)](#rename-mapping-legacy--current)
 - [What Gets Migrated](#what-gets-migrated)
 - [Manual Migration Steps](#manual-migration-steps)
 - [Config Format Differences](#config-format-differences)
 - [Tool Name Mapping](#tool-name-mapping)
 - [Provider Mapping](#provider-mapping)
 - [Feature Comparison](#feature-comparison)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -25,6 +27,16 @@ ochi migrate --from openclaw
 ```
 
 This auto-detects your OpenClaw workspace at `~/.openclaw/` and imports everything into `~/.ochi/`.
+
+### Legacy Compatibility During Cutover
+
+During the rename window, these legacy entry points still work:
+
+- CLI alias: `openfang migrate --from openclaw`
+- Home path fallback: `~/.openfang/`
+- Env var fallback: `OPENFANG_HOME`
+
+Use the Ochi-first forms in new scripts and documentation to avoid carrying forward legacy naming.
 
 ### Options
 
@@ -48,6 +60,14 @@ LangChain and AutoGPT migration support is planned:
 ochi migrate --from langchain   # Coming soon
 ochi migrate --from autogpt     # Coming soon
 ```
+
+## Rename Mapping (Legacy → Current)
+
+| Area | Legacy | Current (preferred) | Notes |
+|------|--------|---------------------|-------|
+| CLI binary | `openfang` | `ochi` | `openfang` remains a compatibility alias during cutover. |
+| Home directory | `~/.openfang/` | `~/.ochi/` | Runtime prefers `~/.ochi/` but can fall back to legacy path. |
+| Home env var | `OPENFANG_HOME` | `OCHI_HOME` | Resolver accepts both, prefer `OCHI_HOME` for new deployments. |
 
 ---
 
@@ -201,7 +221,7 @@ The kernel will ingest these on first boot.
 | Agent module | Implicit | Explicit (`module = "builtin:chat"` / `"wasm:..."` / `"python:..."`) |
 | Scheduling | Not supported | Built-in (`[schedule]` section: reactive, continuous, periodic, proactive) |
 | Resource quotas | Not supported | Built-in (`[resources]` section: tokens/hour, memory, CPU time) |
-| Networking | Not supported | OFP protocol (`[network]` section) |
+| Networking | Not supported | OFP network protocol (`[network]` section, legacy acronym retained) |
 
 ---
 
@@ -308,6 +328,7 @@ OpenClaw's tool profiles map to explicit tool lists:
 | **WASM sandbox** | None | Wasmtime-based sandboxed execution |
 | **Python runtime** | None | Subprocess-based Python agent execution |
 | **Networking** | None | OFP (OpenFang Protocol, legacy naming) peer-to-peer |
+| **Networking** | None | OFP (OpenFang Protocol, legacy name retained) peer-to-peer |
 | **API server** | Basic REST | REST + WebSocket + SSE streaming |
 | **WebChat UI** | Separate | Embedded in daemon |
 | **Channel adapters** | Telegram, Discord | Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email |
