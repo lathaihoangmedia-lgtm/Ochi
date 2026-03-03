@@ -37,6 +37,48 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - [ ] Cập nhật toàn bộ `Cargo.toml` workspace members, dependencies, docs build.
 - [ ] Chạy full test matrix sau mỗi batch rename.
 
+### Bảng triển khai “ready-to-execute” (leaf -> top-level)
+
+| Batch | Phạm vi crate (rename trong batch) | Lý do chọn thứ tự | Definition of Done |
+|---|---|---|---|
+| B0 (chuẩn bị) | Không rename crate; chuẩn hóa baseline CI + lockfile | Giảm nhiễu trước khi rename diện rộng | Baseline `cargo check`/`cargo test` pass; snapshot warning hiện tại; thống nhất nhánh triển khai |
+| B1 (leaf models) | `openfang-types` -> `ochi-types`, `openfang-wire` -> `ochi-wire`, `openfang-memory` -> `ochi-memory` | Đây là nhóm ít phụ thuộc vào crate khác, phù hợp mở đầu | Build pass cho 3 crate + toàn workspace; docs/reference cập nhật tên crate mới |
+| B2 (leaf extensions) | `openfang-channels` -> `ochi-channels`, `openfang-skills` -> `ochi-skills`, `openfang-extensions` -> `ochi-extensions` | Chủ yếu tiêu thụ types/runtime API, dễ cô lập theo module | Unit test nhóm extension pass; command/examples dùng crate name mới |
+| B3 (core runtime) | `openfang-runtime` -> `ochi-runtime`, `openfang-migrate` -> `ochi-migrate` | Đã có leaf ổn định, bắt đầu rename phần core nhưng chưa chạm entrypoint lớn | Regression test runtime + migration pass; không mất tương thích dữ liệu cũ |
+| B4 (service/kernel) | `openfang-kernel` -> `ochi-kernel`, `openfang-api` -> `ochi-api` | Đây là tầng orchestrator/API, rename sau khi dependency graph đã sạch | API integration tests pass; route/docs nội bộ cập nhật nhất quán |
+| B5 (entrypoint/apps) | `openfang-cli` -> `ochi-cli`, `openfang-desktop` -> `ochi-desktop`, `openfang-hands` -> `ochi-hands` | Tầng người dùng cuối; rename cuối để tránh ripple effect sớm | Smoke test binary `ochi` pass; shim tương thích `openfang` vẫn hoạt động trong deprecation window |
+| B6 (workspace cutover) | Cập nhật `Cargo.toml` workspace members/dependencies toàn cục; dọn alias tạm | Chốt cutover khi tất cả batch trước đã xanh | Không còn dependency path nội bộ `openfang-*` (trừ alias chủ đích); full matrix pass |
+
+### Checklist kỹ thuật cho mỗi batch
+
+- [ ] Tạo branch batch riêng (ví dụ: `rename/phase3-b1-leaf-models`).
+- [ ] Rename package name trong `Cargo.toml` + thư mục crate + cập nhật đường dẫn `path = "../..."`.
+- [ ] Cập nhật toàn bộ `use`/import/reference crate name bằng thay thế có kiểm soát (không thay mù toàn repo).
+- [ ] Nếu batch có rủi ro public API: thêm compat layer tạm (`pub use`) hoặc crate alias để giảm gãy build liên batch.
+- [ ] Chạy test matrix của batch (mục bên dưới) và lưu log ngắn trong PR.
+- [ ] Sau khi merge batch: rebase batch kế tiếp + chạy lại smoke test toàn workspace.
+
+### Test matrix bắt buộc theo batch
+
+1. **Build nhanh toàn workspace**
+   - `cargo check --workspace`
+2. **Unit/integration cơ bản toàn workspace**
+   - `cargo test --workspace --all-targets`
+3. **Kiểm tra package graph**
+   - `cargo metadata --no-deps`
+4. **Smoke test CLI sau batch có liên quan entrypoint**
+   - `cargo run -p ochi-cli -- --help`
+   - `cargo run -p ochi-cli -- doctor` (hoặc lệnh health-check tương đương đang có)
+5. **Tương thích ngược trong deprecation window**
+   - `cargo run -p ochi-cli --bin openfang -- --help` (nếu shim còn tồn tại)
+
+### Tiêu chí dừng khẩn (rollback trigger)
+
+- Tăng số lỗi compile liên batch mà không xác định được root cause trong 1 phiên làm việc.
+- Mất tương thích migration config/home resolver (`OCHI_HOME`/`OPENFANG_HOME`).
+- Smoke test entrypoint thất bại trên crate đã rename ở batch hiện tại.
+- Phát sinh thay đổi public API không có migration note đi kèm.
+
 ## Phase 4 — SDK & package ecosystem
 
 - [x] JS SDK: `@openfang/sdk` -> `@ochi/sdk` (giữ export alias tương thích ngược cho `OpenFang`).
