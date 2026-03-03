@@ -49,6 +49,24 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 | B5 (entrypoint/apps) | `openfang-cli` -> `ochi-cli`, `openfang-desktop` -> `ochi-desktop`, `openfang-hands` -> `ochi-hands` | Tầng người dùng cuối; rename cuối để tránh ripple effect sớm | Smoke test binary `ochi` pass; shim tương thích `openfang` vẫn hoạt động trong deprecation window |
 | B6 (workspace cutover) | Cập nhật `Cargo.toml` workspace members/dependencies toàn cục; dọn alias tạm | Chốt cutover khi tất cả batch trước đã xanh | Không còn dependency path nội bộ `openfang-*` (trừ alias chủ đích); full matrix pass |
 
+### Trạng thái thực thi thực tế (theo bảng)
+
+- [x] **B0 đã khởi động**: chạy baseline và ghi nhận rào cản môi trường cho workspace đầy đủ.
+- [x] **B1 đã bắt đầu (bước tương thích)**: thêm crate chuyển tiếp `ochi-types` re-export từ `openfang-types`.
+- [ ] B1 chưa đổi thư mục/package gốc `openfang-types` (giữ an toàn để migrate dần dependency graph).
+
+**Kết quả baseline B0 (batch log ngắn):**
+- `cargo metadata --no-deps` ✅
+- `cargo check --workspace` ⚠️ dừng ở `glib-sys` do thiếu system lib `glib-2.0` trong môi trường hiện tại.
+- `cargo check -p openfang-kernel` ⚠️ chưa có kết quả kết thúc ổn định trong phiên chạy (build kéo dài, cần rerun trong CI có timeout/log đầy đủ).
+
+> Ghi chú triển khai: để tiếp tục đúng nhịp bảng B1, nên tách lane CI không bao gồm desktop GUI (hoặc provision `glib-2.0` đầy đủ) nhằm giữ vòng phản hồi nhanh cho rename crate thuần Rust.
+
+**Tiến độ B1 (incremental cutover):**
+- Đã thêm crate `crates/ochi-types` với `pub use openfang_types::*;`.
+- Đã đưa `crates/ochi-types` vào `workspace.members` và `workspace.default-members`.
+- Kiểm tra nhanh: `cargo check -p ochi-types` pass.
+
 ### Checklist kỹ thuật cho mỗi batch
 
 - [ ] Tạo branch batch riêng (ví dụ: `rename/phase3-b1-leaf-models`).
