@@ -1,5 +1,4 @@
 name: Rust (minimal)
-
 on:
   push:
     branches: ["main"]
@@ -18,28 +17,22 @@ on:
       - "rust-toolchain.toml"
       - ".github/workflows/rust.yml"
   workflow_dispatch:
-
 concurrency:
   group: rust-minimal-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 env:
   CARGO_TERM_COLOR: always
-
 jobs:
   minimal-check:
     name: Minimal Rust check
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Cache cargo artifacts
         uses: Swatinem/rust-cache@v2
-
       - name: Compile-check critical crates only
         run: |
           cargo check --locked \
-            -p openfang-types \
-            -p openfang-kernel \
-            -p openfang-cli
+            -p ochi-types \
+            -p ochi-kernel \
+            -p ochi-cli
