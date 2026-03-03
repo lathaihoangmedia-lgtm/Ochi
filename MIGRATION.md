@@ -7,6 +7,11 @@ This guide covers migrating from OpenClaw (and other frameworks) to Ochi. The mi
 ## Table of Contents
 
 - [Quick Migration](#quick-migration)
+  - [Legacy Compatibility During Cutover](#legacy-compatibility-during-cutover)
+  - [Home Directory Resolution Priority](#home-directory-resolution-priority)
+  - [Post-migration Verification](#post-migration-verification)
+  - [Options](#options)
+  - [Migration Report](#migration-report)
 - [What Gets Migrated](#what-gets-migrated)
 - [Manual Migration Steps](#manual-migration-steps)
 - [Config Format Differences](#config-format-differences)
@@ -35,6 +40,33 @@ During the rename window, these legacy entry points still work:
 - Env var fallback: `OPENFANG_HOME`
 
 Use the Ochi-first forms in new scripts and documentation to avoid carrying forward legacy naming.
+
+### Home Directory Resolution Priority
+
+When both new and legacy settings exist, Ochi resolves its home directory in this order:
+
+1. `OCHI_HOME`
+2. `OPENFANG_HOME` (legacy)
+3. `~/.ochi` (if the directory already exists)
+4. `~/.openfang` (legacy fallback)
+
+This priority allows gradual migration while preserving existing deployments.
+
+### Post-migration Verification
+
+After migration, validate runtime resolution and imported artifacts:
+
+```bash
+# Check the resolved home/config path
+ochi config show
+
+# Confirm imported agent manifests exist in the Ochi home
+ls ~/.ochi/agents
+```
+
+If your automation still calls `openfang`, keep the alias temporarily and schedule script updates to `ochi` in the next release window.
+
+> Note: `ochi agent list` only shows currently running agents, so it is not a reliable check for freshly imported manifests.
 
 ### Options
 
