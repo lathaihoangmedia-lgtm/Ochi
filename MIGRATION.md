@@ -26,6 +26,16 @@ ochi migrate --from openclaw
 
 This auto-detects your OpenClaw workspace at `~/.openclaw/` and imports everything into `~/.ochi/`.
 
+### Legacy Compatibility During Cutover
+
+During the rename window, these legacy entry points still work:
+
+- CLI alias: `openfang migrate --from openclaw`
+- Home path fallback: `~/.openfang/`
+- Env var fallback: `OPENFANG_HOME`
+
+Use the Ochi-first forms in new scripts and documentation to avoid carrying forward legacy naming.
+
 ### Options
 
 ```bash
