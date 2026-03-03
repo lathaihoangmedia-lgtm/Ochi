@@ -4078,7 +4078,7 @@ version = "0.2.3"
 dependencies = [
  "async-trait",
  "chrono",
- "openfang-types",
+ "ochi-types",
  "rmp-serde",
  "rusqlite",
  "serde",
@@ -4190,7 +4190,7 @@ dependencies = [
  "chrono",
  "hex",
  "hmac",
- "openfang-types",
+ "ochi-types",
  "rand 0.8.5",
  "serde",
  "serde_json",

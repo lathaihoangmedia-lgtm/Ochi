@@ -66,6 +66,10 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - Đã thêm crate `crates/ochi-types` với `pub use openfang_types::*;`.
 - Đã đưa `crates/ochi-types` vào `workspace.members` và `workspace.default-members`.
 - Kiểm tra nhanh: `cargo check -p ochi-types` pass.
+- Đã migrate dependency của `openfang-wire` từ `openfang-types` sang `ochi-types` (bước 1 trong leaf-models).
+- Kiểm tra nhanh: `cargo check -p openfang-wire` pass sau migration dependency.
+- Đã migrate dependency của `openfang-memory` sang compat crate `ochi-types` (giữ import path `openfang_types` qua dependency alias).
+- Kiểm tra nhanh: `cargo check -p openfang-memory` pass sau migration dependency.
 
 ### Checklist kỹ thuật cho mỗi batch
 
