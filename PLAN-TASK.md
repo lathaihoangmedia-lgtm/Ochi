@@ -130,3 +130,22 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 | `PRE-05` | **Update `CHANGELOG.md`** | ⏳ **PENDING** | Cập nhật file `CHANGELOG.md` để phản ánh tất cả các thay đổi lớn từ khi bắt đầu dự án. | `CHANGELOG.md` |
 | `PRE-06` | **Version Bump** | ⏳ **PENDING** | Tăng version trong `Cargo.toml` và `tauri.conf.json` lên `0.1.0`. | `Cargo.toml`, `crates/ochi-desktop/tauri.conf.json` |
 | `PRE-07` | **Final Verification** | ⏳ **PENDING** | Sau khi tag, kiểm tra lại tất cả các artifacts trên trang GitHub Release (installer, binary, checksum). | GitHub Release Page |
+
+
+## 8. Chiến lược Pre-release (v0.1.0)
+
+**Cập nhật quan trọng:** Do vấn đề với build desktop (Tauri), chúng ta sẽ pre-release theo chiến lược 2 giai đoạn để đưa sản phẩm đến tay người dùng sớm nhất có thể.
+
+### Giai đoạn 1: Pre-release Web-only (Ưu tiên cao nhất)
+
+- **Mục tiêu:** Phát hành phiên bản `v0.1.0-web` cho phép người dùng cài đặt qua `curl` hoặc `cargo` và sử dụng toàn bộ tính năng qua giao diện web tại `http://localhost:4200`.
+- **Các mục cần hoàn thành (từ checklist trên):**
+  - `PRE-04`: Setup `ochi.sh` domain.
+  - `PRE-05`: Update `CHANGELOG.md`.
+  - `PRE-06`: Version Bump lên `0.1.0`.
+- **Các mục được hoãn lại:** `PRE-01`, `PRE-02`, `PRE-03` (liên quan đến Tauri desktop).
+
+### Giai đoạn 2: Desktop Release (Sau)
+
+- **Mục tiêu:** Phát hành phiên bản desktop đầy đủ (`v0.1.0-desktop`) sau khi đã giải quyết các vấn đề về signing key và build trên Windows.
+- **Các mục cần hoàn thành:** `PRE-01`, `PRE-02`, `PRE-03`.
