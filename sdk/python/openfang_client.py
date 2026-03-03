@@ -1,11 +1,11 @@
 """
-OpenFang Python Client — REST API client for controlling OpenFang remotely.
+Ochi Python Client — REST API client for controlling Ochi remotely (legacy module name: openfang_client).
 
 Usage:
 
-    from openfang_client import OpenFang
+    from ochi_client import Ochi
 
-    client = OpenFang("http://localhost:3000")
+    client = Ochi("http://localhost:3000")
 
     # Create an agent
     agent = client.agents.create(template="assistant")
@@ -21,7 +21,7 @@ Usage:
             print(event["delta"], end="", flush=True)
 
 Note: This is the REST API *client* library.
-      For writing Python agents that run inside OpenFang, see openfang_sdk.py instead.
+      For writing Python agents that run inside Ochi, see ochi_sdk.py (legacy alias: openfang_sdk.py).
 """
 
 import json
@@ -365,3 +365,11 @@ class _ScheduleResource(_Resource):
 
     def run(self, schedule_id: str):
         return self._c._request("POST", f"/api/schedules/{schedule_id}/run")
+
+
+
+class Ochi(OpenFang):
+    """Ochi-named alias for backward-compatible client usage."""
+
+
+OchiError = OpenFangError
