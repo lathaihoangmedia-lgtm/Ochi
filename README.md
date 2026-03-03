@@ -99,9 +99,24 @@ Xem kế hoạch chi tiết và theo dõi tiến độ tại [**PLAN-TASK.md**](
 
 Ochi là một dự án mở và chúng tôi chào đón mọi sự đóng góp từ cộng đồng. Dù bạn là lập trình viên, nhà nghiên cứu AI, hay chỉ đơn giản là người đam mê công nghệ, bạn đều có thể giúp Ochi phát triển.
 
-1.  **Đọc [**PLAN-TASK.md**](https://github.com/lathaihoangmedia-lgtm/Ochi/blob/main/PLAN-TASK.md):** Để hiểu rõ các nhiệm vụ đang cần thực hiện.
-2.  **Mở một Issue:** Để báo lỗi, đề xuất tính năng, hoặc đặt câu hỏi.
-3.  **Tạo một Pull Request:** Nếu bạn muốn trực tiếp đóng góp mã nguồn hoặc tài liệu.
+1.  **Đọc [**CONTRIBUTING.md**](https://github.com/lathaihoangmedia-lgtm/Ochi/blob/main/CONTRIBUTING.md):** Đây là “luật chơi” chính thức về coding style, test và quy trình PR.
+2.  **Đọc [**PLAN-TASK.md**](https://github.com/lathaihoangmedia-lgtm/Ochi/blob/main/PLAN-TASK.md):** Để hiểu rõ các nhiệm vụ đang cần thực hiện.
+3.  **Mở một Issue:** Để báo lỗi, đề xuất tính năng, hoặc đặt câu hỏi.
+4.  **Tạo một Pull Request:** Nếu bạn muốn trực tiếp đóng góp mã nguồn hoặc tài liệu.
+
+## 🎭 Tuyên bố vui về AI Author Mode
+
+> **⚠️ Cảnh báo vui cho người đọc:**
+> Repo này chạy ở chế độ **AI làm hết bài tập về nhà**, còn con người thì chịu trách nhiệm **ăn no, gõ Enter, rồi duyệt PR** 🤖🍚⌨️
+>
+> Nói nhây cho vui nhưng vẫn nghiêm túc:
+> - Nội dung/mã có thể được AI tạo ở mức rất cao (kể cả 100%).
+> - Con người vẫn là người chịu trách nhiệm cuối: review, chọn lọc, bấm merge.
+> - Đóng góp từ cộng đồng cần đảm bảo bạn có quyền hợp pháp với nội dung gửi vào PR.
+>
+> **Tuyên bố bản quyền văn học kỹ thuật (phiên bản lầy):**
+> "Mượn vai nền tảng, không mượn hồn sáng tạo." Ochi học từ hệ sinh thái mở, tôn trọng giấy phép nguồn tham chiếu, rồi remix thành tác phẩm kỹ thuật đậm bản sắc riêng.
+> Nếu có bug: AI viết. Nếu chạy mượt: team bấm Enter đúng lúc 😎
 
 ## ⚖️ Bản Quyền & Luật AI Việt Nam
 
