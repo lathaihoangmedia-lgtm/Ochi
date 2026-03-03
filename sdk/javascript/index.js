@@ -1,9 +1,9 @@
 /**
- * @openfang/sdk — Official JavaScript client for the OpenFang Agent OS REST API.
+ * @ochi/sdk — Official JavaScript client for the Ochi Agent OS REST API.
  *
  * Usage:
- *   const { OpenFang } = require("@openfang/sdk");
- *   const client = new OpenFang("http://localhost:3000");
+ *   const { Ochi } = require("@ochi/sdk");
+ *   const client = new Ochi("http://localhost:3000");
  *
  *   const agent = await client.agents.create({ template: "assistant" });
  *   const reply = await client.agents.message(agent.id, "Hello!");
@@ -476,4 +476,11 @@ class ScheduleResource {
 
 // ── Exports ─────────────────────────────────────────────────────
 
-module.exports = { OpenFang: OpenFang, OpenFangError: OpenFangError };
+class Ochi extends OpenFang {}
+
+module.exports = {
+  Ochi: Ochi,
+  OchiError: OpenFangError,
+  OpenFang: OpenFang, // backward compatibility
+  OpenFangError: OpenFangError // backward compatibility
+};

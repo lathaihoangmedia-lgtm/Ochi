@@ -138,3 +138,7 @@ export class ScheduleResource {
   delete(id: string): Promise<unknown>;
   run(id: string): Promise<unknown>;
 }
+
+
+export class Ochi extends OpenFang {}
+export { OpenFangError as OchiError };
