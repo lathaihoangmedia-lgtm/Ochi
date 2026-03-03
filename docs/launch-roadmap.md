@@ -262,12 +262,12 @@ These are features where OpenFang can leapfrog OpenClaw.
    - Publish to npm as `@ochi/sdk` (duy trì API alias chuyển tiếp trong SDK)
 2. Create `sdks/python/` — thin wrapper with httpx
    - Same operations
-   - Publish to PyPI as `openfang`
+   - Publish to PyPI as `ochi` (duy trì module alias tương thích `openfang_*`)
 3. Include usage examples in README
 
 **Done when:**
 - `npm install @ochi/sdk` works
-- `pip install openfang` works
+- `pip install ochi` works
 - Basic example: create agent, send message, get response
 
 ---
