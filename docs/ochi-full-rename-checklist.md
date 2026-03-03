@@ -24,7 +24,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 - [x] Đổi binary **chính** từ `openfang` sang `ochi` (cutover runtime artifacts: Docker ENTRYPOINT và systemd ExecStart chuyển sang `ochi`).
 - [x] Giữ shim executable `openfang` (deprecation window) để gọi sang `ochi` sau khi cutover.
-- [x] Cập nhật service/unit/script cài đặt để chạy `ochi` (systemd (`deploy/ochi.service`) + install script ưu tiên `ochi`, giữ `deploy/openfang.service` làm shim tương thích).
+- [x] Cập nhật service/unit/script cài đặt để chạy `ochi` (systemd + install script ưu tiên `ochi`, vẫn hỗ trợ `openfang`).
 - [x] Cập nhật Dockerfile:
   - [x] build/copy `ochi`
   - [x] `ENTRYPOINT ["ochi"]`
