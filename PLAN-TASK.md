@@ -115,3 +115,18 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 
 -   **Kiểm tra trước khi làm:** Trước khi bắt đầu một Task, luôn `git pull` và đọc lại `PLAN-TASK.md` để đảm bảo không có AI nào khác đang thực hiện cùng nhiệm vụ.
 -   **Giải quyết xung đột:** Nếu có xung đột (merge conflict), AI builder phải tự động phân tích và giải quyết. Ưu tiên giữ lại các thay đổi logic và cấu trúc mới nhất. Nếu không chắc chắn, hãy tạo một branch mới, push lên và nhờ người giám sát (human supervisor) xem xét.
+
+
+## 7. Pre-release Checklist (v0.1.0)
+
+Đây là danh sách các hạng mục **BẮT BUỘC** phải hoàn thành trước khi có thể tag `v0.1.0` và phát hành bản pre-release đầu tiên. Các AI builder phải ưu tiên hoàn thành các mục này trước khi thực hiện các task trong Luồng 2 và 3.
+
+| Task ID | Hạng mục | Trạng thái | Chi tiết | Files liên quan |
+| :--- | :--- | :--- | :--- | :--- |
+| `PRE-01` | **Tauri Signing Keypair** | ⏳ **PENDING** | Tạo keypair Ed25519 để ký các bản build desktop, nếu không auto-updater sẽ không hoạt động. | `cargo tauri signer generate` |
+| `PRE-02` | **Set Public Key** | ⏳ **PENDING** | Chèn public key đã tạo vào `tauri.conf.json`. | `crates/ochi-desktop/tauri.conf.json` |
+| `PRE-03` | **GitHub Secrets** | ⏳ **PENDING** | Thêm `TAURI_SIGNING_PRIVATE_KEY` vào secrets của repo GitHub để CI/CD có thể ký release. | GitHub Repo Settings |
+| `PRE-04` | **Setup `ochi.sh` domain** | ⏳ **PENDING** | Cấu hình domain để người dùng có thể cài đặt bằng `curl`. Đây là hạng mục `INFRA-01` được nâng lên ưu tiên cao nhất. | `scripts/install.sh` |
+| `PRE-05` | **Update `CHANGELOG.md`** | ⏳ **PENDING** | Cập nhật file `CHANGELOG.md` để phản ánh tất cả các thay đổi lớn từ khi bắt đầu dự án. | `CHANGELOG.md` |
+| `PRE-06` | **Version Bump** | ⏳ **PENDING** | Tăng version trong `Cargo.toml` và `tauri.conf.json` lên `0.1.0`. | `Cargo.toml`, `crates/ochi-desktop/tauri.conf.json` |
+| `PRE-07` | **Final Verification** | ⏳ **PENDING** | Sau khi tag, kiểm tra lại tất cả các artifacts trên trang GitHub Release (installer, binary, checksum). | GitHub Release Page |
