@@ -1,39 +1,41 @@
-# OpenFang installer for Windows
+# Ochi installer for Windows
 # Usage: iwr -useb https://openfang.sh/install.ps1 | iex
 #   or:  powershell -c "irm https://openfang.sh/install.ps1 | iex"
 #
 # Flags (via environment variables):
-#   $env:OPENFANG_INSTALL_DIR = custom install directory
-#   $env:OPENFANG_VERSION     = specific version tag (e.g. "v0.1.0")
+#   $env:OCHI_INSTALL_DIR      = custom install directory
+#   $env:OPENFANG_INSTALL_DIR  = legacy custom install directory
+#   $env:OCHI_VERSION          = specific version tag (e.g. "v0.1.0")
+#   $env:OPENFANG_VERSION      = legacy version override
 
 $ErrorActionPreference = 'Stop'
 
 $Repo = "RightNow-AI/openfang"
-$DefaultInstallDir = Join-Path $env:USERPROFILE ".openfang\bin"
-$InstallDir = if ($env:OPENFANG_INSTALL_DIR) { $env:OPENFANG_INSTALL_DIR } else { $DefaultInstallDir }
+$DefaultInstallDir = Join-Path $env:USERPROFILE ".ochi\bin"
+$InstallDir = if ($env:OCHI_INSTALL_DIR) {
+    $env:OCHI_INSTALL_DIR
+} elseif ($env:OPENFANG_INSTALL_DIR) {
+    $env:OPENFANG_INSTALL_DIR
+} else {
+    $DefaultInstallDir
+}
 
 function Write-Banner {
     Write-Host ""
-    Write-Host "  OpenFang Installer" -ForegroundColor Cyan
-    Write-Host "  ==================" -ForegroundColor Cyan
+    Write-Host "  Ochi Installer" -ForegroundColor Cyan
+    Write-Host "  ==============" -ForegroundColor Cyan
     Write-Host ""
 }
 
+function Write-InstallHelp {
+    Write-Host "    cargo install --git https://github.com/$Repo openfang-cli --bin ochi"
+}
+
 function Get-Architecture {
-    # Try multiple detection methods — piped iex can break some approaches
     $arch = ""
 
-    # Method 1: .NET RuntimeInformation
-    try {
-        $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
-    } catch {}
-
-    # Method 2: PROCESSOR_ARCHITECTURE env var
-    if (-not $arch -or $arch -eq "") {
-        try { $arch = $env:PROCESSOR_ARCHITECTURE } catch {}
-    }
-
-    # Method 3: WMI
+    try { $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() } catch {}
+    if (-not $arch -or $arch -eq "") { try { $arch = $env:PROCESSOR_ARCHITECTURE } catch {} }
     if (-not $arch -or $arch -eq "") {
         try {
             $wmiArch = (Get-CimInstance Win32_Processor).Architecture
@@ -41,28 +43,26 @@ function Get-Architecture {
             elseif ($wmiArch -eq 12) { $arch = "ARM64" }
         } catch {}
     }
-
-    # Method 4: pointer size fallback (64-bit = 8 bytes)
     if (-not $arch -or $arch -eq "") {
         if ([IntPtr]::Size -eq 8) { $arch = "X64" }
     }
 
     $archUpper = "$arch".ToUpper().Trim()
     switch ($archUpper) {
-        { $_ -in "X64", "AMD64", "X86_64" }     { return "x86_64" }
-        { $_ -in "ARM64", "AARCH64", "ARM" }     { return "aarch64" }
+        { $_ -in "X64", "AMD64", "X86_64" } { return "x86_64" }
+        { $_ -in "ARM64", "AARCH64", "ARM" } { return "aarch64" }
         default {
             Write-Host "  Unsupported architecture: $arch (detection may have failed)" -ForegroundColor Red
-            Write-Host "  Try: cargo install --git https://github.com/RightNow-AI/openfang openfang-cli" -ForegroundColor Yellow
+            Write-Host "  Try:" -ForegroundColor Yellow
+            Write-InstallHelp
             exit 1
         }
     }
 }
 
 function Get-LatestVersion {
-    if ($env:OPENFANG_VERSION) {
-        return $env:OPENFANG_VERSION
-    }
+    if ($env:OCHI_VERSION) { return $env:OCHI_VERSION }
+    if ($env:OPENFANG_VERSION) { return $env:OPENFANG_VERSION }
 
     Write-Host "  Fetching latest release..."
     try {
@@ -72,12 +72,12 @@ function Get-LatestVersion {
     catch {
         Write-Host "  Could not determine latest version." -ForegroundColor Red
         Write-Host "  Install from source instead:" -ForegroundColor Yellow
-        Write-Host "    cargo install --git https://github.com/$Repo openfang-cli"
+        Write-InstallHelp
         exit 1
     }
 }
 
-function Install-OpenFang {
+function Install-Ochi {
     Write-Banner
 
     $arch = Get-Architecture
@@ -87,14 +87,12 @@ function Install-OpenFang {
     $url = "https://github.com/$Repo/releases/download/$version/$archive"
     $checksumUrl = "$url.sha256"
 
-    Write-Host "  Installing OpenFang $version for $target..."
+    Write-Host "  Installing Ochi $version for $target..."
 
-    # Create install directory
     if (-not (Test-Path $InstallDir)) {
         New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
     }
 
-    # Download to temp
     $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "openfang-install"
     if (Test-Path $tempDir) { Remove-Item -Recurse -Force $tempDir }
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
@@ -108,12 +106,11 @@ function Install-OpenFang {
     catch {
         Write-Host "  Download failed. The release may not exist for your platform." -ForegroundColor Red
         Write-Host "  Install from source instead:" -ForegroundColor Yellow
-        Write-Host "    cargo install --git https://github.com/$Repo openfang-cli"
+        Write-InstallHelp
         Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
         exit 1
     }
 
-    # Verify checksum if available
     $checksumDownloaded = $false
     try {
         Invoke-WebRequest -Uri $checksumUrl -OutFile $checksumPath -UseBasicParsing
@@ -122,6 +119,7 @@ function Install-OpenFang {
     catch {
         Write-Host "  Checksum file not available, skipping verification." -ForegroundColor Yellow
     }
+
     if ($checksumDownloaded) {
         $expectedHash = (Get-Content $checksumPath -Raw).Split(" ")[0].Trim().ToLower()
         $actualHash = (Get-FileHash $archivePath -Algorithm SHA256).Hash.ToLower()
@@ -135,29 +133,45 @@ function Install-OpenFang {
         Write-Host "  Checksum verified." -ForegroundColor Green
     }
 
-    # Extract
     Expand-Archive -Path $archivePath -DestinationPath $tempDir -Force
-    $exePath = Join-Path $tempDir "openfang.exe"
-    if (-not (Test-Path $exePath)) {
-        # May be nested in a directory
-        $found = Get-ChildItem -Path $tempDir -Filter "openfang.exe" -Recurse | Select-Object -First 1
-        if ($found) {
-            $exePath = $found.FullName
-        }
-        else {
-            Write-Host "  Could not find openfang.exe in archive." -ForegroundColor Red
-            Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
-            exit 1
-        }
+
+    $ochiExe = Join-Path $tempDir "ochi.exe"
+    $openfangExe = Join-Path $tempDir "openfang.exe"
+
+    if (-not (Test-Path $ochiExe)) {
+        $foundOchi = Get-ChildItem -Path $tempDir -Filter "ochi.exe" -Recurse | Select-Object -First 1
+        if ($foundOchi) { $ochiExe = $foundOchi.FullName }
+    }
+    if (-not (Test-Path $openfangExe)) {
+        $foundOpenfang = Get-ChildItem -Path $tempDir -Filter "openfang.exe" -Recurse | Select-Object -First 1
+        if ($foundOpenfang) { $openfangExe = $foundOpenfang.FullName }
     }
 
-    # Install
-    Copy-Item -Path $exePath -Destination (Join-Path $InstallDir "openfang.exe") -Force
+    if (-not (Test-Path $ochiExe) -and -not (Test-Path $openfangExe)) {
+        Write-Host "  Could not find ochi.exe/openfang.exe in archive." -ForegroundColor Red
+        Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
+        exit 1
+    }
 
-    # Clean up temp
+    if (Test-Path $ochiExe) {
+        Copy-Item -Path $ochiExe -Destination (Join-Path $InstallDir "ochi.exe") -Force
+    }
+    if (Test-Path $openfangExe) {
+        Copy-Item -Path $openfangExe -Destination (Join-Path $InstallDir "openfang.exe") -Force
+    }
+
+    # Compatibility shim: if only one binary exists, duplicate to the other name
+    $installedOchi = Join-Path $InstallDir "ochi.exe"
+    $installedOpenfang = Join-Path $InstallDir "openfang.exe"
+    if (-not (Test-Path $installedOchi) -and (Test-Path $installedOpenfang)) {
+        Copy-Item -Path $installedOpenfang -Destination $installedOchi -Force
+    }
+    if (-not (Test-Path $installedOpenfang) -and (Test-Path $installedOchi)) {
+        Copy-Item -Path $installedOchi -Destination $installedOpenfang -Force
+    }
+
     Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
 
-    # Add to user PATH if not already present
     $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
     if ($currentPath -notlike "*$InstallDir*") {
         [Environment]::SetEnvironmentVariable("Path", "$InstallDir;$currentPath", "User")
@@ -165,27 +179,25 @@ function Install-OpenFang {
         Write-Host "  Restart your terminal for PATH changes to take effect." -ForegroundColor Yellow
     }
 
-    # Verify
-    $installedExe = Join-Path $InstallDir "openfang.exe"
-    if (Test-Path $installedExe) {
+    if (Test-Path $installedOchi) {
         try {
-            $versionOutput = & $installedExe --version 2>&1
+            $versionOutput = & $installedOchi --version 2>&1
             Write-Host ""
-            Write-Host "  OpenFang installed successfully! ($versionOutput)" -ForegroundColor Green
+            Write-Host "  Ochi installed successfully! ($versionOutput)" -ForegroundColor Green
         }
         catch {
             Write-Host ""
-            Write-Host "  OpenFang binary installed to $installedExe" -ForegroundColor Green
+            Write-Host "  Ochi binary installed to $installedOchi" -ForegroundColor Green
         }
     }
 
     Write-Host ""
     Write-Host "  Get started:" -ForegroundColor Cyan
-    Write-Host "    openfang init"
+    Write-Host "    ochi init"
     Write-Host ""
-    Write-Host "  The setup wizard will guide you through provider selection"
-    Write-Host "  and configuration."
+    Write-Host "  Compatibility alias remains available:"
+    Write-Host "    openfang init"
     Write-Host ""
 }
 
-Install-OpenFang
+Install-Ochi
