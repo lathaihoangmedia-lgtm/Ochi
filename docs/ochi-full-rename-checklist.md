@@ -41,14 +41,15 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 - [x] JS SDK: `@openfang/sdk` -> `@ochi/sdk` (giữ export alias tương thích ngược cho `OpenFang`).
 - [x] Python package: `openfang` -> `ochi` (đã đổi package metadata + thêm module alias `ochi_*` và giữ tương thích `openfang_*`).
+- [x] Cập nhật docs publish/migration cho người dùng SDK (`docs/sdk-migration.md`, examples Python dùng import Ochi).
 - [ ] Cập nhật docs publish/migration cho người dùng SDK.
 
 ## Phase 5 — Data/config migration tooling
 
-- [ ] Tool migrate cấu hình và dữ liệu:
-  - [ ] `~/.openfang` -> `~/.ochi`
-  - [ ] merge an toàn, có backup + rollback.
-- [ ] Migration alias cho key/section cấu hình cũ (nếu đổi key).
+- [x] Tool migrate cấu hình và dữ liệu:
+  - [x] `~/.openfang` -> `~/.ochi` (script: `scripts/migrate-home.sh`)
+  - [x] merge an toàn, có backup + rollback.
+- [x] Migration alias cho key/section cấu hình cũ (nếu đổi key) — giữ `OCHI_HOME` + `OPENFANG_HOME` fallback ở core resolver.
 - [ ] Telemetry/log warning có hạn thời gian cho đường dẫn legacy.
 
 ## Phase 6 — Cutover & deprecation
