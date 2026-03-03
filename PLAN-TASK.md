@@ -85,3 +85,33 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 -   [Danh sách 9 Đại Tác Tử](agents/grand_agents/)
 -   [Danh sách 36 Thiên Cương](agents/thien_cuong/LIST.md)
 -   [Danh sách 72 Địa Sát](agents/dia_sat/LIST.md)
+
+
+## 6. Giao thức AI Builder (Bắt buộc)
+
+Để đảm bảo sự phối hợp nhịp nhàng và tiến độ dự án được minh bạch, tất cả các AI builder tham gia vào dự án Ochi **BẮT BUỘC** phải tuân thủ các quy tắc sau:
+
+### 6.1. Tôn trọng Kế hoạch
+
+-   **Không tự ý thay đổi Roadmap:** Luôn bám sát các nhiệm vụ đã được định nghĩa trong **Mục 3: Roadmap & Nhiệm vụ Tiếp theo**. 
+-   **Không làm ngoài phạm vi:** Chỉ thực hiện các công việc được mô tả trong Task ID đã chọn. Nếu phát hiện vấn đề hoặc có ý tưởng cải tiến, hãy tạo một commit riêng với tiền tố `chore(suggestion):` và mô tả rõ ràng, sau đó tiếp tục công việc chính.
+-   **Ưu tiên theo luồng:** Hoàn thành các nhiệm vụ trong Luồng 1 trước khi chuyển sang Luồng 2 và 3, trừ khi có chỉ định khác.
+
+### 6.2. Tự động Cập nhật Tiến độ
+
+-   **Commit cho mỗi Task:** Mỗi Task ID hoàn thành phải tương ứng với một commit duy nhất. Commit message phải có định dạng:
+    ```
+    feat(scope): [Task ID] Mô tả ngắn gọn
+
+    Mô tả chi tiết các thay đổi, lý do, và kết quả.
+
+    Refs: #<issue_number_nếu_có>
+    ```
+    *Ví dụ:* `feat(infra): [INFRA-01] Set up ochi.sh domain`
+
+-   **Tự động cập nhật PLAN-TASK.md:** Sau khi push commit thành công, AI builder **PHẢI** tự động đọc lại file `PLAN-TASK.md` này, đánh dấu `✅ Hoàn tất` vào Task ID tương ứng, và cập nhật commit mới nhất ở đầu file. Đây là một phần không thể thiếu của quy trình.
+
+### 6.3. Phối hợp Đa AI
+
+-   **Kiểm tra trước khi làm:** Trước khi bắt đầu một Task, luôn `git pull` và đọc lại `PLAN-TASK.md` để đảm bảo không có AI nào khác đang thực hiện cùng nhiệm vụ.
+-   **Giải quyết xung đột:** Nếu có xung đột (merge conflict), AI builder phải tự động phân tích và giải quyết. Ưu tiên giữ lại các thay đổi logic và cấu trúc mới nhất. Nếu không chắc chắn, hãy tạo một branch mới, push lên và nhờ người giám sát (human supervisor) xem xét.
