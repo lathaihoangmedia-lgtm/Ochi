@@ -1,0 +1,9 @@
+[package]
+name = "ochi-types"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Compatibility crate re-exporting openfang-types during Phase 3 rename"
+
+[dependencies]
+openfang-types = { path = "../openfang-types" }

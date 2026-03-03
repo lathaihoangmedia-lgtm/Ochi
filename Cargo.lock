@@ -3835,6 +3835,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ochi-types"
+version = "0.2.3"
+dependencies = [
+ "openfang-types",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
