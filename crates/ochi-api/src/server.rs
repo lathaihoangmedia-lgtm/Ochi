@@ -625,6 +625,15 @@ pub async fn build_router(
             "/v1/models",
             axum::routing::get(crate::openai_compat::list_models),
         )
+        // ── Ochi Grand Agent Orchestration API ──────────────────────────────
+        .route(
+            "/api/orchestrate",
+            axum::routing::post(routes::orchestrate_task),
+        )
+        .route(
+            "/api/orchestrate/agents",
+            axum::routing::get(routes::list_grand_agents),
+        )
         .layer(axum::middleware::from_fn_with_state(
             api_key,
             middleware::auth,

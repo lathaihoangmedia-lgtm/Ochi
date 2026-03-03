@@ -8981,3 +8981,109 @@ pub async fn copilot_oauth_poll(
         ),
     }
 }
+
+
+// ── Ochi Grand Agent Orchestration Handlers ─────────────────────────────────
+
+/// Request body cho POST /api/orchestrate
+#[derive(serde::Deserialize)]
+pub struct OrchestrateRequest {
+    /// Mô tả nhiệm vụ cần điều phối.
+    pub task: String,
+}
+
+/// Response của POST /api/orchestrate
+#[derive(serde::Serialize)]
+pub struct OrchestrateResponse {
+    pub primary_agent: String,
+    pub element: String,
+    pub confidence: f32,
+    pub polarity: String,
+    pub escalate_to_thai_cuc: bool,
+    pub suggested_sub_agents: Vec<SubAgentInfo>,
+    pub reasoning: String,
+}
+
+#[derive(serde::Serialize)]
+pub struct SubAgentInfo {
+    pub name: String,
+    pub kind: String,
+    pub reason: String,
+}
+
+/// POST /api/orchestrate
+///
+/// Điều phối nhiệm vụ tới Đại Tác Tử phù hợp nhất theo nguyên lý Ngũ Hành.
+///
+/// # Request
+/// ```json
+/// { "task": "Kiểm tra lỗ hổng bảo mật hệ thống" }
+/// ```
+///
+/// # Response
+/// ```json
+/// {
+///   "primary_agent": "Ochi-KIM",
+///   "element": "Kim (Metal)",
+///   "confidence": 0.75,
+///   "polarity": "Am (Yin)",
+///   "escalate_to_thai_cuc": false,
+///   "suggested_sub_agents": [...],
+///   "reasoning": "Khop 1 tu khoa voi Ochi-KIM ..."
+/// }
+/// ```
+pub async fn orchestrate_task(
+    State(state): State<crate::AppState>,
+    Json(req): Json<OrchestrateRequest>,
+) -> impl IntoResponse {
+    if req.task.trim().is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "error": "task field is required and must not be empty" })),
+        ).into_response();
+    }
+
+    let decision = state.kernel.route_task(&req.task);
+
+    let resp = OrchestrateResponse {
+        primary_agent: decision.primary.to_string(),
+        element: decision.primary.element().to_string(),
+        confidence: decision.confidence,
+        polarity: decision.polarity.to_string(),
+        escalate_to_thai_cuc: decision.escalate_to_thai_cuc,
+        suggested_sub_agents: decision
+            .suggested_sub_agents
+            .into_iter()
+            .map(|s| SubAgentInfo {
+                name: s.name,
+                kind: s.kind,
+                reason: s.reason,
+            })
+            .collect(),
+        reasoning: decision.reasoning,
+    };
+
+    (StatusCode::OK, Json(serde_json::to_value(resp).unwrap())).into_response()
+}
+
+/// GET /api/orchestrate/agents
+///
+/// Trả về danh sách tất cả 9 Đại Tác Tử với mô tả và hành tương ứng.
+pub async fn list_grand_agents(
+    State(_state): State<crate::AppState>,
+) -> impl IntoResponse {
+    use ochi_kernel::orchestration::{GrandAgent, Orchestrator};
+
+    let agents: Vec<serde_json::Value> = Orchestrator::all_grand_agents()
+        .iter()
+        .map(|agent| {
+            serde_json::json!({
+                "id": agent.to_string(),
+                "element": agent.element(),
+                "description": agent.description(),
+            })
+        })
+        .collect();
+
+    (StatusCode::OK, Json(serde_json::json!({ "grand_agents": agents, "count": agents.len() }))).into_response()
+}

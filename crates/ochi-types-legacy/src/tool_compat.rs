@@ -148,3 +148,9 @@ mod tests {
         assert!(!is_known_openfang_tool("Bash"));
     }
 }
+
+/// Alias for [`is_known_openfang_tool`] — preferred name after Phase 3 rename.
+#[inline]
+pub fn is_known_ochi_tool(name: &str) -> bool {
+    is_known_openfang_tool(name)
+}

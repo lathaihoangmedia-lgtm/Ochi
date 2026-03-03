@@ -4179,6 +4179,37 @@ impl OpenFangKernel {
         }
         context_parts.join("\n\n")
     }
+
+    // ── Ochi Grand Agent Orchestration ──────────────────────────────────────
+
+    /// Điều phối nhiệm vụ tới Đại Tác Tử phù hợp nhất.
+    ///
+    /// Đây là API chính để tích hợp Orchestrator vào kernel pipeline.
+    /// Trả về [`crate::orchestration::DispatchDecision`] với:
+    /// - `primary`: Đại Tác Tử được chọn
+    /// - `confidence`: Độ tin cậy (0.0 – 1.0)
+    /// - `polarity`: Phân cực Âm Dương
+    /// - `suggested_sub_agents`: Thiên Cương / Địa Sát gợi ý
+    /// - `escalate_to_thai_cuc`: Có cần leo thang không
+    ///
+    /// # Example
+    /// ```rust,no_run
+    /// let decision = kernel.route_task("Kiểm tra lỗ hổng bảo mật hệ thống");
+    /// println!("Agent: {}, Confidence: {:.2}", decision.primary, decision.confidence);
+    /// ```
+    pub fn route_task(&self, task_description: &str) -> crate::orchestration::DispatchDecision {
+        self.orchestrator.route(task_description)
+    }
+
+    /// Trả về Đại Tác Tử được gợi ý cho nhiệm vụ (API đơn giản hơn).
+    pub fn suggest_grand_agent(&self, task_description: &str) -> crate::orchestration::GrandAgent {
+        self.orchestrator.route(task_description).primary
+    }
+
+    /// Kiểm tra xem nhiệm vụ có cần leo thang về Thái Cực không.
+    pub fn needs_thai_cuc_escalation(&self, task_description: &str) -> bool {
+        self.orchestrator.needs_thai_cuc(task_description)
+    }
 }
 
 /// Convert a manifest's capability declarations into Capability enums.

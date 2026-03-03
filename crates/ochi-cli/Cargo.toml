@@ -10,7 +10,7 @@ name = "ochi"
 path = "src/main.rs"
 
 [[bin]]
-name = "ochi"
+name = "ochi-legacy"
 path = "src/ochi.rs"
 
 [dependencies]

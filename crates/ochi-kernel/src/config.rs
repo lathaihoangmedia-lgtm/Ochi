@@ -258,12 +258,7 @@ pub fn ochi_home() -> PathBuf {
     ochi_dir
 }
 
-/// Alias for backward compatibility — deprecated, use `ochi_home()` instead.
-#[deprecated(since = "0.3.0", note = "Use `ochi_home()` instead")]
-#[allow(dead_code)]
-pub fn ochi_home() -> PathBuf {
-    ochi_home()
-}
+// Note: ochi_home() is defined above — deprecated alias removed to avoid duplicate.
 
 #[cfg(test)]
 mod tests {
