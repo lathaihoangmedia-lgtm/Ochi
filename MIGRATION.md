@@ -55,6 +55,7 @@ This priority allows gradual migration while preserving existing deployments.
 ### Post-migration Verification
 
 After migration, validate runtime resolution and imported artifacts:
+After migration, validate runtime resolution and imported resources:
 
 ```bash
 # Check the resolved home/config path
@@ -62,6 +63,8 @@ ochi config show
 
 # Confirm imported agent manifests exist in the Ochi home
 ls ~/.ochi/agents
+# Confirm imported agents are available
+ochi agent list
 ```
 
 If your automation still calls `openfang`, keep the alias temporarily and schedule script updates to `ochi` in the next release window.
