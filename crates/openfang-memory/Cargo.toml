@@ -6,7 +6,7 @@ license.workspace = true
 description = "Memory substrate for the OpenFang Agent OS"
 
 [dependencies]
-openfang-types = { path = "../openfang-types" }
+openfang-types = { package = "ochi-types", path = "../ochi-types" }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -3835,6 +3835,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ochi-types"
+version = "0.2.3"
+dependencies = [
+ "openfang-types",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3916,7 +3923,7 @@ dependencies = [
  "lettre",
  "mailparse",
  "native-tls",
- "openfang-types",
+ "ochi-types",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
@@ -4071,7 +4078,7 @@ version = "0.2.3"
 dependencies = [
  "async-trait",
  "chrono",
- "openfang-types",
+ "ochi-types",
  "rmp-serde",
  "rusqlite",
  "serde",
@@ -4140,7 +4147,7 @@ version = "0.2.3"
 dependencies = [
  "chrono",
  "hex",
- "openfang-types",
+ "ochi-types",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
@@ -4183,7 +4190,7 @@ dependencies = [
  "chrono",
  "hex",
  "hmac",
- "openfang-types",
+ "ochi-types",
  "rand 0.8.5",
  "serde",
  "serde_json",
