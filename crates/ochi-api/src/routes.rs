@@ -9033,7 +9033,7 @@ pub struct SubAgentInfo {
 /// }
 /// ```
 pub async fn orchestrate_task(
-    State(state): State<crate::AppState>,
+    State(state): State<Arc<AppState>>,
     Json(req): Json<OrchestrateRequest>,
 ) -> impl IntoResponse {
     if req.task.trim().is_empty() {
@@ -9070,7 +9070,7 @@ pub async fn orchestrate_task(
 ///
 /// Trả về danh sách tất cả 9 Đại Tác Tử với mô tả và hành tương ứng.
 pub async fn list_grand_agents(
-    State(_state): State<crate::AppState>,
+    State(_state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     use ochi_kernel::orchestration::{GrandAgent, Orchestrator};
 
