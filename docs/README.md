@@ -36,6 +36,7 @@ Welcome to the OpenFang documentation. OpenFang is the open-source Agent Operati
 | Guide | Description |
 |-------|-------------|
 | [API Reference](api-reference.md) | All 76 REST/WS/SSE endpoints with request/response examples |
+| [SDK Migration](sdk-migration.md) | Hướng dẫn chuyển SDK từ OpenFang sang Ochi (JS + Python) |
 | [Desktop App](desktop.md) | Tauri 2.0 native app -- build, features, architecture |
 
 ## Release & Operations
