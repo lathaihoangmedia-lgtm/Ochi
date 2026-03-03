@@ -32,9 +32,9 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 ## Phase 3 — Crate/workspace rename (rủi ro cao, cần kế hoạch)
 
-- [ ] Đổi tên crate `ochi-*` -> `ochi-*` theo thứ tự từ leaf crate đến top-level.
-- [ ] Thêm transitional re-export/compat crate nếu cần cho dependency nội bộ.
-- [ ] Cập nhật toàn bộ `Cargo.toml` workspace members, dependencies, docs build.
+- [x] Đổi tên crate `openfang-*` -> `ochi-*` theo thứ tự từ leaf crate đến top-level. ✅ DONE 2026-03-03
+- [x] Thêm transitional re-export/compat crate (ochi-types compat layer). ✅ DONE
+- [x] Cập nhật toàn bộ `Cargo.toml` workspace members, dependencies, docs build. ✅ DONE
 - [ ] Chạy full test matrix sau mỗi batch rename.
 
 ### Bảng triển khai “ready-to-execute” (leaf -> top-level)
@@ -133,3 +133,11 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - `cargo test -p ochi-kernel`
 - `cargo test -p openfang-types`
 - smoke test CLI: init/load config từ `OCHI_HOME` và fallback `.ochi`
+
+---
+## Phase 6 — Wiring 9 Grand Agents Logic (DEFERRED)
+> **Note:** Tạm hoãn đến thời điểm thích hợp sau khi rename hoàn tất.
+- [ ] Wiring logic điều phối 9 Đại Tác Tử vào `ochi-kernel/src/orchestration.rs`
+- [ ] Hoàn thiện cấu hình NLP tiếng Việt mặc định
+- [ ] Kiểm tra build toàn workspace sau khi wiring
+- [ ] Tích hợp với Lạc Việt DB
