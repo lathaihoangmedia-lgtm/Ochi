@@ -3,8 +3,8 @@
 //! Boots the OpenFang kernel, binds to a random localhost port, and runs the
 //! API server on a background thread with its own tokio runtime.
 
-use openfang_api::server::build_router;
-use openfang_kernel::OpenFangKernel;
+use ochi_api::server::build_router;
+use ochi_kernel::OpenFangKernel;
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
 use tokio::sync::watch;

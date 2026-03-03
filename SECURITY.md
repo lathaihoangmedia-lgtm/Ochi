@@ -14,7 +14,7 @@ If you discover a security vulnerability in OpenFang, please report it responsib
 
 ### How to Report
 
-1. Email: **security@openfang.ai**
+1. Email: **security@ochi.ai**
 2. Include:
    - Description of the vulnerability
    - Steps to reproduce

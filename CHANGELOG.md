@@ -86,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual workflow builder with drag-and-drop canvas
 
 #### Client SDKs
-- JavaScript SDK (`@openfang/sdk`): full REST API client with streaming, TypeScript declarations
+- JavaScript SDK (`@ochi/sdk`): full REST API client with streaming, TypeScript declarations
 - Python client SDK (`openfang_client`): zero-dependency stdlib client with SSE streaming
 - Python agent SDK (`openfang_sdk`): decorator-based framework for writing Python agents
 - Usage examples for both languages (basic + streaming)
@@ -163,4 +163,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prometheus metrics for monitoring
 - Config hot-reload without restart
 
-[0.1.0]: https://github.com/RightNow-AI/openfang/releases/tag/v0.1.0
+[0.1.0]: https://github.com/lathaihoangmedia-lgtm/Ochi/releases/tag/v0.1.0

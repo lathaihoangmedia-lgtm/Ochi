@@ -1,0 +1,41 @@
+[package]
+name = "ochi-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "HTTP/WebSocket API server for the OpenFang Agent OS daemon"
+
+[dependencies]
+openfang-types = { package = "ochi-types", path = "../ochi-types" }
+ochi-kernel = { path = "../ochi-kernel" }
+ochi-runtime = { path = "../ochi-runtime" }
+ochi-memory = { path = "../ochi-memory" }
+ochi-channels = { path = "../ochi-channels" }
+ochi-wire = { path = "../ochi-wire" }
+ochi-skills = { path = "../ochi-skills" }
+ochi-hands = { path = "../ochi-hands" }
+ochi-extensions = { path = "../ochi-extensions" }
+ochi-migrate = { path = "../ochi-migrate" }
+dashmap = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+futures = { workspace = true }
+governor = { workspace = true }
+tokio-stream = { workspace = true }
+subtle = { workspace = true }
+base64 = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+reqwest = { workspace = true }
+tempfile = { workspace = true }
+uuid = { workspace = true }

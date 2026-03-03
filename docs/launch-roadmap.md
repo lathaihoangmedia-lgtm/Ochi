@@ -17,20 +17,20 @@ These are showstoppers. The app literally crashes or looks broken without them.
 
 **What to do:**
 
-1. **Add token estimation & context guard** (`crates/openfang-runtime/src/compactor.rs`)
+1. **Add token estimation & context guard** (`crates/ochi-runtime/src/compactor.rs`)
    - Add `estimate_token_count(messages, system_prompt, tools)` — chars/4 heuristic
    - Add `needs_compaction_by_tokens(estimated, context_window)` — triggers at 70% capacity
    - Add `token_threshold_ratio: f64` (default 0.7) and `context_window_tokens: usize` (default 200_000) to `CompactionConfig`
    - Lower message threshold from 80 to 30
 
-2. **Add in-loop token guard** (`crates/openfang-runtime/src/agent_loop.rs`)
+2. **Add in-loop token guard** (`crates/ochi-runtime/src/agent_loop.rs`)
    - Before each LLM call: estimate tokens vs context window
    - Over 70%: emergency-trim old messages (keep last 10), log warning
    - Over 90%: aggressive trim to last 4 messages + inject summary
    - Lower `MAX_HISTORY_MESSAGES` from 40 to 20
    - Lower `MAX_TOOL_RESULT_CHARS` from 50,000 to 15,000
 
-3. **Filter tools by profile in kernel** (`crates/openfang-kernel/src/kernel.rs`)
+3. **Filter tools by profile in kernel** (`crates/ochi-kernel/src/kernel.rs`)
    - In `available_tools()`: use manifest's `tool_profile` to filter
    - Call `tool_profile.tools()` for allowed tool names, filter `builtin_tool_definitions()`
    - Only send ALL tools if profile is `Full` AND agent has `ToolAll` capability
@@ -40,11 +40,11 @@ These are showstoppers. The app literally crashes or looks broken without them.
    - Change `max_llm_tokens_per_hour` from 100_000 to 1_000_000
    - 100K is too low — a single system prompt is 30-40K tokens
 
-5. **Token-based compaction trigger** (`crates/openfang-kernel/src/kernel.rs`)
+5. **Token-based compaction trigger** (`crates/ochi-kernel/src/kernel.rs`)
    - In `send_message_streaming()`: replace message-count-only check with token-aware check
    - After compaction, verify token count actually decreased
 
-6. **Compact system prompt injections** (`crates/openfang-kernel/src/kernel.rs`)
+6. **Compact system prompt injections** (`crates/ochi-kernel/src/kernel.rs`)
    - Cap canonical context to 500 chars
    - Cap memory context to 3 items / 200 chars each
    - Cap skill knowledge to 2000 chars total
@@ -59,25 +59,25 @@ These are showstoppers. The app literally crashes or looks broken without them.
 
 ### 1.2 Branding & Icon Assets
 
-**Problem:** Desktop app may show Tauri default icons. Branding assets exist at `~/Downloads/openfang/output/` but aren't installed.
+**Problem:** Desktop app may show Tauri default icons. Branding assets exist at `~/Downloads/ochi/output/` but aren't installed.
 
 **What to do:**
 
-1. Generate all required icon sizes from source PNG (`openfang-logo-transparent.png`, 2000x2000)
-2. Place into `crates/openfang-desktop/icons/`:
+1. Generate all required icon sizes from source PNG (`ochi-logo-transparent.png`, 2000x2000)
+2. Place into `crates/ochi-desktop/icons/`:
    - `icon.png` (1024x1024)
    - `icon.ico` (multi-size: 256, 128, 64, 48, 32, 16)
    - `32x32.png`
    - `128x128.png`
    - `128x128@2x.png` (256x256)
-3. Replace web UI logo at `crates/openfang-api/static/logo.png`
+3. Replace web UI logo at `crates/ochi-api/static/logo.png`
 4. Update favicon if one exists
 
 **Assets available:**
-- `openfang-logo-transparent.png` (328KB, 2000x2000) — primary source
-- `openfang-logo-black-bg.png` (312KB) — for dark contexts
-- `openfang-vector-transparent.svg` (293KB) — scalable vector
-- `openfang-animated.svg` (310KB) — for loading screens
+- `ochi-logo-transparent.png` (328KB, 2000x2000) — primary source
+- `ochi-logo-black-bg.png` (312KB) — for dark contexts
+- `ochi-vector-transparent.svg` (293KB) — scalable vector
+- `ochi-animated.svg` (310KB) — for loading screens
 
 **Done when:**
 - Desktop app shows OpenFang logo in taskbar, title bar, and installer
@@ -87,7 +87,7 @@ These are showstoppers. The app literally crashes or looks broken without them.
 
 ### 1.3 Tauri Signing Keypair -- DONE
 
-**Status: COMPLETE** — Generated Ed25519 signing keypair via `cargo tauri signer generate --ci`. Public key installed in `tauri.conf.json`. Private key at `~/.tauri/openfang.key`. Set `TAURI_SIGNING_PRIVATE_KEY_PATH` in CI secrets.
+**Status: COMPLETE** — Generated Ed25519 signing keypair via `cargo tauri signer generate --ci`. Public key installed in `tauri.conf.json`. Private key at `~/.tauri/ochi.key`. Set `TAURI_SIGNING_PRIVATE_KEY_PATH` in CI secrets.
 
 **Problem (was):** `tauri.conf.json` has `"pubkey": "PLACEHOLDER_REPLACE_WITH_GENERATED_PUBKEY"`. Auto-updater is completely dead without this.
 
@@ -117,7 +117,7 @@ These close the gaps that would make users pick OpenClaw over OpenFang.
 3. Store `_imageUrls` on the tool card
 4. UI already renders `tool._imageUrls` — just need to populate it
 
-**Files:** `crates/openfang-api/static/js/pages/chat.js`, `crates/openfang-runtime/src/tool_runner.rs`
+**Files:** `crates/ochi-api/static/js/pages/chat.js`, `crates/ochi-runtime/src/tool_runner.rs`
 
 **Done when:**
 - Browser screenshots appear as inline images in tool cards
@@ -158,7 +158,7 @@ These close the gaps that would make users pick OpenClaw over OpenFang.
 3. Polish UI: skill cards with descriptions, install buttons, installed badge
 4. Add FangHub registry URL if not configured
 
-**Files:** `crates/openfang-api/static/js/pages/skills.js`, `crates/openfang-api/src/routes.rs`
+**Files:** `crates/ochi-api/static/js/pages/skills.js`, `crates/ochi-api/src/routes.rs`
 
 **Done when:**
 - Users can browse, search, and install skills from the web UI
@@ -169,17 +169,17 @@ These close the gaps that would make users pick OpenClaw over OpenFang.
 
 ### 2.4 Install Script Deployment
 
-**Problem:** `openfang.sh` domain isn't set up. Users can't do `curl -sSf https://openfang.sh | sh`.
+**Problem:** `ochi.sh` domain isn't set up. Users can't do `curl -sSf https://ochi.sh | sh`.
 
 **What to do:**
-1. Set up GitHub Pages or Cloudflare Worker for openfang.sh
+1. Set up GitHub Pages or Cloudflare Worker for ochi.sh
 2. Serve `scripts/install.sh` at root
 3. Serve `scripts/install.ps1` at `/install.ps1`
 4. Test on fresh Linux, macOS, and Windows machines
 
 **Done when:**
-- `curl -sSf https://openfang.sh | sh` installs the latest release
-- `irm https://openfang.sh/install.ps1 | iex` works on Windows PowerShell
+- `curl -sSf https://ochi.sh | sh` installs the latest release
+- `irm https://ochi.sh/install.ps1 | iex` works on Windows PowerShell
 
 ---
 
@@ -288,7 +288,7 @@ These are features where OpenFang can leapfrog OpenClaw.
    - `openfang_errors_total` counter (by type)
 2. Optional: OTLP export for tracing spans
 
-**Files:** `crates/openfang-api/src/routes.rs`, new `metrics.rs` module
+**Files:** `crates/ochi-api/src/routes.rs`, new `metrics.rs` module
 
 **Done when:**
 - `/api/metrics` returns valid Prometheus text format
@@ -331,7 +331,7 @@ These are features where OpenFang can leapfrog OpenClaw.
 2. UI: session switcher tabs in chat header
 3. API: `/api/agents/{id}/sessions` list, `/api/agents/{id}/sessions/{label}` CRUD
 
-**Files:** `crates/openfang-kernel/src/kernel.rs`, `routes.rs`, `ws.rs`, `index_body.html`
+**Files:** `crates/ochi-kernel/src/kernel.rs`, `routes.rs`, `ws.rs`, `index_body.html`
 
 ---
 
@@ -342,7 +342,7 @@ These are features where OpenFang can leapfrog OpenClaw.
 **Problem (was):** Changing `config.toml` requires daemon restart. OpenClaw reloads live.
 
 **What to do:**
-1. Watch `~/.openfang/config.toml` for changes (notify crate)
+1. Watch `~/.ochi/config.toml` for changes (notify crate)
 2. On change: re-parse, diff, apply only changed sections
 3. Log what was reloaded
 4. UI notification: "Config reloaded"
@@ -383,7 +383,7 @@ These are features where OpenFang can leapfrog OpenClaw.
 
 ### 4.5 Final Release -- READY
 
-**Status: ALL CODE COMPLETE** — All 18 code items done. 1751 tests passing. Production audit completed: 2 critical bugs fixed (API delete alias, config/set route), CSP hardened (Tauri + middleware), Tauri signing key installed. Remaining for release: tag v0.1.0, build release artifacts, set up openfang.sh domain.
+**Status: ALL CODE COMPLETE** — All 18 code items done. 1751 tests passing. Production audit completed: 2 critical bugs fixed (API delete alias, config/set route), CSP hardened (Tauri + middleware), Tauri signing key installed. Remaining for release: tag v0.1.0, build release artifacts, set up ochi.sh domain.
 
 1. Complete items from `production-checklist.md` (keygen DONE, secrets, icons DONE, domain pending)
 2. Tag `v0.1.0`
@@ -433,7 +433,7 @@ Sprint 2: 4/5 COMPLETE
   2.1 Browser screenshots .......... DONE
   2.2 Chat search .................. DONE
   2.3 Skill marketplace ............ DONE
-  2.4 Install script domain ........ PENDING (infra: set up openfang.sh domain)
+  2.4 Install script domain ........ PENDING (infra: set up ochi.sh domain)
   2.5 Wizard end-to-end ............ DONE
 
 Sprint 3: COMPLETE

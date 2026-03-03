@@ -6,7 +6,7 @@ Tài liệu này hướng dẫn migration SDK từ naming cũ (`OpenFang`) sang 
 
 ### Package name
 - Mới: `@ochi/sdk`
-- Cũ: `@openfang/sdk` (legacy naming trong codebase cũ)
+- Cũ: `@ochi/sdk` (legacy naming trong codebase cũ)
 
 ### Cài đặt
 ```bash
@@ -34,7 +34,7 @@ Bạn có thể migrate dần sang:
 
 ### Package name
 - Mới: `ochi`
-- Cũ: `openfang` (legacy)
+- Cũ: `ochi` (legacy)
 
 ### Cài đặt
 ```bash

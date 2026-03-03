@@ -15,7 +15,7 @@ The Tauri updater requires an Ed25519 keypair. The private key signs every relea
 cargo install tauri-cli --locked
 
 # Generate the keypair
-cargo tauri signer generate -w ~/.tauri/openfang.key
+cargo tauri signer generate -w ~/.tauri/ochi.key
 ```
 
 The command will output:
@@ -24,7 +24,7 @@ The command will output:
 Your public key was generated successfully:
 dW50cnVzdGVkIGNvb...  <-- COPY THIS
 
-Your private key was saved to: ~/.tauri/openfang.key
+Your private key was saved to: ~/.tauri/ochi.key
 ```
 
 Save both values. You need them for steps 2 and 3.
@@ -35,7 +35,7 @@ Save both values. You need them for steps 2 and 3.
 
 **Status:** BLOCKING — the placeholder must be replaced before building.
 
-Open `crates/openfang-desktop/tauri.conf.json` and replace:
+Open `crates/ochi-desktop/tauri.conf.json` and replace:
 
 ```json
 "pubkey": "PLACEHOLDER_REPLACE_WITH_GENERATED_PUBKEY"
@@ -57,7 +57,7 @@ Go to **GitHub repo → Settings → Secrets and variables → Actions → New r
 
 | Secret Name | Value | Required |
 |---|---|---|
-| `TAURI_SIGNING_PRIVATE_KEY` | Contents of `~/.tauri/openfang.key` | Yes |
+| `TAURI_SIGNING_PRIVATE_KEY` | Contents of `~/.tauri/ochi.key` | Yes |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Password you set during keygen (or empty string) | Yes |
 
 ### Optional — macOS Code Signing
@@ -90,7 +90,7 @@ Set `certificateThumbprint` in `tauri.conf.json` under `bundle.windows` and add 
 
 **Status:** VERIFY — icons may be placeholders.
 
-The following icon files must exist in `crates/openfang-desktop/icons/`:
+The following icon files must exist in `crates/ochi-desktop/icons/`:
 
 | File | Size | Usage |
 |---|---|---|
@@ -113,22 +113,22 @@ convert icon.svg -resize 256x256 -define icon:auto-resize=256,128,64,48,32,16 ic
 
 ---
 
-## 5. Set Up the `openfang.sh` Domain
+## 5. Set Up the `ochi.sh` Domain
 
-**Status:** BLOCKING for install scripts — users run `curl -sSf https://openfang.sh | sh`.
+**Status:** BLOCKING for install scripts — users run `curl -sSf https://ochi.sh | sh`.
 
 Options:
-- **GitHub Pages**: Point `openfang.sh` to a GitHub Pages site that redirects `/` to `scripts/install.sh` and `/install.ps1` to `scripts/install.ps1` from the repo's latest release.
+- **GitHub Pages**: Point `ochi.sh` to a GitHub Pages site that redirects `/` to `scripts/install.sh` and `/install.ps1` to `scripts/install.ps1` from the repo's latest release.
 - **Cloudflare Workers / Vercel**: Serve the install scripts with proper `Content-Type: text/plain` headers.
-- **Raw GitHub redirect**: Use `openfang.sh` as a CNAME to `raw.githubusercontent.com/RightNow-AI/openfang/main/scripts/install.sh` (less reliable).
+- **Raw GitHub redirect**: Use `ochi.sh` as a CNAME to `raw.githubusercontent.com/RightNow-AI/ochi/main/scripts/install.sh` (less reliable).
 
 The install scripts reference:
-- `https://openfang.sh` → serves `scripts/install.sh`
-- `https://openfang.sh/install.ps1` → serves `scripts/install.ps1`
+- `https://ochi.sh` → serves `scripts/install.sh`
+- `https://ochi.sh/install.ps1` → serves `scripts/install.ps1`
 
 Until the domain is set up, users can install via:
 ```bash
-curl -sSf https://raw.githubusercontent.com/RightNow-AI/openfang/main/scripts/install.sh | sh
+curl -sSf https://raw.githubusercontent.com/RightNow-AI/ochi/main/scripts/install.sh | sh
 ```
 
 ---
@@ -138,9 +138,9 @@ curl -sSf https://raw.githubusercontent.com/RightNow-AI/openfang/main/scripts/in
 **Status:** VERIFY — the Dockerfile must produce a working image.
 
 ```bash
-docker build -t openfang:local .
-docker run --rm openfang:local --version
-docker run --rm -p 4200:4200 -v openfang-data:/data openfang:local start
+docker build -t ochi:local .
+docker run --rm ochi:local --version
+docker run --rm -p 4200:4200 -v ochi-data:/data ochi:local start
 ```
 
 Confirm:
@@ -202,7 +202,7 @@ Once steps 1-8 are complete:
 
 ```bash
 # Ensure version matches everywhere
-grep '"version"' crates/openfang-desktop/tauri.conf.json
+grep '"version"' crates/ochi-desktop/tauri.conf.json
 grep '^version' Cargo.toml
 
 # Commit any final changes
@@ -237,7 +237,7 @@ After the release workflow completes (~15-30 min):
 - [ ] SHA256 checksum files present for each CLI archive
 
 ### Auto-Updater Manifest
-Visit: `https://github.com/RightNow-AI/openfang/releases/latest/download/latest.json`
+Visit: `https://github.com/lathaihoangmedia-lgtm/Ochi/releases/latest/download/latest.json`
 
 - [ ] JSON is valid
 - [ ] Contains `signature` fields (not empty strings)
@@ -246,11 +246,11 @@ Visit: `https://github.com/RightNow-AI/openfang/releases/latest/download/latest.
 
 ### Docker Image
 ```bash
-docker pull ghcr.io/RightNow-AI/openfang:latest
-docker pull ghcr.io/RightNow-AI/openfang:0.1.0
+docker pull ghcr.io/RightNow-AI/ochi:latest
+docker pull ghcr.io/RightNow-AI/ochi:0.1.0
 
 # Verify both architectures
-docker run --rm ghcr.io/RightNow-AI/openfang:latest --version
+docker run --rm ghcr.io/RightNow-AI/ochi:latest --version
 ```
 
 ### Desktop App Auto-Update (test with v0.1.1)
@@ -266,12 +266,12 @@ docker run --rm ghcr.io/RightNow-AI/openfang:latest --version
 ### Install Scripts
 ```bash
 # Linux/macOS
-curl -sSf https://openfang.sh | sh
-openfang --version  # Should print v0.1.0
+curl -sSf https://ochi.sh | sh
+ochi --version  # Should print v0.1.0
 
 # Windows PowerShell
-irm https://openfang.sh/install.ps1 | iex
-openfang --version
+irm https://ochi.sh/install.ps1 | iex
+ochi --version
 ```
 
 ---

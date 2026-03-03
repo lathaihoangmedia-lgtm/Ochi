@@ -40,21 +40,21 @@ overlapping layers so that a failure in any one layer is caught by others.
 | # | System | Crate | Protects Against |
 |---|--------|-------|------------------|
 | 1 | Capability-Based Security | `openfang-types` | Unauthorized actions by agents |
-| 2 | WASM Dual Metering | `openfang-runtime` | Infinite loops, CPU DoS |
-| 3 | Merkle Audit Trail | `openfang-runtime` | Tampered audit logs |
+| 2 | WASM Dual Metering | `ochi-runtime` | Infinite loops, CPU DoS |
+| 3 | Merkle Audit Trail | `ochi-runtime` | Tampered audit logs |
 | 4 | Taint Tracking | `openfang-types` | Prompt injection, data exfiltration |
 | 5 | Ed25519 Manifest Signing | `openfang-types` | Supply chain attacks |
-| 6 | SSRF Protection | `openfang-runtime` | Server-Side Request Forgery |
-| 7 | Secret Zeroization | `openfang-runtime`, `openfang-channels` | Memory forensics, key leakage |
-| 8 | OFP Mutual Auth | `openfang-wire` | Unauthorized peer connections |
-| 9 | Security Headers | `openfang-api` | XSS, clickjacking, MIME sniffing |
-| 10 | GCRA Rate Limiter | `openfang-api` | API abuse, denial of service |
-| 11 | Path Traversal Prevention | `openfang-runtime` | Directory traversal attacks |
-| 12 | Subprocess Sandbox | `openfang-runtime` | Secret leakage via child processes |
-| 13 | Prompt Injection Scanner | `openfang-skills` | Malicious skill prompts |
-| 14 | Loop Guard | `openfang-runtime` | Stuck agent tool loops |
-| 15 | Session Repair | `openfang-runtime` | Corrupted LLM conversation history |
-| 16 | Health Endpoint Redaction | `openfang-api` | Information leakage |
+| 6 | SSRF Protection | `ochi-runtime` | Server-Side Request Forgery |
+| 7 | Secret Zeroization | `ochi-runtime`, `ochi-channels` | Memory forensics, key leakage |
+| 8 | OFP Mutual Auth | `ochi-wire` | Unauthorized peer connections |
+| 9 | Security Headers | `ochi-api` | XSS, clickjacking, MIME sniffing |
+| 10 | GCRA Rate Limiter | `ochi-api` | API abuse, denial of service |
+| 11 | Path Traversal Prevention | `ochi-runtime` | Directory traversal attacks |
+| 12 | Subprocess Sandbox | `ochi-runtime` | Secret leakage via child processes |
+| 13 | Prompt Injection Scanner | `ochi-skills` | Malicious skill prompts |
+| 14 | Loop Guard | `ochi-runtime` | Stuck agent tool loops |
+| 15 | Session Repair | `ochi-runtime` | Corrupted LLM conversation history |
+| 16 | Health Endpoint Redaction | `ochi-api` | Information leakage |
 
 ---
 
@@ -183,7 +183,7 @@ which invokes this validation before the child is created.
 
 ## 3. WASM Dual Metering
 
-**Source:** `openfang-runtime/src/sandbox.rs`
+**Source:** `ochi-runtime/src/sandbox.rs`
 
 Untrusted WASM modules run inside a Wasmtime sandbox with **two
 independent** metering mechanisms running simultaneously.
@@ -266,7 +266,7 @@ pub enum SandboxError {
 
 ## 4. Merkle Hash Chain Audit Trail
 
-**Source:** `openfang-runtime/src/audit.rs`
+**Source:** `ochi-runtime/src/audit.rs`
 
 Every security-critical action is appended to a tamper-evident Merkle hash
 chain, similar to a blockchain.  Each entry contains the SHA-256 hash of its
@@ -551,7 +551,7 @@ pub fn verify(&self) -> Result<(), String> {
 
 ## 7. SSRF Protection
 
-**Source:** `openfang-runtime/src/host_functions.rs`
+**Source:** `ochi-runtime/src/host_functions.rs`
 
 The `host_net_fetch` function (WASM host call for network requests) includes
 comprehensive Server-Side Request Forgery protection.
@@ -666,7 +666,7 @@ client.post(url).header("authorization", format!("Bearer {}", &*key));
 
 ### 8.2 Fields Using Zeroization
 
-**LLM Drivers** (`openfang-runtime/src/drivers/`):
+**LLM Drivers** (`ochi-runtime/src/drivers/`):
 
 | Driver | Field |
 |--------|-------|
@@ -674,7 +674,7 @@ client.post(url).header("authorization", format!("Bearer {}", &*key));
 | `GeminiDriver` | `api_key: Zeroizing<String>` |
 | `OpenAiCompatDriver` | `api_key: Zeroizing<String>` |
 
-**Channel Adapters** (`openfang-channels/src/`):
+**Channel Adapters** (`ochi-channels/src/`):
 
 | Adapter | Field(s) |
 |---------|----------|
@@ -687,7 +687,7 @@ client.post(url).header("authorization", format!("Bearer {}", &*key));
 | `GitterAdapter` | `token: Zeroizing<String>` |
 | `GotifyAdapter` | `app_token: Zeroizing<String>`, `client_token: Zeroizing<String>` |
 
-**Web Search** (`openfang-runtime/src/web_search.rs`):
+**Web Search** (`ochi-runtime/src/web_search.rs`):
 
 ```rust
 fn resolve_api_key(env_var: &str) -> Option<Zeroizing<String>> {
@@ -695,7 +695,7 @@ fn resolve_api_key(env_var: &str) -> Option<Zeroizing<String>> {
 }
 ```
 
-**Embedding** (`openfang-runtime/src/embedding.rs`):
+**Embedding** (`ochi-runtime/src/embedding.rs`):
 
 | Struct | Field |
 |--------|-------|
@@ -712,7 +712,7 @@ the secret is overwritten as soon as it is no longer needed.
 
 ## 9. OFP Mutual Authentication
 
-**Source:** `openfang-wire/src/peer.rs`
+**Source:** `ochi-wire/src/peer.rs`
 
 The OpenFang Wire Protocol (OFP) uses HMAC-SHA256 with nonce-based mutual
 authentication over TCP connections.
@@ -790,7 +790,7 @@ timing side-channel attacks.
 
 ## 10. Security Headers
 
-**Source:** `openfang-api/src/middleware.rs`
+**Source:** `ochi-api/src/middleware.rs`
 
 The `security_headers` middleware is applied to **all** API responses:
 
@@ -835,7 +835,7 @@ pub async fn security_headers(request: Request<Body>, next: Next) -> Response<Bo
 
 ## 11. GCRA Rate Limiter
 
-**Source:** `openfang-api/src/rate_limiter.rs`
+**Source:** `ochi-api/src/rate_limiter.rs`
 
 OpenFang uses the Generic Cell Rate Algorithm (GCRA) for cost-aware API
 rate limiting via the `governor` crate.
@@ -924,7 +924,7 @@ entry cleanup.
 
 ## 12. Path Traversal Prevention
 
-**Source:** `openfang-runtime/src/host_functions.rs`
+**Source:** `ochi-runtime/src/host_functions.rs`
 
 Two functions provide defense-in-depth against directory traversal.
 
@@ -993,7 +993,7 @@ pattern like `"*"`, path traversal is still blocked.
 
 ## 13. Subprocess Sandbox
 
-**Source:** `openfang-runtime/src/subprocess_sandbox.rs`
+**Source:** `ochi-runtime/src/subprocess_sandbox.rs`
 
 When the runtime spawns child processes (e.g., for the shell tool or skill
 execution), the inherited environment must be stripped to prevent accidental
@@ -1074,7 +1074,7 @@ process, preventing shell injection via metacharacters like `;`, `|`, `&&`.
 
 ## 14. Prompt Injection Scanner
 
-**Source:** `openfang-skills/src/verify.rs`
+**Source:** `ochi-skills/src/verify.rs`
 
 The `SkillVerifier` provides two scanning functions: `security_scan()` for
 skill manifests and `scan_prompt_content()` for skill prompt text (SKILL.md
@@ -1152,7 +1152,7 @@ pub struct SkillWarning {
 
 ## 15. Loop Guard
 
-**Source:** `openfang-runtime/src/loop_guard.rs`
+**Source:** `ochi-runtime/src/loop_guard.rs`
 
 The `LoopGuard` tracks tool calls within a single agent loop execution to
 detect when the agent is stuck calling the same tool repeatedly.
@@ -1232,7 +1232,7 @@ an agent that calls `web_search({"query": "test"})` 5 times will be blocked.
 
 ## 16. Session Repair
 
-**Source:** `openfang-runtime/src/session_repair.rs`
+**Source:** `ochi-runtime/src/session_repair.rs`
 
 Before sending message history to the LLM, this module validates and repairs
 common structural issues that would cause API errors.
@@ -1288,7 +1288,7 @@ fn merge_content(dst: &mut MessageContent, src: MessageContent) {
 
 ## 17. Health Endpoint Redaction
 
-**Source:** `openfang-api/src/routes.rs`
+**Source:** `ochi-api/src/routes.rs`
 
 OpenFang provides two health endpoints with different information levels.
 

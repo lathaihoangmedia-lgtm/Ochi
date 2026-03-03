@@ -114,7 +114,7 @@ All adapters share a common foundation: graceful shutdown via `watch::channel`, 
 
 ## Channel Configuration
 
-All channel configurations live in `~/.openfang/config.toml` under the `[channels]` section. Each channel is a subsection:
+All channel configurations live in `~/.ochi/config.toml` under the `[channels]` section. Each channel is a subsection:
 
 ```toml
 [channels.telegram]
@@ -201,7 +201,7 @@ usage_footer = "compact"
 
 ### Output Formatter
 
-The `formatter` module (`openfang-channels/src/formatter.rs`) converts Markdown output from the LLM into platform-native formats:
+The `formatter` module (`ochi-channels/src/formatter.rs`) converts Markdown output from the LLM into platform-native formats:
 
 | OutputFormat | Target | Notes |
 |-------------|--------|-------|
@@ -212,7 +212,7 @@ The `formatter` module (`openfang-channels/src/formatter.rs`) converts Markdown 
 
 ### Per-User Rate Limiter
 
-The `ChannelRateLimiter` (`openfang-channels/src/rate_limiter.rs`) uses a `DashMap` to track per-user message counts. When `rate_limit_per_user` is set on a channel's overrides, the limiter enforces a sliding-window cap of N messages per minute. Excess messages receive a polite rejection.
+The `ChannelRateLimiter` (`ochi-channels/src/rate_limiter.rs`) uses a `DashMap` to track per-user message counts. When `rate_limit_per_user` is set on a channel's overrides, the limiter enforces a sliding-window cap of N messages per minute. Excess messages receive a polite rejection.
 
 ### DM Policy
 
@@ -274,7 +274,7 @@ default_agent = "assistant"
 6. Restart the daemon:
 
 ```bash
-openfang start
+ochi start
 ```
 
 ### How It Works
@@ -286,7 +286,7 @@ Messages from authorized users are converted to `ChannelMessage` events and rout
 ### Interactive Setup
 
 ```bash
-openfang channel setup telegram
+ochi channel setup telegram
 ```
 
 This walks you through the setup interactively.
@@ -482,7 +482,7 @@ export MATRIX_TOKEN=syt_...
 [channels.matrix]
 homeserver_url = "https://matrix.org"
 access_token_env = "MATRIX_TOKEN"
-user_id = "@openfang-bot:matrix.org"
+user_id = "@ochi-bot:matrix.org"
 default_agent = "assistant"
 ```
 
@@ -562,7 +562,7 @@ The `AgentRouter` determines which agent receives an incoming message. The routi
 
 ## Writing Custom Adapters
 
-To add support for a new messaging platform, implement the `ChannelAdapter` trait. The trait is defined in `crates/openfang-channels/src/types.rs`.
+To add support for a new messaging platform, implement the `ChannelAdapter` trait. The trait is defined in `crates/ochi-channels/src/types.rs`.
 
 ### The ChannelAdapter Trait
 
@@ -613,7 +613,7 @@ pub trait ChannelAdapter: Send + Sync {
 
 ### 1. Define Your Adapter
 
-Create `crates/openfang-channels/src/myplatform.rs`:
+Create `crates/ochi-channels/src/myplatform.rs`:
 
 ```rust
 use crate::types::{
@@ -690,7 +690,7 @@ impl ChannelAdapter for MyPlatformAdapter {
 
 ### 2. Register the Module
 
-In `crates/openfang-channels/src/lib.rs`:
+In `crates/ochi-channels/src/lib.rs`:
 
 ```rust
 pub mod myplatform;
@@ -698,7 +698,7 @@ pub mod myplatform;
 
 ### 3. Wire It Into the Bridge
 
-In `crates/openfang-api/src/channel_bridge.rs`, add initialization logic for your adapter alongside the existing adapters.
+In `crates/ochi-api/src/channel_bridge.rs`, add initialization logic for your adapter alongside the existing adapters.
 
 ### 4. Add Config Support
 
@@ -718,7 +718,7 @@ Add it to the `ChannelsConfig` struct and `config.toml` parsing. The `overrides`
 
 ### 5. Add CLI Setup Wizard
 
-In `crates/openfang-cli/src/main.rs`, add a case to `cmd_channel_setup` with step-by-step instructions for your platform.
+In `crates/ochi-cli/src/main.rs`, add a case to `cmd_channel_setup` with step-by-step instructions for your platform.
 
 ### 6. Test
 

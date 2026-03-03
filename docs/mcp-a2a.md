@@ -36,16 +36,16 @@ The Model Context Protocol (MCP) is a JSON-RPC 2.0 based protocol that standardi
 OpenFang implements MCP protocol version `2024-11-05`.
 
 **Source files:**
-- Client: `crates/openfang-runtime/src/mcp.rs`
-- Server handler: `crates/openfang-runtime/src/mcp_server.rs`
-- CLI server: `crates/openfang-cli/src/mcp.rs`
+- Client: `crates/ochi-runtime/src/mcp.rs`
+- Server handler: `crates/ochi-runtime/src/mcp_server.rs`
+- CLI server: `crates/ochi-cli/src/mcp.rs`
 - Config types: `crates/openfang-types/src/config.rs` (`McpServerConfigEntry`, `McpTransportEntry`)
 
 ---
 
 ### MCP Client
 
-The MCP client (`McpConnection` in `openfang-runtime`) allows OpenFang to connect to any MCP-compatible server and use its tools as if they were built-in.
+The MCP client (`McpConnection` in `ochi-runtime`) allows OpenFang to connect to any MCP-compatible server and use its tools as if they were built-in.
 
 #### Configuration
 
@@ -170,12 +170,12 @@ Each OpenFang agent becomes an MCP tool named `openfang_agent_{name}` (with hyph
 
 For example, an agent named `code-reviewer` becomes the MCP tool `openfang_agent_code_reviewer`.
 
-#### CLI: `openfang mcp`
+#### CLI: `ochi mcp`
 
-The primary way to run the MCP server is the `openfang mcp` command, which starts a stdio-based MCP server:
+The primary way to run the MCP server is the `ochi mcp` command, which starts a stdio-based MCP server:
 
 ```bash
-openfang mcp
+ochi mcp
 ```
 
 This command:
@@ -244,7 +244,7 @@ Response:
   "result": {
     "protocolVersion": "2024-11-05",
     "capabilities": { "tools": {} },
-    "serverInfo": { "name": "openfang", "version": "0.1.0" }
+    "serverInfo": { "name": "ochi", "version": "0.1.0" }
   }
 }
 ```
@@ -289,8 +289,8 @@ Add to your MCP configuration file (e.g., `.cursor/mcp.json` or VS Code MCP sett
 ```json
 {
   "mcpServers": {
-    "openfang": {
-      "command": "openfang",
+    "ochi": {
+      "command": "ochi",
       "args": ["mcp"]
     }
   }
@@ -304,8 +304,8 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "openfang": {
-      "command": "openfang",
+    "ochi": {
+      "command": "ochi",
       "args": ["mcp"],
       "env": {}
     }
@@ -313,7 +313,7 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
-After configuration, all OpenFang agents appear as tools in the IDE. For example, you can ask Claude Desktop to "use the openfang code-reviewer agent to review this file."
+After configuration, all OpenFang agents appear as tools in the IDE. For example, you can ask Claude Desktop to "use the ochi code-reviewer agent to review this file."
 
 ---
 
@@ -462,8 +462,8 @@ OpenFang implements A2A in both directions:
 - **As a client**: Discovers external A2A agents at boot time, sends tasks to them, and polls for results.
 
 **Source files:**
-- Protocol types and logic: `crates/openfang-runtime/src/a2a.rs`
-- API routes: `crates/openfang-api/src/routes.rs`
+- Protocol types and logic: `crates/ochi-runtime/src/a2a.rs`
+- API routes: `crates/ochi-api/src/routes.rs`
 - Config types: `crates/openfang-types/src/config.rs` (`A2aConfig`, `ExternalAgent`)
 
 ---

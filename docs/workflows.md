@@ -12,7 +12,7 @@ Use workflows when you need to:
 - Iterate a step in a loop until a quality gate is met.
 - Build reproducible, auditable multi-agent processes that can be triggered via API or CLI.
 
-The implementation lives in `openfang-kernel/src/workflow.rs`. The workflow engine is decoupled from the kernel through closures -- it never directly owns or references the kernel, making it testable in isolation.
+The implementation lives in `ochi-kernel/src/workflow.rs`. The workflow engine is decoupled from the kernel through closures -- it never directly owns or references the kernel, making it testable in isolation.
 
 ---
 
@@ -412,7 +412,7 @@ The loop runs the reviewer up to 4 times. Each iteration receives the previous i
 
 ## Trigger Engine
 
-The trigger engine (`openfang-kernel/src/triggers.rs`) provides event-driven automation. Triggers watch the kernel's event bus and automatically send messages to agents when matching events arrive.
+The trigger engine (`ochi-kernel/src/triggers.rs`) provides event-driven automation. Triggers watch the kernel's event bus and automatically send messages to agents when matching events arrive.
 
 ### Core Types
 
@@ -688,29 +688,29 @@ All workflow and trigger CLI commands require a running OpenFang daemon.
 ### Workflow Commands
 
 ```
-openfang workflow list
+ochi workflow list
 ```
 Lists all registered workflows with their ID, name, step count, and creation date.
 
 ```
-openfang workflow create <file>
+ochi workflow create <file>
 ```
 Creates a workflow from a JSON file. The file should contain the same JSON structure as the `POST /api/workflows` request body.
 
 ```
-openfang workflow run <workflow_id> <input>
+ochi workflow run <workflow_id> <input>
 ```
 Executes a workflow by its UUID with the given input text. Blocks until completion and prints the output.
 
 ### Trigger Commands
 
 ```
-openfang trigger list [--agent-id <uuid>]
+ochi trigger list [--agent-id <uuid>]
 ```
 Lists all registered triggers. Optionally filter by agent ID.
 
 ```
-openfang trigger create <agent_id> <pattern_json> [--prompt <template>] [--max-fires <n>]
+ochi trigger create <agent_id> <pattern_json> [--prompt <template>] [--max-fires <n>]
 ```
 Creates a trigger for the specified agent. The `pattern_json` argument is a JSON string describing the pattern.
 
@@ -721,17 +721,17 @@ Defaults:
 Examples:
 ```bash
 # Watch all lifecycle events
-openfang trigger create <agent-id> '"lifecycle"' --prompt "Lifecycle: {{event}}"
+ochi trigger create <agent-id> '"lifecycle"' --prompt "Lifecycle: {{event}}"
 
 # Watch for a specific agent spawn
-openfang trigger create <agent-id> '{"agent_spawned":{"name_pattern":"coder"}}' --max-fires 1
+ochi trigger create <agent-id> '{"agent_spawned":{"name_pattern":"coder"}}' --max-fires 1
 
 # Watch for content containing "error"
-openfang trigger create <agent-id> '{"content_match":{"substring":"error"}}'
+ochi trigger create <agent-id> '{"content_match":{"substring":"error"}}'
 ```
 
 ```
-openfang trigger delete <trigger_id>
+ochi trigger delete <trigger_id>
 ```
 Deletes a trigger by its UUID.
 

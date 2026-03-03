@@ -57,7 +57,7 @@ Repository đã để **public** để thuận tiện cộng tác qua GitHub (is
 - Với thay đổi tài liệu public-facing, ưu tiên dùng brand **Ochi** và bám theo kế hoạch tại `docs/ochi-brand-roadmap.md`.
 - Nếu thay đổi liên quan migration/rename kỹ thuật, tham khảo thêm `MIGRATION.md` để tránh phá vỡ tương thích.
 - Với thay đổi SDK (JS/Python), tham khảo thêm `docs/sdk-migration.md` để migrate import/package an toàn.
-- Với migration dữ liệu local, dùng `scripts/migrate-home.sh --dry-run` trước khi cutover `~/.openfang` -> `~/.ochi`.
+- Với migration dữ liệu local, dùng `scripts/migrate-home.sh --dry-run` trước khi cutover `~/.ochi` -> `~/.ochi`.
 
 ## Dịch thuật
 
