@@ -7,17 +7,14 @@ This guide covers migrating from OpenClaw (and other frameworks) to Ochi. The mi
 ## Table of Contents
 
 - [Quick Migration](#quick-migration)
-  - [Legacy Compatibility During Cutover](#legacy-compatibility-during-cutover)
-  - [Home Directory Resolution Priority](#home-directory-resolution-priority)
-  - [Post-migration Verification](#post-migration-verification)
-  - [Options](#options)
-  - [Migration Report](#migration-report)
+- [Rename Mapping (Legacy → Current)](#rename-mapping-legacy--current)
 - [What Gets Migrated](#what-gets-migrated)
 - [Manual Migration Steps](#manual-migration-steps)
 - [Config Format Differences](#config-format-differences)
 - [Tool Name Mapping](#tool-name-mapping)
 - [Provider Mapping](#provider-mapping)
 - [Feature Comparison](#feature-comparison)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -41,31 +38,6 @@ During the rename window, these legacy entry points still work:
 
 Use the Ochi-first forms in new scripts and documentation to avoid carrying forward legacy naming.
 
-### Home Directory Resolution Priority
-
-When both new and legacy settings exist, Ochi resolves its home directory in this order:
-
-1. `OCHI_HOME`
-2. `OPENFANG_HOME` (legacy)
-3. `~/.ochi` (if the directory already exists)
-4. `~/.openfang` (legacy fallback)
-
-This priority allows gradual migration while preserving existing deployments.
-
-### Post-migration Verification
-
-After migration, validate runtime resolution and imported resources:
-
-```bash
-# Check the resolved home/config path
-ochi config show
-
-# Confirm imported agents are available
-ochi agent list
-```
-
-If your automation still calls `openfang`, keep the alias temporarily and schedule script updates to `ochi` in the next release window.
-
 ### Options
 
 ```bash
@@ -88,6 +60,14 @@ LangChain and AutoGPT migration support is planned:
 ochi migrate --from langchain   # Coming soon
 ochi migrate --from autogpt     # Coming soon
 ```
+
+## Rename Mapping (Legacy → Current)
+
+| Area | Legacy | Current (preferred) | Notes |
+|------|--------|---------------------|-------|
+| CLI binary | `openfang` | `ochi` | `openfang` remains a compatibility alias during cutover. |
+| Home directory | `~/.openfang/` | `~/.ochi/` | Runtime prefers `~/.ochi/` but can fall back to legacy path. |
+| Home env var | `OPENFANG_HOME` | `OCHI_HOME` | Resolver accepts both, prefer `OCHI_HOME` for new deployments. |
 
 ---
 
@@ -241,7 +221,7 @@ The kernel will ingest these on first boot.
 | Agent module | Implicit | Explicit (`module = "builtin:chat"` / `"wasm:..."` / `"python:..."`) |
 | Scheduling | Not supported | Built-in (`[schedule]` section: reactive, continuous, periodic, proactive) |
 | Resource quotas | Not supported | Built-in (`[resources]` section: tokens/hour, memory, CPU time) |
-| Networking | Not supported | OFP protocol (`[network]` section) |
+| Networking | Not supported | OFP network protocol (`[network]` section, legacy acronym retained) |
 
 ---
 
@@ -347,7 +327,7 @@ OpenClaw's tool profiles map to explicit tool lists:
 | **Event triggers** | None | Pattern-matching event triggers with templated prompts |
 | **WASM sandbox** | None | Wasmtime-based sandboxed execution |
 | **Python runtime** | None | Subprocess-based Python agent execution |
-| **Networking** | None | OFP (OpenFang Protocol, legacy naming) peer-to-peer |
+| **Networking** | None | OFP (OpenFang Protocol, legacy name retained) peer-to-peer |
 | **API server** | Basic REST | REST + WebSocket + SSE streaming |
 | **WebChat UI** | Separate | Embedded in daemon |
 | **Channel adapters** | Telegram, Discord | Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email |
