@@ -1,6 +1,6 @@
 # MCP & A2A Integration Guide
 
-OpenFang implements both the **Model Context Protocol (MCP)** and **Agent-to-Agent (A2A)** protocol, enabling deep interoperability with external tools, IDEs, and other agent frameworks.
+Ochi implements both the **Model Context Protocol (MCP)** and **Agent-to-Agent (A2A)** protocol, enabling deep interoperability with external tools, IDEs, and other agent frameworks.
 
 ---
 
@@ -9,7 +9,7 @@ OpenFang implements both the **Model Context Protocol (MCP)** and **Agent-to-Age
 - [Part 1: MCP (Model Context Protocol)](#part-1-mcp-model-context-protocol)
   - [Overview](#mcp-overview)
   - [MCP Client -- Connecting to External Servers](#mcp-client)
-  - [MCP Server -- Exposing OpenFang via MCP](#mcp-server)
+  - [MCP Server -- Exposing Ochi via MCP](#mcp-server)
   - [Configuration Examples](#mcp-configuration-examples)
   - [API Endpoints](#mcp-api-endpoints)
 - [Part 2: A2A (Agent-to-Agent Protocol)](#part-2-a2a-agent-to-agent-protocol)
@@ -28,24 +28,24 @@ OpenFang implements both the **Model Context Protocol (MCP)** and **Agent-to-Age
 
 ### MCP Overview
 
-The Model Context Protocol (MCP) is a JSON-RPC 2.0 based protocol that standardizes how LLM applications discover and invoke tools. OpenFang supports MCP in both directions:
+The Model Context Protocol (MCP) is a JSON-RPC 2.0 based protocol that standardizes how LLM applications discover and invoke tools. Ochi supports MCP in both directions:
 
-- **As a client**: OpenFang connects to external MCP servers (GitHub, filesystem, databases, Puppeteer, etc.) and makes their tools available to all agents.
-- **As a server**: OpenFang exposes its own agents as MCP tools, so IDEs like Cursor, VS Code, and Claude Desktop can call OpenFang agents directly.
+- **As a client**: Ochi connects to external MCP servers (GitHub, filesystem, databases, Puppeteer, etc.) and makes their tools available to all agents.
+- **As a server**: Ochi exposes its own agents as MCP tools, so IDEs like Cursor, VS Code, and Claude Desktop can call Ochi agents directly.
 
-OpenFang implements MCP protocol version `2024-11-05`.
+Ochi implements MCP protocol version `2024-11-05`.
 
 **Source files:**
 - Client: `crates/ochi-runtime/src/mcp.rs`
 - Server handler: `crates/ochi-runtime/src/mcp_server.rs`
 - CLI server: `crates/ochi-cli/src/mcp.rs`
-- Config types: `crates/openfang-types/src/config.rs` (`McpServerConfigEntry`, `McpTransportEntry`)
+- Config types: `crates/ochi-types/src/config.rs` (`McpServerConfigEntry`, `McpTransportEntry`)
 
 ---
 
 ### MCP Client
 
-The MCP client (`McpConnection` in `ochi-runtime`) allows OpenFang to connect to any MCP-compatible server and use its tools as if they were built-in.
+The MCP client (`McpConnection` in `ochi-runtime`) allows Ochi to connect to any MCP-compatible server and use its tools as if they were built-in.
 
 #### Configuration
 
@@ -74,7 +74,7 @@ Each entry maps to a `McpServerConfigEntry` struct:
 
 #### Transport Types
 
-OpenFang supports two MCP transports, defined by `McpTransport`:
+Ochi supports two MCP transports, defined by `McpTransport`:
 
 **Stdio** -- Spawns a subprocess and communicates via stdin/stdout with newline-delimited JSON-RPC:
 
@@ -101,7 +101,7 @@ Examples:
 - Server `github`, tool `create_issue` becomes `mcp_github_create_issue`
 - Server `my-server`, tool `do_thing` becomes `mcp_my_server_do_thing`
 
-Helper functions (exported from `openfang_runtime::mcp`):
+Helper functions (exported from `ochi_runtime::mcp`):
 - `format_mcp_tool_name(server, tool)` -- builds the namespaced name
 - `is_mcp_tool(name)` -- checks if a tool name starts with `mcp_`
 - `extract_mcp_server(tool_name)` -- extracts the server name from a namespaced tool
@@ -162,13 +162,13 @@ impl Drop for McpConnection {
 
 ### MCP Server
 
-OpenFang can also act as an MCP server, exposing its agents as callable tools to external MCP clients.
+Ochi can also act as an MCP server, exposing its agents as callable tools to external MCP clients.
 
 #### How It Works
 
-Each OpenFang agent becomes an MCP tool named `openfang_agent_{name}` (with hyphens replaced by underscores). The tool accepts a single `message` string parameter and returns the agent's response.
+Each Ochi agent becomes an MCP tool named `ochi_agent_{name}` (with hyphens replaced by underscores). The tool accepts a single `message` string parameter and returns the agent's response.
 
-For example, an agent named `code-reviewer` becomes the MCP tool `openfang_agent_code_reviewer`.
+For example, an agent named `code-reviewer` becomes the MCP tool `ochi_agent_code_reviewer`.
 
 #### CLI: `ochi mcp`
 
@@ -179,19 +179,19 @@ ochi mcp
 ```
 
 This command:
-1. Checks if an OpenFang daemon is running (via `find_daemon()`)
+1. Checks if an Ochi daemon is running (via `find_daemon()`)
 2. If found, proxies all tool calls to the daemon via its HTTP API
 3. If no daemon is running, boots an in-process kernel as a fallback
 4. Reads Content-Length framed JSON-RPC messages from stdin
 5. Writes Content-Length framed JSON-RPC responses to stdout
 
 The MCP server uses `McpBackend` which supports two modes:
-- `McpBackend::Daemon` -- forwards requests to a running OpenFang daemon via HTTP
+- `McpBackend::Daemon` -- forwards requests to a running Ochi daemon via HTTP
 - `McpBackend::InProcess` -- boots a full kernel when no daemon is available
 
 #### HTTP MCP Endpoint
 
-OpenFang also exposes an MCP endpoint over HTTP at `POST /mcp`. Unlike the stdio server (which only exposes agents), the HTTP endpoint exposes the full tool set (built-in + skills + MCP tools) and executes tools via the kernel's `execute_tool()` pipeline. This means the HTTP MCP endpoint supports:
+Ochi also exposes an MCP endpoint over HTTP at `POST /mcp`. Unlike the stdio server (which only exposes agents), the HTTP endpoint exposes the full tool set (built-in + skills + MCP tools) and executes tools via the kernel's `execute_tool()` pipeline. This means the HTTP MCP endpoint supports:
 
 - All 23 built-in tools (file_read, web_fetch, etc.)
 - All installed skill tools
@@ -257,7 +257,7 @@ Response:
   "id": 3,
   "method": "tools/call",
   "params": {
-    "name": "openfang_agent_code_reviewer",
+    "name": "ochi_agent_code_reviewer",
     "arguments": {
       "message": "Review this Python function for security issues..."
     }
@@ -313,7 +313,7 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
-After configuration, all OpenFang agents appear as tools in the IDE. For example, you can ask Claude Desktop to "use the ochi code-reviewer agent to review this file."
+After configuration, all Ochi agents appear as tools in the IDE. For example, you can ask Claude Desktop to "use the ochi code-reviewer agent to review this file."
 
 ---
 
@@ -456,7 +456,7 @@ args = ["-y", "@modelcontextprotocol/server-postgres"]
 
 The Agent-to-Agent (A2A) protocol, originally specified by Google, enables cross-framework agent interoperability. It allows agents built with different frameworks to discover each other's capabilities and exchange tasks.
 
-OpenFang implements A2A in both directions:
+Ochi implements A2A in both directions:
 
 - **As a server**: Publishes Agent Cards describing each agent's capabilities, accepts task submissions, and tracks task lifecycle.
 - **As a client**: Discovers external A2A agents at boot time, sends tasks to them, and polls for results.
@@ -464,7 +464,7 @@ OpenFang implements A2A in both directions:
 **Source files:**
 - Protocol types and logic: `crates/ochi-runtime/src/a2a.rs`
 - API routes: `crates/ochi-api/src/routes.rs`
-- Config types: `crates/openfang-types/src/config.rs` (`A2aConfig`, `ExternalAgent`)
+- Config types: `crates/ochi-types/src/config.rs` (`A2aConfig`, `ExternalAgent`)
 
 ---
 
@@ -491,17 +491,17 @@ pub struct AgentCard {
 
 ```rust
 pub struct AgentCapabilities {
-    pub streaming: bool,                 // true -- OpenFang supports streaming
+    pub streaming: bool,                 // true -- Ochi supports streaming
     pub push_notifications: bool,        // false -- not currently implemented
     pub state_transition_history: bool,  // true -- task status history available
 }
 ```
 
-**AgentSkill** (not the same as OpenFang skills -- these are A2A capability descriptors):
+**AgentSkill** (not the same as Ochi skills -- these are A2A capability descriptors):
 
 ```rust
 pub struct AgentSkill {
-    pub id: String,           // matches the OpenFang tool name
+    pub id: String,           // matches the Ochi tool name
     pub name: String,         // human-readable (underscores replaced with spaces)
     pub description: String,
     pub tags: Vec<String>,
@@ -509,7 +509,7 @@ pub struct AgentSkill {
 }
 ```
 
-Agent Cards are built from OpenFang agent manifests via `build_agent_card()`. Each tool in the agent's capability list becomes an A2A skill descriptor. Example card:
+Agent Cards are built from Ochi agent manifests via `build_agent_card()`. Each tool in the agent's capability list becomes an A2A skill descriptor. Example card:
 
 ```json
 {
@@ -540,7 +540,7 @@ Agent Cards are built from OpenFang agent manifests via `build_agent_card()`. Ea
 
 ### A2A Server
 
-OpenFang serves A2A requests through the REST API. The server-side implementation involves:
+Ochi serves A2A requests through the REST API. The server-side implementation involves:
 
 1. **Agent Card publication** at `/.well-known/agent.json`
 2. **Agent listing** at `/a2a/agents`
@@ -843,7 +843,7 @@ If `a2a` is `None` (not present in config), all A2A features are disabled. The A
 
 **Task Store Bounds**: The `A2aTaskStore` is bounded (default 1000 tasks) with FIFO eviction of completed/failed/cancelled tasks, preventing memory exhaustion from task accumulation.
 
-**External Agent Discovery**: The `A2aClient` uses a 30-second timeout and sends a `User-Agent: OpenFang/0.1 A2A` header. Failed discoveries are logged but do not block kernel boot.
+**External Agent Discovery**: The `A2aClient` uses a 30-second timeout and sends a `User-Agent: Ochi/0.1 A2A` header. Failed discoveries are logged but do not block kernel boot.
 
 ### Kernel-Level Protection
 

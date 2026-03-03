@@ -1,6 +1,6 @@
 # Troubleshooting & FAQ
 
-Common issues, diagnostics, and answers to frequently asked questions about OpenFang.
+Common issues, diagnostics, and answers to frequently asked questions about Ochi.
 
 ## Table of Contents
 
@@ -48,12 +48,12 @@ curl http://127.0.0.1:4200/api/health/detail  # Requires auth
 
 ### View Logs
 
-OpenFang uses `tracing` for structured logging. Set the log level via environment:
+Ochi uses `tracing` for structured logging. Set the log level via environment:
 
 ```bash
 RUST_LOG=info ochi start          # Default
 RUST_LOG=debug ochi start         # Verbose
-RUST_LOG=ochi=debug ochi start  # Only OpenFang debug, deps at info
+RUST_LOG=ochi=debug ochi start  # Only Ochi debug, deps at info
 ```
 
 ---
@@ -272,7 +272,7 @@ python -m vllm.entrypoints.openai.api_server --model ...
 
 Check logs for the specific error:
 ```bash
-RUST_LOG=openfang_channels=debug ochi start
+RUST_LOG=ochi_channels=debug ochi start
 ```
 
 ---
@@ -283,7 +283,7 @@ RUST_LOG=openfang_channels=debug ochi start
 
 **Cause**: The agent is repeatedly calling the same tool with the same parameters.
 
-**Automatic protection**: OpenFang has a built-in loop guard:
+**Automatic protection**: Ochi has a built-in loop guard:
 - **Warn** at 3 identical tool calls
 - **Block** at 5 identical tool calls
 - **Circuit breaker** at 30 total blocked calls (stops the agent)
@@ -463,7 +463,7 @@ Yes. Each agent can use a different provider via its manifest `[model]` section.
 2. Set the required environment variables (tokens, secrets)
 3. Restart the daemon
 
-### How do I update OpenFang?
+### How do I update Ochi?
 
 ```bash
 # From source
@@ -495,7 +495,7 @@ rm -rf ~/.ochi
 ochi init  # Start fresh
 ```
 
-### Can I run OpenFang without an internet connection?
+### Can I run Ochi without an internet connection?
 
 Yes, if you use a local LLM provider:
 - **Ollama**: `ollama serve` + `ollama pull llama3.2`
@@ -509,9 +509,9 @@ provider = "ollama"
 model = "llama3.2"
 ```
 
-### What's the difference between OpenFang and OpenClaw?
+### What's the difference between Ochi and OpenClaw?
 
-| Aspect | OpenFang | OpenClaw |
+| Aspect | Ochi | OpenClaw |
 |--------|----------|----------|
 | Language | Rust | Python |
 | Channels | 40 | 38 |
@@ -521,7 +521,7 @@ model = "llama3.2"
 | Binary size | ~30 MB | ~200 MB |
 | Startup | <200 ms | ~3 s |
 
-OpenFang can import OpenClaw configs: `ochi migrate --from openclaw`
+Ochi can import OpenClaw configs: `ochi migrate --from openclaw`
 
 ### How do I report a bug or request a feature?
 
@@ -542,10 +542,10 @@ OpenFang can import OpenClaw configs: `ochi migrate --from openclaw`
 ### How do I enable debug logging for a specific crate?
 
 ```bash
-RUST_LOG=openfang_runtime=debug,openfang_channels=info ochi start
+RUST_LOG=ochi_runtime=debug,ochi_channels=info ochi start
 ```
 
-### Can I use OpenFang as a library?
+### Can I use Ochi as a library?
 
 Yes. Each crate is independently usable:
 ```toml

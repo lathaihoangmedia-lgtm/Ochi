@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to OpenFang will be documented in this file.
+All notable changes to Ochi will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -87,8 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Client SDKs
 - JavaScript SDK (`@ochi/sdk`): full REST API client with streaming, TypeScript declarations
-- Python client SDK (`openfang_client`): zero-dependency stdlib client with SSE streaming
-- Python agent SDK (`openfang_sdk`): decorator-based framework for writing Python agents
+- Python client SDK (`ochi_client`): zero-dependency stdlib client with SSE streaming
+- Python agent SDK (`ochi_sdk`): decorator-based framework for writing Python agents
 - Usage examples for both languages (basic + streaming)
 
 #### CLI
@@ -136,7 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Interoperability
 - OpenClaw migration engine (YAML/JSON5 to TOML)
 - MCP client (JSON-RPC 2.0 over stdio/SSE, tool namespacing)
-- MCP server (exposes OpenFang tools via MCP protocol)
+- MCP server (exposes Ochi tools via MCP protocol)
 - A2A protocol client and server
 - Tool name compatibility mappings (21 OpenClaw tool names)
 

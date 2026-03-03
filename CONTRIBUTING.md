@@ -1,6 +1,6 @@
-# Contributing to OpenFang
+# Contributing to Ochi
 
-Thank you for your interest in contributing to OpenFang. This guide covers everything you need to get started, from setting up your development environment to submitting pull requests.
+Thank you for your interest in contributing to Ochi. This guide covers everything you need to get started, from setting up your development environment to submitting pull requests.
 
 ## Table of Contents
 
@@ -105,7 +105,7 @@ cargo run -- doctor
 - **Documentation**: All public types and functions must have doc comments (`///`).
 - **Error Handling**: Use `thiserror` for error types. Avoid `unwrap()` in library code; prefer `?` propagation.
 - **Naming**:
-  - Types: `PascalCase` (e.g., `OpenFangKernel`, `AgentManifest`)
+  - Types: `PascalCase` (e.g., `OchiKernel`, `AgentManifest`)
   - Functions/methods: `snake_case`
   - Constants: `SCREAMING_SNAKE_CASE`
   - Crate names: `ochi-{name}` (kebab-case)
@@ -117,11 +117,11 @@ cargo run -- doctor
 
 ## Architecture Overview
 
-OpenFang is organized as a Cargo workspace with 14 crates:
+Ochi is organized as a Cargo workspace with 14 crates:
 
 | Crate | Role |
 |-------|------|
-| `openfang-types` | Shared type definitions, taint tracking, manifest signing (Ed25519), model catalog, MCP/A2A config types |
+| `ochi-types` | Shared type definitions, taint tracking, manifest signing (Ed25519), model catalog, MCP/A2A config types |
 | `ochi-memory` | SQLite-backed memory substrate with vector embeddings, usage tracking, canonical sessions, JSONL mirroring |
 | `ochi-runtime` | Agent loop, 3 LLM drivers (Anthropic/Gemini/OpenAI-compat), 38 built-in tools, WASM sandbox, MCP client/server, A2A protocol |
 | `ochi-hands` | Hands system (curated autonomous capability packages), 7 bundled hands |
@@ -129,7 +129,7 @@ OpenFang is organized as a Cargo workspace with 14 crates:
 | `ochi-kernel` | Assembles all subsystems: workflow engine, RBAC auth, heartbeat monitor, cron scheduler, config hot-reload |
 | `ochi-api` | REST/WS/SSE API (Axum 0.8), 76 endpoints, 14-page SPA dashboard, OpenAI-compatible `/v1/chat/completions` |
 | `ochi-channels` | 40 channel adapters (Telegram, Discord, Slack, WhatsApp, and 36 more), formatter, rate limiter |
-| `ochi-wire` | OFP (OpenFang Protocol): TCP P2P networking with HMAC-SHA256 mutual authentication |
+| `ochi-wire` | OFP (Ochi Protocol): TCP P2P networking with HMAC-SHA256 mutual authentication |
 | `ochi-cli` | Clap CLI with daemon auto-detect (HTTP mode vs. in-process fallback), MCP server |
 | `ochi-migrate` | Migration engine for importing from OpenClaw (and future frameworks) |
 | `ochi-skills` | Skill system: 60 bundled skills, FangHub marketplace, OpenClaw compatibility, prompt injection scanning |
@@ -138,7 +138,7 @@ OpenFang is organized as a Cargo workspace with 14 crates:
 
 ### Key Architectural Patterns
 
-- **`KernelHandle` trait**: Defined in `openfang-runtime`, implemented on `OpenFangKernel` in `openfang-kernel`. This avoids circular crate dependencies while enabling inter-agent tools.
+- **`KernelHandle` trait**: Defined in `ochi-runtime`, implemented on `OchiKernel` in `ochi-kernel`. This avoids circular crate dependencies while enabling inter-agent tools.
 - **Shared memory**: A fixed UUID (`AgentId(Uuid::from_bytes([0..0, 0x01]))`) provides a cross-agent KV namespace.
 - **Daemon detection**: The CLI checks `~/.ochi/daemon.json` and pings the health endpoint. If a daemon is running, commands use HTTP; otherwise, they boot an in-process kernel.
 - **Capability-based security**: Every agent operation is checked against the agent's granted capabilities before execution.
@@ -250,7 +250,7 @@ pub mod myplatform;
 
 4. Wire it up in the channel bridge (`crates/ochi-api/src/channel_bridge.rs`) so the daemon starts it alongside other adapters.
 
-5. Add configuration support in `openfang-types` config structs (add a `[channels.myplatform]` section).
+5. Add configuration support in `ochi-types` config structs (add a `[channels.myplatform]` section).
 
 6. Add CLI setup wizard instructions in `crates/ochi-cli/src/main.rs` under `cmd_channel_setup`.
 

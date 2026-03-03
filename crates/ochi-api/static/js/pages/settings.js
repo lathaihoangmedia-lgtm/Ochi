@@ -179,8 +179,8 @@ function settingsPage() {
 
     async loadSysInfo() {
       try {
-        var ver = await OpenFangAPI.get('/api/version');
-        var status = await OpenFangAPI.get('/api/status');
+        var ver = await OchiAPI.get('/api/version');
+        var status = await OchiAPI.get('/api/status');
         this.sysInfo = {
           version: ver.version || '-',
           platform: ver.platform || '-',
@@ -195,27 +195,27 @@ function settingsPage() {
 
     async loadUsage() {
       try {
-        var data = await OpenFangAPI.get('/api/usage');
+        var data = await OchiAPI.get('/api/usage');
         this.usageData = data.agents || [];
       } catch(e) { this.usageData = []; }
     },
 
     async loadTools() {
       try {
-        var data = await OpenFangAPI.get('/api/tools');
+        var data = await OchiAPI.get('/api/tools');
         this.tools = data.tools || [];
       } catch(e) { this.tools = []; }
     },
 
     async loadConfig() {
       try {
-        this.config = await OpenFangAPI.get('/api/config');
+        this.config = await OchiAPI.get('/api/config');
       } catch(e) { this.config = {}; }
     },
 
     async loadProviders() {
       try {
-        var data = await OpenFangAPI.get('/api/providers');
+        var data = await OchiAPI.get('/api/providers');
         this.providers = data.providers || [];
         for (var i = 0; i < this.providers.length; i++) {
           var p = this.providers[i];
@@ -228,7 +228,7 @@ function settingsPage() {
 
     async loadModels() {
       try {
-        var data = await OpenFangAPI.get('/api/models');
+        var data = await OchiAPI.get('/api/models');
         this.models = data.models || [];
       } catch(e) { this.models = []; }
     },
@@ -238,7 +238,7 @@ function settingsPage() {
       if (!id) return;
       this.customModelStatus = 'Adding...';
       try {
-        await OpenFangAPI.post('/api/models/custom', {
+        await OchiAPI.post('/api/models/custom', {
           id: id,
           provider: this.customModelProvider || 'openrouter',
           context_window: this.customModelContext || 128000,
@@ -256,8 +256,8 @@ function settingsPage() {
     async loadConfigSchema() {
       try {
         var results = await Promise.all([
-          OpenFangAPI.get('/api/config/schema').catch(function() { return {}; }),
-          OpenFangAPI.get('/api/config')
+          OchiAPI.get('/api/config/schema').catch(function() { return {}; }),
+          OchiAPI.get('/api/config')
         ]);
         this.configSchema = results[0].sections || null;
         this.configValues = results[1] || {};
@@ -276,11 +276,11 @@ function settingsPage() {
       var key = section + '.' + field;
       this.configSaving[key] = true;
       try {
-        await OpenFangAPI.post('/api/config/set', { path: key, value: value });
+        await OchiAPI.post('/api/config/set', { path: key, value: value });
         this.configDirty[key] = false;
-        OpenFangToast.success('Saved ' + key);
+        OchiToast.success('Saved ' + key);
       } catch(e) {
-        OpenFangToast.error('Failed to save: ' + e.message);
+        OchiToast.error('Failed to save: ' + e.message);
       }
       this.configSaving[key] = false;
     },
@@ -372,26 +372,26 @@ function settingsPage() {
 
     async saveProviderKey(provider) {
       var key = this.providerKeyInputs[provider.id];
-      if (!key || !key.trim()) { OpenFangToast.error('Please enter an API key'); return; }
+      if (!key || !key.trim()) { OchiToast.error('Please enter an API key'); return; }
       try {
-        await OpenFangAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/key', { key: key.trim() });
-        OpenFangToast.success('API key saved for ' + provider.display_name);
+        await OchiAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/key', { key: key.trim() });
+        OchiToast.success('API key saved for ' + provider.display_name);
         this.providerKeyInputs[provider.id] = '';
         await this.loadProviders();
         await this.loadModels();
       } catch(e) {
-        OpenFangToast.error('Failed to save key: ' + e.message);
+        OchiToast.error('Failed to save key: ' + e.message);
       }
     },
 
     async removeProviderKey(provider) {
       try {
-        await OpenFangAPI.del('/api/providers/' + encodeURIComponent(provider.id) + '/key');
-        OpenFangToast.success('API key removed for ' + provider.display_name);
+        await OchiAPI.del('/api/providers/' + encodeURIComponent(provider.id) + '/key');
+        OchiToast.success('API key removed for ' + provider.display_name);
         await this.loadProviders();
         await this.loadModels();
       } catch(e) {
-        OpenFangToast.error('Failed to remove key: ' + e.message);
+        OchiToast.error('Failed to remove key: ' + e.message);
       }
     },
 
@@ -399,7 +399,7 @@ function settingsPage() {
       this.copilotOAuth.polling = true;
       this.copilotOAuth.userCode = '';
       try {
-        var resp = await OpenFangAPI.post('/api/providers/github-copilot/oauth/start', {});
+        var resp = await OchiAPI.post('/api/providers/github-copilot/oauth/start', {});
         this.copilotOAuth.userCode = resp.user_code;
         this.copilotOAuth.verificationUri = resp.verification_uri;
         this.copilotOAuth.pollId = resp.poll_id;
@@ -407,7 +407,7 @@ function settingsPage() {
         window.open(resp.verification_uri, '_blank');
         this.pollCopilotOAuth();
       } catch(e) {
-        OpenFangToast.error('Failed to start Copilot login: ' + e.message);
+        OchiToast.error('Failed to start Copilot login: ' + e.message);
         this.copilotOAuth.polling = false;
       }
     },
@@ -417,9 +417,9 @@ function settingsPage() {
       setTimeout(async function() {
         if (!self.copilotOAuth.pollId) return;
         try {
-          var resp = await OpenFangAPI.get('/api/providers/github-copilot/oauth/poll/' + self.copilotOAuth.pollId);
+          var resp = await OchiAPI.get('/api/providers/github-copilot/oauth/poll/' + self.copilotOAuth.pollId);
           if (resp.status === 'complete') {
-            OpenFangToast.success('GitHub Copilot authenticated successfully!');
+            OchiToast.success('GitHub Copilot authenticated successfully!');
             self.copilotOAuth = { polling: false, userCode: '', verificationUri: '', pollId: '', interval: 5 };
             await self.loadProviders();
             await self.loadModels();
@@ -427,17 +427,17 @@ function settingsPage() {
             if (resp.interval) self.copilotOAuth.interval = resp.interval;
             self.pollCopilotOAuth();
           } else if (resp.status === 'expired') {
-            OpenFangToast.error('Device code expired. Please try again.');
+            OchiToast.error('Device code expired. Please try again.');
             self.copilotOAuth = { polling: false, userCode: '', verificationUri: '', pollId: '', interval: 5 };
           } else if (resp.status === 'denied') {
-            OpenFangToast.error('Access denied by user.');
+            OchiToast.error('Access denied by user.');
             self.copilotOAuth = { polling: false, userCode: '', verificationUri: '', pollId: '', interval: 5 };
           } else {
-            OpenFangToast.error('OAuth error: ' + (resp.error || resp.status));
+            OchiToast.error('OAuth error: ' + (resp.error || resp.status));
             self.copilotOAuth = { polling: false, userCode: '', verificationUri: '', pollId: '', interval: 5 };
           }
         } catch(e) {
-          OpenFangToast.error('Poll error: ' + e.message);
+          OchiToast.error('Poll error: ' + e.message);
           self.copilotOAuth = { polling: false, userCode: '', verificationUri: '', pollId: '', interval: 5 };
         }
       }, self.copilotOAuth.interval * 1000);
@@ -447,38 +447,38 @@ function settingsPage() {
       this.providerTesting[provider.id] = true;
       this.providerTestResults[provider.id] = null;
       try {
-        var result = await OpenFangAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/test', {});
+        var result = await OchiAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/test', {});
         this.providerTestResults[provider.id] = result;
         if (result.status === 'ok') {
-          OpenFangToast.success(provider.display_name + ' connected (' + (result.latency_ms || '?') + 'ms)');
+          OchiToast.success(provider.display_name + ' connected (' + (result.latency_ms || '?') + 'ms)');
         } else {
-          OpenFangToast.error(provider.display_name + ': ' + (result.error || 'Connection failed'));
+          OchiToast.error(provider.display_name + ': ' + (result.error || 'Connection failed'));
         }
       } catch(e) {
         this.providerTestResults[provider.id] = { status: 'error', error: e.message };
-        OpenFangToast.error('Test failed: ' + e.message);
+        OchiToast.error('Test failed: ' + e.message);
       }
       this.providerTesting[provider.id] = false;
     },
 
     async saveProviderUrl(provider) {
       var url = this.providerUrlInputs[provider.id];
-      if (!url || !url.trim()) { OpenFangToast.error('Please enter a base URL'); return; }
+      if (!url || !url.trim()) { OchiToast.error('Please enter a base URL'); return; }
       url = url.trim();
       if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
-        OpenFangToast.error('URL must start with http:// or https://'); return;
+        OchiToast.error('URL must start with http:// or https://'); return;
       }
       this.providerUrlSaving[provider.id] = true;
       try {
-        var result = await OpenFangAPI.put('/api/providers/' + encodeURIComponent(provider.id) + '/url', { base_url: url });
+        var result = await OchiAPI.put('/api/providers/' + encodeURIComponent(provider.id) + '/url', { base_url: url });
         if (result.reachable) {
-          OpenFangToast.success(provider.display_name + ' URL saved &mdash; reachable (' + (result.latency_ms || '?') + 'ms)');
+          OchiToast.success(provider.display_name + ' URL saved &mdash; reachable (' + (result.latency_ms || '?') + 'ms)');
         } else {
-          OpenFangToast.warning(provider.display_name + ' URL saved but not reachable');
+          OchiToast.warning(provider.display_name + ' URL saved but not reachable');
         }
         await this.loadProviders();
       } catch(e) {
-        OpenFangToast.error('Failed to save URL: ' + e.message);
+        OchiToast.error('Failed to save URL: ' + e.message);
       }
       this.providerUrlSaving[provider.id] = false;
     },
@@ -487,7 +487,7 @@ function settingsPage() {
     async loadSecurity() {
       this.secLoading = true;
       try {
-        this.securityData = await OpenFangAPI.get('/api/security');
+        this.securityData = await OchiAPI.get('/api/security');
       } catch(e) {
         this.securityData = null;
       }
@@ -550,7 +550,7 @@ function settingsPage() {
       this.verifyingChain = true;
       this.chainResult = null;
       try {
-        var res = await OpenFangAPI.get('/api/audit/verify');
+        var res = await OchiAPI.get('/api/audit/verify');
         this.chainResult = res;
       } catch(e) {
         this.chainResult = { valid: false, error: e.message };
@@ -563,7 +563,7 @@ function settingsPage() {
       this.peersLoading = true;
       this.peersLoadError = '';
       try {
-        var data = await OpenFangAPI.get('/api/peers');
+        var data = await OchiAPI.get('/api/peers');
         this.peers = (data.peers || []).map(function(p) {
           return {
             node_id: p.node_id,
@@ -587,7 +587,7 @@ function settingsPage() {
       this._peerPollTimer = setInterval(async function() {
         if (self.tab !== 'network') { self.stopPeerPolling(); return; }
         try {
-          var data = await OpenFangAPI.get('/api/peers');
+          var data = await OchiAPI.get('/api/peers');
           self.peers = (data.peers || []).map(function(p) {
             return {
               node_id: p.node_id,
@@ -610,7 +610,7 @@ function settingsPage() {
     async autoDetect() {
       this.detecting = true;
       try {
-        var data = await OpenFangAPI.get('/api/migrate/detect');
+        var data = await OchiAPI.get('/api/migrate/detect');
         if (data.detected && data.scan) {
           this.sourcePath = data.path;
           this.scanResult = data.scan;
@@ -628,16 +628,16 @@ function settingsPage() {
       if (!this.sourcePath) return;
       this.scanning = true;
       try {
-        var data = await OpenFangAPI.post('/api/migrate/scan', { path: this.sourcePath });
+        var data = await OchiAPI.post('/api/migrate/scan', { path: this.sourcePath });
         if (data.error) {
-          OpenFangToast.error('Scan error: ' + data.error);
+          OchiToast.error('Scan error: ' + data.error);
           this.scanning = false;
           return;
         }
         this.scanResult = data;
         this.migStep = 'preview';
       } catch(e) {
-        OpenFangToast.error('Scan failed: ' + e.message);
+        OchiToast.error('Scan failed: ' + e.message);
       }
       this.scanning = false;
     },
@@ -647,7 +647,7 @@ function settingsPage() {
       try {
         var target = this.targetPath;
         if (!target) target = '';
-        var data = await OpenFangAPI.post('/api/migrate', {
+        var data = await OchiAPI.post('/api/migrate', {
           source: 'openclaw',
           source_dir: this.sourcePath || (this.scanResult ? this.scanResult.path : ''),
           target_dir: target,

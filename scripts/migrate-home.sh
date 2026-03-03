@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Migrate OpenFang home directory (~/.openfang) to Ochi home (~/.ochi)
+# Migrate legacy home directory (~/.openfang) to Ochi home (~/.ochi)
 # with safe merge, timestamped backup, and rollback support.
 
 usage() {

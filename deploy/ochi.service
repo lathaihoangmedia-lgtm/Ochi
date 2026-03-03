@@ -1,6 +1,6 @@
 [Unit]
 Description=Ochi Agent OS Daemon
-Documentation=https://github.com/RightNow-AI/openfang
+Documentation=https://github.com/lathaihoangmedia-lgtm/Ochi
 After=network-online.target
 Wants=network-online.target
 
@@ -15,6 +15,7 @@ TimeoutStopSec=30
 
 # Environment
 EnvironmentFile=-/etc/ochi/env
+# Legacy path still supported during migration window (deprecated, remove in v1.0)
 EnvironmentFile=-/etc/openfang/env
 WorkingDirectory=/var/lib/ochi
 

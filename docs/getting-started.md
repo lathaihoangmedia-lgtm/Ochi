@@ -1,6 +1,6 @@
-# Getting Started with OpenFang
+# Getting Started with Ochi
 
-This guide walks you through installing OpenFang, configuring your first LLM provider, spawning an agent, and chatting with it.
+This guide walks you through installing Ochi, configuring your first LLM provider, spawning an agent, and chatting with it.
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ Download the installer for your platform from the [latest release](https://githu
 | macOS | `.dmg` disk image |
 | Linux | `.AppImage` or `.deb` |
 
-The desktop app includes the full OpenFang system with a native window, system tray, auto-updates, and OS notifications. Updates are installed automatically in the background.
+The desktop app includes the full Ochi system with a native window, system tray, auto-updates, and OS notifications. Updates are installed automatically in the background.
 
 ### Option 2: Shell Installer (Linux / macOS)
 
@@ -111,7 +111,7 @@ This creates:
 
 ### Set Up an API Key
 
-OpenFang needs at least one LLM provider API key. Set it as an environment variable:
+Ochi needs at least one LLM provider API key. Set it as an environment variable:
 
 ```bash
 # Anthropic (Claude)
@@ -157,7 +157,7 @@ This checks that your config exists, API keys are set, and the toolchain is avai
 
 ### Using a Built-in Template
 
-OpenFang ships with 30 agent templates. Spawn the hello-world agent:
+Ochi ships with 30 agent templates. Spawn the hello-world agent:
 
 ```bash
 ochi agent spawn agents/hello-world/agent.toml
@@ -241,7 +241,7 @@ Chat session started (daemon mode). Type 'exit' or Ctrl+C to quit.
 
 you> Hello! What can you do?
 
-agent> I'm the hello-world agent running on OpenFang. I can:
+agent> I'm the hello-world agent running on Ochi. I can:
 - Read files from the filesystem
 - List directory contents
 - Fetch web pages
@@ -278,8 +278,8 @@ ochi start
 Output:
 
 ```
-Starting OpenFang daemon...
-OpenFang daemon running on http://127.0.0.1:4200
+Starting Ochi daemon...
+Ochi daemon running on http://127.0.0.1:4200
 Press Ctrl+C to stop.
 ```
 
@@ -323,7 +323,7 @@ The embedded WebChat UI allows you to:
 
 ## Next Steps
 
-Now that you have OpenFang running:
+Now that you have Ochi running:
 
 - **Explore agent templates**: Browse the `agents/` directory for 30 pre-built agents (coder, researcher, writer, ops, analyst, security-auditor, and more).
 - **Create custom agents**: Write your own `agent.toml` manifests. See the [Architecture guide](architecture.md) for details on capabilities and scheduling.

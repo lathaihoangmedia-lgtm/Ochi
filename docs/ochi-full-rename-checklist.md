@@ -42,7 +42,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 | Batch | Phạm vi crate (rename trong batch) | Lý do chọn thứ tự | Definition of Done |
 |---|---|---|---|
 | B0 (chuẩn bị) | Không rename crate; chuẩn hóa baseline CI + lockfile | Giảm nhiễu trước khi rename diện rộng | Baseline `cargo check`/`cargo test` pass; snapshot warning hiện tại; thống nhất nhánh triển khai |
-| B1 (leaf models) | `openfang-types` -> `ochi-types`, `openfang-wire` -> `ochi-wire`, `openfang-memory` -> `ochi-memory` | Đây là nhóm ít phụ thuộc vào crate khác, phù hợp mở đầu | Build pass cho 3 crate + toàn workspace; docs/reference cập nhật tên crate mới |
+| B1 (leaf models) | `ochi-types` -> `ochi-types`, `openfang-wire` -> `ochi-wire`, `openfang-memory` -> `ochi-memory` | Đây là nhóm ít phụ thuộc vào crate khác, phù hợp mở đầu | Build pass cho 3 crate + toàn workspace; docs/reference cập nhật tên crate mới |
 | B2 (leaf extensions) | `ochi-channels` -> `ochi-channels`, `ochi-skills` -> `ochi-skills`, `ochi-extensions` -> `ochi-extensions` | Chủ yếu tiêu thụ types/runtime API, dễ cô lập theo module | Unit test nhóm extension pass; command/examples dùng crate name mới |
 | B3 (core runtime) | `ochi-runtime` -> `ochi-runtime`, `ochi-migrate` -> `ochi-migrate` | Đã có leaf ổn định, bắt đầu rename phần core nhưng chưa chạm entrypoint lớn | Regression test runtime + migration pass; không mất tương thích dữ liệu cũ |
 | B4 (service/kernel) | `ochi-kernel` -> `ochi-kernel`, `ochi-api` -> `ochi-api` | Đây là tầng orchestrator/API, rename sau khi dependency graph đã sạch | API integration tests pass; route/docs nội bộ cập nhật nhất quán |
@@ -52,8 +52,8 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 ### Trạng thái thực thi thực tế (theo bảng)
 
 - [x] **B0 đã khởi động**: chạy baseline và ghi nhận rào cản môi trường cho workspace đầy đủ.
-- [x] **B1 đã bắt đầu (bước tương thích)**: thêm crate chuyển tiếp `ochi-types` re-export từ `openfang-types`.
-- [ ] B1 chưa đổi thư mục/package gốc `openfang-types` (giữ an toàn để migrate dần dependency graph).
+- [x] **B1 đã bắt đầu (bước tương thích)**: thêm crate chuyển tiếp `ochi-types` re-export từ `ochi-types`.
+- [ ] B1 chưa đổi thư mục/package gốc `ochi-types` (giữ an toàn để migrate dần dependency graph).
 - [x] **B2 đã bắt đầu (leaf extensions)**: migrate dependency `ochi-channels` và `ochi-skills` sang `ochi-types` qua alias.
 
 **Kết quả baseline B0 (batch log ngắn):**
@@ -67,7 +67,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 - Đã thêm crate `crates/ochi-types` với `pub use openfang_types::*;`.
 - Đã đưa `crates/ochi-types` vào `workspace.members` và `workspace.default-members`.
 - Kiểm tra nhanh: `cargo check -p ochi-types` pass.
-- Đã migrate dependency của `openfang-wire` từ `openfang-types` sang `ochi-types` (bước 1 trong leaf-models).
+- Đã migrate dependency của `openfang-wire` từ `ochi-types` sang `ochi-types` (bước 1 trong leaf-models).
 - Kiểm tra nhanh: `cargo check -p ochi-wire` pass sau migration dependency.
 - Đã migrate dependency của `openfang-memory` sang compat crate `ochi-types` (giữ import path `openfang_types` qua dependency alias).
 - Kiểm tra nhanh: `cargo check -p ochi-memory` pass sau migration dependency.
@@ -131,7 +131,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 - `cargo check`
 - `cargo test -p ochi-kernel`
-- `cargo test -p openfang-types`
+- `cargo test -p ochi-types`
 - smoke test CLI: init/load config từ `OCHI_HOME` và fallback `.ochi`
 
 ---

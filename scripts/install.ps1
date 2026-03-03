@@ -1,6 +1,6 @@
 # Ochi installer for Windows
-# Usage: iwr -useb https://openfang.sh/install.ps1 | iex
-#   or:  powershell -c "irm https://openfang.sh/install.ps1 | iex"
+ iex| iex
+ iex"| iex"
 #
 # Flags (via environment variables):
 #   $env:OCHI_INSTALL_DIR      = custom install directory
@@ -10,7 +10,7 @@
 
 $ErrorActionPreference = 'Stop'
 
-$Repo = "RightNow-AI/openfang"
+$Repo = "lathaihoangmedia-lgtm/Ochi"
 $DefaultInstallDir = Join-Path $env:USERPROFILE ".ochi\bin"
 $InstallDir = if ($env:OCHI_INSTALL_DIR) {
     $env:OCHI_INSTALL_DIR
@@ -28,7 +28,7 @@ function Write-Banner {
 }
 
 function Write-InstallHelp {
-    Write-Host "    cargo install --git https://github.com/$Repo openfang-cli --bin ochi"
+    Write-Host "    cargo install --git https://github.com/$Repo ochi-cli --bin ochi"
 }
 
 function Get-Architecture {
@@ -83,7 +83,7 @@ function Install-Ochi {
     $arch = Get-Architecture
     $version = Get-LatestVersion
     $target = "${arch}-pc-windows-msvc"
-    $archive = "openfang-${target}.zip"
+    $archive = "ochi-${target}.zip"
     $url = "https://github.com/$Repo/releases/download/$version/$archive"
     $checksumUrl = "$url.sha256"
 
@@ -93,7 +93,7 @@ function Install-Ochi {
         New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
     }
 
-    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "openfang-install"
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "ochi-install"
     if (Test-Path $tempDir) { Remove-Item -Recurse -Force $tempDir }
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 

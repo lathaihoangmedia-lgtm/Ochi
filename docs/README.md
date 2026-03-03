@@ -1,6 +1,6 @@
-# OpenFang Documentation
+# Ochi Documentation
 
-Welcome to the OpenFang documentation. OpenFang is the open-source Agent Operating System -- 14 Rust crates, 40 channels, 60 skills, 20 LLM providers, 76 API endpoints, and 16 security systems in a single binary.
+Welcome to the Ochi documentation. Ochi is the open-source Agent Operating System -- 14 Rust crates, 40 channels, 60 skills, 20 LLM providers, 76 API endpoints, and 16 security systems in a single binary.
 
 ---
 
@@ -36,7 +36,7 @@ Welcome to the OpenFang documentation. OpenFang is the open-source Agent Operati
 | Guide | Description |
 |-------|-------------|
 | [API Reference](api-reference.md) | All 76 REST/WS/SSE endpoints with request/response examples |
-| [SDK Migration](sdk-migration.md) | Hướng dẫn chuyển SDK từ OpenFang sang Ochi (JS + Python) |
+| [SDK Migration](sdk-migration.md) | Hướng dẫn chuyển SDK từ Ochi sang Ochi (JS + Python) |
 | [Desktop App](desktop.md) | Tauri 2.0 native app -- build, features, architecture |
 
 ## Release & Operations

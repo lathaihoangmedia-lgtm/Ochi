@@ -3,7 +3,7 @@ name = "ochi-hands"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Hands system for OpenFang — curated autonomous capability packages"
+description = "Hands system for Ochi — curated autonomous capability packages"
 
 [dependencies]
 openfang-types = { package = "ochi-types", path = "../ochi-types" }

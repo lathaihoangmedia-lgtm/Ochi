@@ -88,8 +88,8 @@ function toolIcon(toolName) {
 // Alpine.js global store
 document.addEventListener('alpine:init', function() {
   // Restore saved API key on load
-  var savedKey = localStorage.getItem('openfang-api-key');
-  if (savedKey) OpenFangAPI.setAuthToken(savedKey);
+  var savedKey = localStorage.getItem('ochi-api-key');
+  if (savedKey) OchiAPI.setAuthToken(savedKey);
 
   Alpine.store('app', {
     agents: [],
@@ -101,18 +101,18 @@ document.addEventListener('alpine:init', function() {
     version: '0.1.0',
     agentCount: 0,
     pendingAgent: null,
-    focusMode: localStorage.getItem('openfang-focus') === 'true',
+    focusMode: localStorage.getItem('ochi-focus') === 'true',
     showOnboarding: false,
     showAuthPrompt: false,
 
     toggleFocusMode() {
       this.focusMode = !this.focusMode;
-      localStorage.setItem('openfang-focus', this.focusMode);
+      localStorage.setItem('ochi-focus', this.focusMode);
     },
 
     async refreshAgents() {
       try {
-        var agents = await OpenFangAPI.get('/api/agents');
+        var agents = await OchiAPI.get('/api/agents');
         this.agents = Array.isArray(agents) ? agents : [];
         this.agentCount = this.agents.length;
       } catch(e) { /* silent */ }
@@ -120,7 +120,7 @@ document.addEventListener('alpine:init', function() {
 
     async checkStatus() {
       try {
-        var s = await OpenFangAPI.get('/api/status');
+        var s = await OchiAPI.get('/api/status');
         this.connected = true;
         this.booting = false;
         this.lastError = '';
@@ -134,9 +134,9 @@ document.addEventListener('alpine:init', function() {
     },
 
     async checkOnboarding() {
-      if (localStorage.getItem('openfang-onboarded')) return;
+      if (localStorage.getItem('ochi-onboarded')) return;
       try {
-        var config = await OpenFangAPI.get('/api/config');
+        var config = await OchiAPI.get('/api/config');
         var apiKey = config && config.api_key;
         var noKey = !apiKey || apiKey === 'not set' || apiKey === '';
         if (noKey && this.agentCount === 0) {
@@ -150,23 +150,23 @@ document.addEventListener('alpine:init', function() {
 
     dismissOnboarding() {
       this.showOnboarding = false;
-      localStorage.setItem('openfang-onboarded', 'true');
+      localStorage.setItem('ochi-onboarded', 'true');
     },
 
     async checkAuth() {
       try {
         // Use a protected endpoint (not in the public allowlist) to detect
         // whether the server requires an API key.
-        await OpenFangAPI.get('/api/tools');
+        await OchiAPI.get('/api/tools');
         this.showAuthPrompt = false;
       } catch(e) {
         if (e.message && (e.message.indexOf('Not authorized') >= 0 || e.message.indexOf('401') >= 0 || e.message.indexOf('Missing Authorization') >= 0 || e.message.indexOf('Unauthorized') >= 0)) {
           // Only show prompt if we don't already have a saved key
-          var saved = localStorage.getItem('openfang-api-key');
+          var saved = localStorage.getItem('ochi-api-key');
           if (saved) {
             // Saved key might be stale — clear it and show prompt
-            OpenFangAPI.setAuthToken('');
-            localStorage.removeItem('openfang-api-key');
+            OchiAPI.setAuthToken('');
+            localStorage.removeItem('ochi-api-key');
           }
           this.showAuthPrompt = true;
         }
@@ -175,15 +175,15 @@ document.addEventListener('alpine:init', function() {
 
     submitApiKey(key) {
       if (!key || !key.trim()) return;
-      OpenFangAPI.setAuthToken(key.trim());
-      localStorage.setItem('openfang-api-key', key.trim());
+      OchiAPI.setAuthToken(key.trim());
+      localStorage.setItem('ochi-api-key', key.trim());
       this.showAuthPrompt = false;
       this.refreshAgents();
     },
 
     clearApiKey() {
-      OpenFangAPI.setAuthToken('');
-      localStorage.removeItem('openfang-api-key');
+      OchiAPI.setAuthToken('');
+      localStorage.removeItem('ochi-api-key');
     }
   });
 });
@@ -192,13 +192,13 @@ document.addEventListener('alpine:init', function() {
 function app() {
   return {
     page: 'agents',
-    themeMode: localStorage.getItem('openfang-theme-mode') || 'system',
+    themeMode: localStorage.getItem('ochi-theme-mode') || 'system',
     theme: (() => {
-      var mode = localStorage.getItem('openfang-theme-mode') || 'system';
+      var mode = localStorage.getItem('ochi-theme-mode') || 'system';
       if (mode === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       return mode;
     })(),
-    sidebarCollapsed: localStorage.getItem('openfang-sidebar') === 'collapsed',
+    sidebarCollapsed: localStorage.getItem('ochi-sidebar') === 'collapsed',
     mobileMenuOpen: false,
     connected: false,
     wsConnected: false,
@@ -268,7 +268,7 @@ function app() {
       });
 
       // Connection state listener
-      OpenFangAPI.onConnectionChange(function(state) {
+      OchiAPI.onConnectionChange(function(state) {
         Alpine.store('app').connectionState = state;
       });
 
@@ -287,7 +287,7 @@ function app() {
 
     setTheme(mode) {
       this.themeMode = mode;
-      localStorage.setItem('openfang-theme-mode', mode);
+      localStorage.setItem('ochi-theme-mode', mode);
       if (mode === 'system') {
         this.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       } else {
@@ -303,7 +303,7 @@ function app() {
 
     toggleSidebar() {
       this.sidebarCollapsed = !this.sidebarCollapsed;
-      localStorage.setItem('openfang-sidebar', this.sidebarCollapsed ? 'collapsed' : 'expanded');
+      localStorage.setItem('ochi-sidebar', this.sidebarCollapsed ? 'collapsed' : 'expanded');
     },
 
     async pollStatus() {
@@ -313,7 +313,7 @@ function app() {
       this.connected = store.connected;
       this.version = store.version;
       this.agentCount = store.agentCount;
-      this.wsConnected = OpenFangAPI.isWsConnected();
+      this.wsConnected = OchiAPI.isWsConnected();
     }
   };
 }

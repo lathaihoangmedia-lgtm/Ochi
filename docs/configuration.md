@@ -1,6 +1,6 @@
-# OpenFang Configuration Reference
+# Ochi Configuration Reference
 
-Complete reference for `config.toml`, covering every configurable field in the OpenFang Agent OS.
+Complete reference for `config.toml`, covering every configurable field in the Ochi Agent OS.
 
 ---
 
@@ -28,7 +28,7 @@ Complete reference for `config.toml`, covering every configurable field in the O
 
 ## Overview
 
-OpenFang reads its configuration from a single TOML file:
+Ochi reads its configuration from a single TOML file:
 
 ```
 ~/.ochi/config.toml
@@ -47,7 +47,7 @@ On Windows, `~` resolves to `C:\Users\<username>`. If the home directory cannot 
 
 ## Minimal Configuration
 
-The simplest working configuration only needs an LLM provider API key set as an environment variable. With no config file at all, OpenFang boots with Anthropic as the default provider:
+The simplest working configuration only needs an LLM provider API key set as an environment variable. With no config file at all, Ochi boots with Anthropic as the default provider:
 
 ```toml
 # ~/.ochi/config.toml
@@ -76,11 +76,11 @@ api_key_env = ""
 
 ```toml
 # ============================================================
-# OpenFang Agent OS -- Complete Configuration Reference
+# Ochi Agent OS -- Complete Configuration Reference
 # ============================================================
 
 # --- Top-level fields ---
-home_dir = "~/.ochi"             # OpenFang home directory
+home_dir = "~/.ochi"             # Ochi home directory
 data_dir = "~/.ochi/data"        # SQLite databases and data files
 log_level = "info"                   # trace | debug | info | warn | error
 api_listen = "127.0.0.1:50051"      # HTTP/WS API bind address
@@ -224,7 +224,7 @@ These fields sit at the root of `config.toml` (not inside any `[section]`).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `home_dir` | path | `~/.ochi` | OpenFang home directory. Stores config, agents, skills. |
+| `home_dir` | path | `~/.ochi` | Ochi home directory. Stores config, agents, skills. |
 | `data_dir` | path | `~/.ochi/data` | Directory for SQLite databases and persistent data. |
 | `log_level` | string | `"info"` | Log verbosity. One of: `trace`, `debug`, `info`, `warn`, `error`. |
 | `api_listen` | string | `"127.0.0.1:50051"` | Bind address for the HTTP/WebSocket/SSE API server. |
@@ -297,7 +297,7 @@ decay_rate = 0.1
 
 ### `[network]`
 
-Configures the OFP (OpenFang Protocol) peer-to-peer networking layer with HMAC-SHA256 mutual authentication.
+Configures the OFP (Ochi Protocol (OFP)) peer-to-peer networking layer with HMAC-SHA256 mutual authentication.
 
 ```toml
 [network]
@@ -1131,7 +1131,7 @@ url = "https://mcp.example.com/sse"
 
 ### `[a2a]`
 
-Agent-to-Agent protocol configuration, enabling inter-agent communication across OpenFang instances.
+Agent-to-Agent protocol configuration, enabling inter-agent communication across Ochi instances.
 
 ```toml
 [a2a]

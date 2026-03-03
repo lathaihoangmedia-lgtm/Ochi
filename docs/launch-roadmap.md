@@ -1,4 +1,4 @@
-# OpenFang Launch Roadmap
+# Ochi Launch Roadmap
 
 > Competitive gap analysis vs OpenClaw. Organized into 4 sprints.
 > Each item has: what, why, files to touch, and done criteria.
@@ -36,7 +36,7 @@ These are showstoppers. The app literally crashes or looks broken without them.
    - Only send ALL tools if profile is `Full` AND agent has `ToolAll` capability
    - This alone cuts default chat from 41 tools to ~8 tools (saves ~15-20K tokens)
 
-4. **Raise default token quota** (`crates/openfang-types/src/agent.rs`)
+4. **Raise default token quota** (`crates/ochi-types/src/agent.rs`)
    - Change `max_llm_tokens_per_hour` from 100_000 to 1_000_000
    - 100K is too low — a single system prompt is 30-40K tokens
 
@@ -80,7 +80,7 @@ These are showstoppers. The app literally crashes or looks broken without them.
 - `ochi-animated.svg` (310KB) — for loading screens
 
 **Done when:**
-- Desktop app shows OpenFang logo in taskbar, title bar, and installer
+- Desktop app shows Ochi logo in taskbar, title bar, and installer
 - Web UI shows correct logo in sidebar and favicon
 
 ---
@@ -103,7 +103,7 @@ These are showstoppers. The app literally crashes or looks broken without them.
 
 ## Sprint 2 — Competitive Parity (4-5 days)
 
-These close the gaps that would make users pick OpenClaw over OpenFang.
+These close the gaps that would make users pick OpenClaw over Ochi.
 
 ### 2.1 Browser Screenshot Rendering in Chat -- DONE
 
@@ -206,7 +206,7 @@ These close the gaps that would make users pick OpenClaw over OpenFang.
 
 ## Sprint 3 — Differentiation (5-7 days)
 
-These are features where OpenFang can leapfrog OpenClaw.
+These are features where Ochi can leapfrog OpenClaw.
 
 ### 3.1 Voice Input/Output in Web UI -- DONE
 
@@ -252,7 +252,7 @@ These are features where OpenFang can leapfrog OpenClaw.
 
 ### 3.3 JavaScript/Python SDK -- DONE
 
-**Status: COMPLETE** — Created `sdk/javascript/` (@ochi/sdk, có alias API tương thích `OpenFang` trong code export) with full REST client: agent CRUD, streaming via SSE, sessions, workflows, skills, channels, memory KV, triggers, schedules + TypeScript declarations. Created `sdk/python/openfang_client.py` (zero-dependency stdlib urllib) with same coverage. Both include basic + streaming examples. Python `setup.py` for pip install.
+**Status: COMPLETE** — Created `sdk/javascript/` (@ochi/sdk, có alias API tương thích `Ochi`/`OpenFang` trong code export) with full REST client: agent CRUD, streaming via SSE, sessions, workflows, skills, channels, memory KV, triggers, schedules + TypeScript declarations. Created `sdk/python/openfang_client.py` (zero-dependency stdlib urllib) with same coverage. Both include basic + streaming examples. Python `setup.py` for pip install.
 
 **Problem (was):** No official client libraries. Developers must raw-fetch the API.
 
@@ -262,7 +262,7 @@ These are features where OpenFang can leapfrog OpenClaw.
    - Publish to npm as `@ochi/sdk` (duy trì API alias chuyển tiếp trong SDK)
 2. Create `sdks/python/` — thin wrapper with httpx
    - Same operations
-   - Publish to PyPI as `ochi` (duy trì module alias tương thích `openfang_*`)
+   - Publish to PyPI as `ochi` (duy trì module alias tương thích `ochi_*` (alias openfang_* vẫn hỗ trợ))
 3. Include usage examples in README
 
 **Done when:**
@@ -274,18 +274,18 @@ These are features where OpenFang can leapfrog OpenClaw.
 
 ### 3.4 Observability & Metrics Export -- DONE
 
-**Status: COMPLETE** — Added `GET /api/metrics` endpoint returning Prometheus text format. Metrics: `openfang_uptime_seconds`, `openfang_agents_active`, `openfang_agents_total`, `openfang_tokens_total{agent,provider,model}`, `openfang_tool_calls_total{agent}`, `openfang_panics_total`, `openfang_restarts_total`, `openfang_info{version}`.
+**Status: COMPLETE** — Added `GET /api/metrics` endpoint returning Prometheus text format. Metrics: `ochi_uptime_seconds`, `ochi_agents_active`, `openfang_agents_total`, `openfang_tokens_total{agent,provider,model}`, `openfang_tool_calls_total{agent}`, `openfang_panics_total`, `openfang_restarts_total`, `openfang_info{version}`.
 
-**Problem (was):** No way to monitor OpenFang in production (no Prometheus, no OpenTelemetry).
+**Problem (was):** No way to monitor Ochi in production (no Prometheus, no OpenTelemetry).
 
 **What to do:**
 1. Add `/api/metrics` endpoint with Prometheus format
-   - `openfang_agents_active` gauge
-   - `openfang_messages_total` counter (by agent, by channel)
-   - `openfang_tokens_total` counter (by provider, by model)
-   - `openfang_request_duration_seconds` histogram
-   - `openfang_tool_calls_total` counter (by tool name)
-   - `openfang_errors_total` counter (by type)
+   - `ochi_agents_active` gauge
+   - `ochi_messages_total` counter (by agent, by channel)
+   - `ochi_tokens_total` counter (by provider, by model)
+   - `ochi_request_duration_seconds` histogram
+   - `ochi_tool_calls_total` counter (by tool name)
+   - `ochi_errors_total` counter (by type)
 2. Optional: OTLP export for tracing spans
 
 **Files:** `crates/ochi-api/src/routes.rs`, new `metrics.rs` module
@@ -300,7 +300,7 @@ These are features where OpenFang can leapfrog OpenClaw.
 
 **Status: COMPLETE** — Added `workflow-builder.js` with full SVG canvas-based visual builder. Node palette with 7 types (Agent, Parallel Fan-out, Condition, Loop, Collect, Start, End). Drag-and-drop from palette, node dragging, bezier curve connections between ports, zoom/pan, auto-layout. Node editor panel for configuring agent, condition expression, loop iterations, fan-out count, collect strategy. TOML export, save-to-API, and clipboard copy. CSS styles in components.css. Integrated into workflows page as "Visual Builder" tab.
 
-**Problem (was):** Both OpenFang and OpenClaw define workflows in TOML/config only. No visual builder exists in either. First to ship this wins.
+**Problem (was):** Both Ochi and OpenClaw define workflows in TOML/config only. No visual builder exists in either. First to ship this wins.
 
 **What to do:**
 1. Add drag-and-drop workflow builder to the Workflows page
@@ -347,7 +347,7 @@ These are features where OpenFang can leapfrog OpenClaw.
 3. Log what was reloaded
 4. UI notification: "Config reloaded"
 
-**Files:** `crates/openfang-api/src/server.rs`, `crates/openfang-types/src/config.rs`
+**Files:** `crates/ochi-api/src/server.rs`, `crates/ochi-types/src/config.rs`
 
 ---
 
@@ -394,29 +394,29 @@ These are features where OpenFang can leapfrog OpenClaw.
 
 ## Feature Comparison Scoreboard
 
-| Feature | OpenClaw | OpenFang | Winner |
+| Feature | OpenClaw | Ochi | Winner |
 |---------|----------|----------|--------|
-| Language/Performance | Node.js (~200MB) | Rust (~30MB single binary) | **OpenFang** |
-| Channels | ~15 | **40** | **OpenFang** |
-| Built-in Tools | ~19 | **41** | **OpenFang** |
-| Security Systems | Token + sandbox | **16 defense systems** | **OpenFang** |
-| Agent Templates | Manual config | **30 pre-configured** | **OpenFang** |
-| Hands (autonomous) | None | **7 packages** | **OpenFang** |
-| Workflow Engine | Cron + webhooks | **Full DAG with parallel/loops** | **OpenFang** |
-| Knowledge Graph | Flat vector store | **Entity-relation graph** | **OpenFang** |
-| P2P Networking | None | **OFP wire protocol** | **OpenFang** |
-| WASM Sandbox | Docker only | **Dual-metered WASM** | **OpenFang** |
-| Desktop App | Electron (~200MB) | **Tauri (~30MB)** | **OpenFang** |
-| Migration | N/A | **`migrate --from openclaw`** | **OpenFang** |
-| Skills | 54 bundled | **60 bundled** | **OpenFang** |
-| LLM Providers | ~15 | **27 providers, 130+ models** | **OpenFang** |
+| Language/Performance | Node.js (~200MB) | Rust (~30MB single binary) | **Ochi** |
+| Channels | ~15 | **40** | **Ochi** |
+| Built-in Tools | ~19 | **41** | **Ochi** |
+| Security Systems | Token + sandbox | **16 defense systems** | **Ochi** |
+| Agent Templates | Manual config | **30 pre-configured** | **Ochi** |
+| Hands (autonomous) | None | **7 packages** | **Ochi** |
+| Workflow Engine | Cron + webhooks | **Full DAG with parallel/loops** | **Ochi** |
+| Knowledge Graph | Flat vector store | **Entity-relation graph** | **Ochi** |
+| P2P Networking | None | **OFP wire protocol** | **Ochi** |
+| WASM Sandbox | Docker only | **Dual-metered WASM** | **Ochi** |
+| Desktop App | Electron (~200MB) | **Tauri (~30MB)** | **Ochi** |
+| Migration | N/A | **`migrate --from openclaw`** | **Ochi** |
+| Skills | 54 bundled | **60 bundled** | **Ochi** |
+| LLM Providers | ~15 | **27 providers, 130+ models** | **Ochi** |
 | Plugin SDK | TypeScript published | JS + Python SDK | **Tie** |
 | Native Mobile | iOS + Android + macOS | Web responsive only | OpenClaw |
 | Voice/Talk Mode | Wake word + TTS + overlay | Mic + TTS playback | OpenClaw (slight) |
 | Browser Automation | Playwright with inline screenshots | Playwright + inline screenshots | **Tie** |
-| Visual Workflow Builder | None | **Drag-and-drop builder** | **OpenFang** |
+| Visual Workflow Builder | None | **Drag-and-drop builder** | **Ochi** |
 
-**OpenFang wins 15/18 categories.** The remaining gaps are: mobile apps (OpenClaw), voice wake word (OpenClaw slight edge).
+**Ochi wins 15/18 categories.** The remaining gaps are: mobile apps (OpenClaw), voice wake word (OpenClaw slight edge).
 
 ---
 
@@ -451,7 +451,7 @@ Sprint 4: COMPLETE
   4.5 Final release ................ READY (tag + build)
 
 Production audit:
-  - OpenFangAPI.delete() bug ....... FIXED
+  - OchiAPI.delete() bug ....... FIXED
   - /api/config/set missing ........ FIXED
   - Tauri CSP hardened ............. FIXED
   - Middleware CSP narrowed ........ FIXED

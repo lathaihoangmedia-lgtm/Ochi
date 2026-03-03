@@ -1,4 +1,4 @@
-# SDK Migration Guide: OpenFang -> Ochi
+# SDK Migration Guide: Ochi -> Ochi
 
 Tài liệu này hướng dẫn migration SDK từ naming cũ (`OpenFang`) sang naming mới (`Ochi`) theo hướng **không phá vỡ tương thích ngược**.
 

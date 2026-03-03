@@ -3,7 +3,7 @@ name = "ochi-runtime"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Agent runtime and execution environment for OpenFang"
+description = "Agent runtime and execution environment for Ochi"
 
 [dependencies]
 openfang-types = { package = "ochi-types", path = "../ochi-types" }

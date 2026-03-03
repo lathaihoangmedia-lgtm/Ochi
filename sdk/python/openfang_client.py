@@ -31,7 +31,7 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode, quote
 
 
-class OpenFangError(Exception):
+class OchiError(Exception):
     def __init__(self, message: str, status: int = 0, body: str = ""):
         super().__init__(message)
         self.status = status
@@ -39,12 +39,12 @@ class OpenFangError(Exception):
 
 
 class _Resource:
-    def __init__(self, client: "OpenFang"):
+    def __init__(self, client: "Ochi"):
         self._c = client
 
 
-class OpenFang:
-    """OpenFang REST API client. Zero dependencies — uses only stdlib urllib."""
+class Ochi:
+    """Ochi REST API client. Zero dependencies — uses only stdlib urllib."""
 
     def __init__(self, base_url: str, headers: Optional[Dict[str, str]] = None):
         self.base_url = base_url.rstrip("/")
@@ -77,7 +77,7 @@ class OpenFang:
                 return text
         except HTTPError as e:
             body_text = e.read().decode() if e.fp else ""
-            raise OpenFangError(f"HTTP {e.code}: {body_text}", e.code, body_text) from e
+            raise OchiError(f"HTTP {e.code}: {body_text}", e.code, body_text) from e
 
     def _stream(self, method: str, path: str, body: Any = None) -> Generator[Dict, None, None]:
         """SSE streaming. Yields parsed JSON events."""
@@ -90,7 +90,7 @@ class OpenFang:
             resp = urlopen(req)
         except HTTPError as e:
             body_text = e.read().decode() if e.fp else ""
-            raise OpenFangError(f"HTTP {e.code}: {body_text}", e.code, body_text) from e
+            raise OchiError(f"HTTP {e.code}: {body_text}", e.code, body_text) from e
 
         buffer = ""
         while True:
@@ -368,8 +368,10 @@ class _ScheduleResource(_Resource):
 
 
 
-class Ochi(OpenFang):
+# Ochi is the primary class (OpenFang is now an alias below)
     """Ochi-named alias for backward-compatible client usage."""
 
 
-OchiError = OpenFangError
+# Backward compatibility aliases (deprecated, will be removed in v1.0)
+OpenFangError = OchiError
+OpenFang = Ochi

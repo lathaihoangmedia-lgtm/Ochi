@@ -1,7 +1,7 @@
-# OpenFang — Agent Instructions
+# Ochi — Agent Instructions
 
 ## Project Overview
-OpenFang is an open-source Agent Operating System written in Rust (14 crates).
+Ochi is an open-source Agent Operating System written in Rust (14 crates).
 - Config: `~/.ochi/config.toml`
 - Default API: `http://127.0.0.1:4200`
 - CLI binary: `target/release/ochi.exe` (or `target/debug/ochi.exe`)

@@ -1,7 +1,7 @@
-# OpenFang Security Architecture
+# Ochi Security Architecture
 
 This document provides a comprehensive technical reference for every security
-system in the OpenFang Agent Operating System.  All struct names, function
+system in the Ochi Agent Operating System.  All struct names, function
 signatures, constant values, and algorithm descriptions are drawn directly from
 the source code.
 
@@ -33,17 +33,17 @@ the source code.
 
 ## 1. Security Overview
 
-OpenFang implements **defense-in-depth** security.  No single mechanism is
+Ochi implements **defense-in-depth** security.  No single mechanism is
 trusted to be the sole protector; instead, 16 independent systems form
 overlapping layers so that a failure in any one layer is caught by others.
 
 | # | System | Crate | Protects Against |
 |---|--------|-------|------------------|
-| 1 | Capability-Based Security | `openfang-types` | Unauthorized actions by agents |
+| 1 | Capability-Based Security | `ochi-types` | Unauthorized actions by agents |
 | 2 | WASM Dual Metering | `ochi-runtime` | Infinite loops, CPU DoS |
 | 3 | Merkle Audit Trail | `ochi-runtime` | Tampered audit logs |
-| 4 | Taint Tracking | `openfang-types` | Prompt injection, data exfiltration |
-| 5 | Ed25519 Manifest Signing | `openfang-types` | Supply chain attacks |
+| 4 | Taint Tracking | `ochi-types` | Prompt injection, data exfiltration |
+| 5 | Ed25519 Manifest Signing | `ochi-types` | Supply chain attacks |
 | 6 | SSRF Protection | `ochi-runtime` | Server-Side Request Forgery |
 | 7 | Secret Zeroization | `ochi-runtime`, `ochi-channels` | Memory forensics, key leakage |
 | 8 | OFP Mutual Auth | `ochi-wire` | Unauthorized peer connections |
@@ -60,9 +60,9 @@ overlapping layers so that a failure in any one layer is caught by others.
 
 ## 2. Capability-Based Security
 
-**Source:** `openfang-types/src/capability.rs`
+**Source:** `ochi-types/src/capability.rs`
 
-OpenFang uses capability-based security.  An agent can only perform actions
+Ochi uses capability-based security.  An agent can only perform actions
 it has been explicitly granted permission to do.  Capabilities are immutable
 after agent creation and are enforced at the kernel level.
 
@@ -381,9 +381,9 @@ mutexes, ensuring the audit log remains available even after a panic.
 
 ## 5. Information Flow Taint Tracking
 
-**Source:** `openfang-types/src/taint.rs`
+**Source:** `ochi-types/src/taint.rs`
 
-OpenFang implements a lattice-based taint propagation model that prevents
+Ochi implements a lattice-based taint propagation model that prevents
 tainted values from flowing into sensitive sinks without explicit
 declassification.  This guards against prompt injection, data exfiltration,
 and confused-deputy attacks.
@@ -472,7 +472,7 @@ combined.merge_taint(&other_value);
 
 ## 6. Ed25519 Manifest Signing
 
-**Source:** `openfang-types/src/manifest_signing.rs`
+**Source:** `ochi-types/src/manifest_signing.rs`
 
 Agent manifests define an agent's capabilities, tools, and configuration.
 A compromised manifest can grant elevated privileges.  This module provides
@@ -646,7 +646,7 @@ http://example.com              ->  example.com:80
 
 **Source:** All LLM driver modules, channel adapters, and web search modules.
 
-OpenFang uses `Zeroizing<String>` from the `zeroize` crate on every field
+Ochi uses `Zeroizing<String>` from the `zeroize` crate on every field
 that holds secret material.  When the value is dropped, its memory is
 overwritten with zeros, preventing secrets from lingering in memory.
 
@@ -714,7 +714,7 @@ the secret is overwritten as soon as it is no longer needed.
 
 **Source:** `ochi-wire/src/peer.rs`
 
-The OpenFang Wire Protocol (OFP) uses HMAC-SHA256 with nonce-based mutual
+The Ochi Wire Protocol (OFP) uses HMAC-SHA256 with nonce-based mutual
 authentication over TCP connections.
 
 ### 9.1 Pre-Shared Key Requirement
@@ -837,7 +837,7 @@ pub async fn security_headers(request: Request<Body>, next: Next) -> Response<Bo
 
 **Source:** `ochi-api/src/rate_limiter.rs`
 
-OpenFang uses the Generic Cell Rate Algorithm (GCRA) for cost-aware API
+Ochi uses the Generic Cell Rate Algorithm (GCRA) for cost-aware API
 rate limiting via the `governor` crate.
 
 ### 11.1 Algorithm
@@ -1290,7 +1290,7 @@ fn merge_content(dst: &mut MessageContent, src: MessageContent) {
 
 **Source:** `ochi-api/src/routes.rs`
 
-OpenFang provides two health endpoints with different information levels.
+Ochi provides two health endpoints with different information levels.
 
 ### 17.1 Public Endpoint: `GET /api/health`
 

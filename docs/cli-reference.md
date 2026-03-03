@@ -1,10 +1,10 @@
-# OpenFang CLI Reference
+# Ochi CLI Reference
 
-Complete command-line reference for `ochi`, the CLI tool for the OpenFang Agent OS.
+Complete command-line reference for `ochi`, the CLI tool for the Ochi Agent OS.
 
 ## Overview
 
-The `ochi` binary is the primary interface for managing the OpenFang Agent OS. It supports two modes of operation:
+The `ochi` binary is the primary interface for managing the Ochi Agent OS. It supports two modes of operation:
 
 - **Daemon mode** -- When a daemon is running (`ochi start`), CLI commands communicate with it over HTTP. This is the recommended mode for production use.
 - **In-process mode** -- When no daemon is detected, commands that support it will boot an ephemeral in-process kernel. Agents spawned in this mode are not persisted and will be lost when the process exits.
@@ -52,8 +52,8 @@ These options apply to all commands.
 
 | Variable | Description |
 |---|---|
-| `RUST_LOG` | Controls log verbosity (e.g. `info`, `debug`, `openfang_kernel=trace`). |
-| `OPENFANG_AGENTS_DIR` | Override the agent templates directory. |
+| `RUST_LOG` | Controls log verbosity (e.g. `info`, `debug`, `ochi_kernel=trace`). |
+| `OCHI_AGENTS_DIR` | Override the agent templates directory. |
 | `EDITOR` / `VISUAL` | Editor used by `ochi config edit`. Falls back to `notepad` (Windows) or `vi` (Unix). |
 
 ---
@@ -76,7 +76,7 @@ Press `Ctrl+C` to exit. A second `Ctrl+C` force-exits the process.
 
 ### ochi init
 
-Initialize the OpenFang workspace. Creates `~/.ochi/` with subdirectories (`data/`, `agents/`) and a default `config.toml`.
+Initialize the Ochi workspace. Creates `~/.ochi/` with subdirectories (`data/`, `agents/`) and a default `config.toml`.
 
 ```
 ochi init [--quick]
@@ -109,7 +109,7 @@ ochi init --quick
 
 ### ochi start
 
-Start the OpenFang daemon (kernel + API server).
+Start the Ochi daemon (kernel + API server).
 
 ```
 ochi start [--config <PATH>]
@@ -118,7 +118,7 @@ ochi start [--config <PATH>]
 **Behavior:**
 
 - Checks if a daemon is already running; exits with an error if so.
-- Boots the OpenFang kernel (loads config, initializes SQLite database, loads agents, connects MCP servers, starts background tasks).
+- Boots the Ochi kernel (loads config, initializes SQLite database, loads agents, connects MCP servers, starts background tasks).
 - Starts the HTTP API server on the address specified in `config.toml` (default: `127.0.0.1:4200`).
 - Writes `daemon.json` to `~/.ochi/` so other CLI commands can discover the running daemon.
 - Blocks until interrupted with `Ctrl+C`.
@@ -126,7 +126,7 @@ ochi start [--config <PATH>]
 **Output:**
 
 ```
-  OpenFang Agent OS v0.1.0
+  Ochi Agent OS v0.1.0
 
   Starting daemon...
 
@@ -186,7 +186,7 @@ ochi status --json | jq '.agent_count'
 
 ### ochi doctor
 
-Run diagnostic checks on the OpenFang installation.
+Run diagnostic checks on the Ochi installation.
 
 ```
 ochi doctor [--json] [--repair]
@@ -201,7 +201,7 @@ ochi doctor [--json] [--repair]
 
 **Checks performed:**
 
-1. **OpenFang directory** -- `~/.ochi/` exists
+1. **Ochi directory** -- `~/.ochi/` exists
 2. **.env file** -- exists and has correct permissions (0600 on Unix)
 3. **Config TOML syntax** -- `config.toml` parses without errors
 4. **Daemon status** -- whether a daemon is running
@@ -270,7 +270,7 @@ ochi completion <SHELL>
 ochi completion bash > ~/.bash_completion.d/ochi
 
 # Zsh
-ochi completion zsh > ~/.zfunc/_openfang
+ochi completion zsh > ~/.zfunc/_ochi
 
 # Fish
 ochi completion fish > ~/.config/fish/completions/ochi.fish
@@ -299,7 +299,7 @@ ochi agent new [<TEMPLATE>]
 
 **Behavior:**
 
-- Templates are discovered from: the repo `agents/` directory (dev builds), `~/.ochi/agents/` (installed), and `OPENFANG_AGENTS_DIR` (env override).
+- Templates are discovered from: the repo `agents/` directory (dev builds), `~/.ochi/agents/` (installed), and `OCHI_AGENTS_DIR` (env override).
 - Each template is a directory containing an `agent.toml` manifest.
 - In daemon mode: sends `POST /api/agents` with the manifest. Agent is persistent.
 - In standalone mode: boots an in-process kernel. Agent is ephemeral.
@@ -1026,7 +1026,7 @@ ochi migrate --from <FRAMEWORK> [--source-dir <PATH>] [--dry-run]
 
 **Behavior:**
 
-- Converts agent configurations, YAML manifests, and settings from the source framework into OpenFang format.
+- Converts agent configurations, YAML manifests, and settings from the source framework into Ochi format.
 - Saves imported data to `~/.ochi/`.
 - Writes a `migration_report.md` summarizing what was imported.
 
@@ -1060,8 +1060,8 @@ ochi mcp
 
 **Behavior:**
 
-- Exposes running OpenFang agents as MCP tools via JSON-RPC 2.0 over stdin/stdout with Content-Length framing.
-- Each agent becomes a callable tool named `openfang_agent_<name>` (hyphens replaced with underscores).
+- Exposes running Ochi agents as MCP tools via JSON-RPC 2.0 over stdin/stdout with Content-Length framing.
+- Each agent becomes a callable tool named `ochi_agent_<name>` (hyphens replaced with underscores).
 - Connects to a running daemon via HTTP if available; otherwise boots an in-process kernel.
 - Protocol version: `2024-11-05`.
 - Maximum message size: 10MB (security limit).
@@ -1120,7 +1120,7 @@ ochi doctor --repair  # Cleans up stale daemon.json from crashes
 
 ## Environment File
 
-OpenFang loads `~/.ochi/.env` into the process environment on every CLI invocation. System environment variables take priority over `.env` values.
+Ochi loads `~/.ochi/.env` into the process environment on every CLI invocation. System environment variables take priority over `.env` values.
 
 The `.env` file stores API keys and secrets:
 
@@ -1153,7 +1153,7 @@ Manage keys with the `config set-key` / `config delete-key` commands rather than
 # 1. Set your API key
 export GROQ_API_KEY="gsk_your_key_here"
 
-# 2. Initialize OpenFang
+# 2. Initialize Ochi
 ochi init --quick
 
 # 3. Start the daemon
@@ -1326,7 +1326,7 @@ ochi doctor --json
 ```bash
 # Generate and install completions for your shell
 ochi completion bash >> ~/.bashrc
-ochi completion zsh > "${fpath[1]}/_openfang"
+ochi completion zsh > "${fpath[1]}/_ochi"
 ochi completion fish > ~/.config/fish/completions/ochi.fish
 ```
 

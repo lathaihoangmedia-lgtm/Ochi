@@ -1,20 +1,23 @@
 [Unit]
-Description=OpenFang Agent OS Daemon (legacy shim to Ochi)
-Description=Ochi Agent OS Daemon
-Documentation=https://github.com/RightNow-AI/openfang
+Description=OpenFang Agent OS Daemon (DEPRECATED — legacy shim, use ochi.service instead)
+Documentation=https://github.com/lathaihoangmedia-lgtm/Ochi
 After=network-online.target
 Wants=network-online.target
+# This unit is a backward-compatibility shim for systems that previously used
+# openfang.service. New installations should use ochi.service instead.
+# This file will be removed in Ochi v1.0.
 
 [Service]
 Type=simple
 User=ochi
 Group=ochi
+# Delegates to the ochi binary (openfang binary is a symlink to ochi)
 ExecStart=/usr/local/bin/ochi start
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
 
-# Environment
+# Environment — load both paths for maximum compatibility
 EnvironmentFile=-/etc/ochi/env
 EnvironmentFile=-/etc/openfang/env
 WorkingDirectory=/var/lib/ochi
