@@ -5,7 +5,31 @@ All notable changes to Ochi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-02-24
+## [Unreleased]
+
+## [0.1.0] - 2026-03-03
+
+### Added
+
+- **Phase 6: Orchestration Core (Thái Cực)**: Triển khai `ochi-kernel/src/orchestration.rs` với logic điều phối 9 Đại Tác Tử (KIM, MỘC, THỦY, HỎA, THỔ, THÁI CỰC, CÀN, KHÔN, NHÂN). Bao gồm multi-signal routing, confidence scoring, và phân cực Âm/Dương. (436d82d)
+- **Hệ sinh thái Agents**: Khởi tạo cấu trúc 36 Thiên Cương và 72 Địa Sát, sẵn sàng để triển khai các sub-agents chuyên biệt. (95c716e)
+- **API Endpoints mới**: Thêm `/api/orchestrate` để điều phối nhiệm vụ và `/api/orchestrate/agents` để liệt kê 9 Đại Tác Tử. (436d82d)
+- **Giao thức AI Builder**: Bổ sung `PLAN-TASK.md` với các quy tắc bắt buộc cho AI builder về tôn trọng kế hoạch, tự động cập nhật tiến độ, và phối hợp đa AI. (bd47b07)
+- **Chiến lược Pre-release**: Cập nhật `PLAN-TASK.md` với chiến lược phát hành 2 giai đoạn (Web-first, sau đó là Desktop). (221c2e3)
+
+### Changed
+
+- **Phase 3: Brand Rename (OpenFang → Ochi)**: Hoàn thành đổi tên thương hiệu toàn diện trên 13 crates Rust, bao gồm `ochi-kernel`, `ochi-api`, `ochi-cli`, và các thư viện cốt lõi. (59e30eb)
+- **Toàn bộ hệ sinh thái**: Cập nhật đổi tên trên tất cả các layer không phải Rust, bao gồm Docker, scripts cài đặt, Web UI (localStorage, JS classes), SDK (Python, JS), và toàn bộ tài liệu. (3b5738d)
+- **Cấu hình & Môi trường**: Chuyển đường dẫn mặc định từ `~/.openfang` sang `~/.ochi` và biến môi trường `OPENFANG_HOME` sang `OCHI_HOME`. (b61448a, d1a9032)
+- **CI/CD**: Cập nhật workflow `.github/workflows/rust.yml` để sử dụng tên package `ochi-*` mới. (9ae95f7)
+
+### Fixed
+
+- **CLI**: Sửa lỗi cảnh báo `duplicate-target` bằng cách tách `ochi` và `ochi-legacy` thành hai binary riêng biệt. (bcf1e99)
+- **Build Dependencies**: Sửa lỗi build do thiếu các dependency của môi trường đồ họa (GUI) và các vấn đề tương thích của `ochi-types`. (1d05652, và các commit trong quá trình debug)
+
+## [0.0.1] - 2026-02-24
 
 ### Added
 
