@@ -2197,7 +2197,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-api"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "axum",
@@ -2233,7 +2233,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-channels"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "axum",
@@ -2264,7 +2264,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-cli"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "clap",
  "clap_complete",
@@ -2291,7 +2291,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-extensions"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -2319,7 +2319,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-hands"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "dashmap",
@@ -2336,7 +2336,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-kernel"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2372,7 +2372,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-memory"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2391,7 +2391,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-migrate"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "dirs",
@@ -2410,7 +2410,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-runtime"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2441,7 +2441,7 @@ dependencies = [
 
 [[package]]
 name = "ochi-skills"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "hex",
@@ -2463,14 +2463,14 @@ dependencies = [
 
 [[package]]
 name = "ochi-types"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "openfang-types",
 ]
 
 [[package]]
 name = "ochi-wire"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2509,7 +2509,7 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "openfang-types"
-version = "0.2.3"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -5206,7 +5206,7 @@ checksum = "9edde0db4769d2dc68579893f2306b26c6ecfbe0ef499b013d731b7b9247e0b9"
 
 [[package]]
 name = "xtask"
-version = "0.2.3"
+version = "0.1.0"
 
 [[package]]
 name = "yoke"

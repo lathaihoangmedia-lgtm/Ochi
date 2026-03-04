@@ -49,5 +49,7 @@ pub mod web_cache;
 pub mod web_content;
 pub mod web_fetch;
 pub mod web_search;
+pub mod wit;
+pub mod manus;
 pub mod workspace_context;
 pub mod workspace_sandbox;

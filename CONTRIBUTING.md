@@ -120,7 +120,7 @@ cargo run -- doctor
 Ochi is organized as a Cargo workspace with 14 crates:
 
 | Crate | Role |
-|-------|------|
+| ------- | ------ |
 | `ochi-types` | Shared type definitions, taint tracking, manifest signing (Ed25519), model catalog, MCP/A2A config types |
 | `ochi-memory` | SQLite-backed memory substrate with vector embeddings, usage tracking, canonical sessions, JSONL mirroring |
 | `ochi-runtime` | Agent loop, 3 LLM drivers (Anthropic/Gemini/OpenAI-compat), 38 built-in tools, WASM sandbox, MCP client/server, A2A protocol |
@@ -149,15 +149,15 @@ Ochi is organized as a Cargo workspace with 14 crates:
 
 Agent templates live in the `agents/` directory. Each template is a folder containing an `agent.toml` manifest.
 
-### Steps
+### Steps to Add a Template
 
 1. Create a new directory under `agents/`:
 
-```
+```text
 agents/my-agent/agent.toml
 ```
 
-2. Write the manifest:
+1. Write the manifest:
 
 ```toml
 name = "my-agent"
@@ -181,7 +181,7 @@ memory_write = ["self.*"]
 agent_spawn = false
 ```
 
-3. Include a system prompt if needed by adding it to the `[model]` section:
+1. Include a system prompt if needed by adding it to the `[model]` section:
 
 ```toml
 [model]
@@ -192,13 +192,13 @@ You are a specialized agent that...
 """
 ```
 
-4. Test by spawning:
+1. Test by spawning:
 
 ```bash
 ochi agent spawn agents/my-agent/agent.toml
 ```
 
-5. Submit a PR with the new template.
+1. Submit a PR with the new template.
 
 ---
 
@@ -206,7 +206,7 @@ ochi agent spawn agents/my-agent/agent.toml
 
 Channel adapters live in `crates/ochi-channels/src/`. Each adapter implements the `ChannelAdapter` trait.
 
-### Steps
+### Steps to Add an Adapter
 
 1. Create a new file: `crates/ochi-channels/src/myplatform.rs`
 
@@ -242,19 +242,19 @@ impl ChannelAdapter for MyPlatformAdapter {
 }
 ```
 
-3. Register the module in `crates/ochi-channels/src/lib.rs`:
+1. Register the module in `crates/ochi-channels/src/lib.rs`:
 
 ```rust
 pub mod myplatform;
 ```
 
-4. Wire it up in the channel bridge (`crates/ochi-api/src/channel_bridge.rs`) so the daemon starts it alongside other adapters.
+1. Wire it up in the channel bridge (`crates/ochi-api/src/channel_bridge.rs`) so the daemon starts it alongside other adapters.
 
-5. Add configuration support in `ochi-types` config structs (add a `[channels.myplatform]` section).
+1. Add configuration support in `ochi-types` config structs (add a `[channels.myplatform]` section).
 
-6. Add CLI setup wizard instructions in `crates/ochi-cli/src/main.rs` under `cmd_channel_setup`.
+1. Add CLI setup wizard instructions in `crates/ochi-cli/src/main.rs` under `cmd_channel_setup`.
 
-7. Write tests and submit a PR.
+1. Write tests and submit a PR.
 
 ---
 
@@ -262,7 +262,7 @@ pub mod myplatform;
 
 Built-in tools are defined in `crates/ochi-runtime/src/tool_runner.rs`.
 
-### Steps
+### Steps to Add a Tool
 
 1. Add the tool implementation function:
 
@@ -277,13 +277,13 @@ async fn tool_my_tool(input: &serde_json::Value) -> Result<String, String> {
 }
 ```
 
-2. Register it in the `execute_tool` match block:
+1. Register it in the `execute_tool` match block:
 
 ```rust
 "my_tool" => tool_my_tool(input).await,
 ```
 
-3. Add the tool definition to `builtin_tool_definitions()`:
+1. Add the tool definition to `builtin_tool_definitions()`:
 
 ```rust
 ToolDefinition {
@@ -302,16 +302,16 @@ ToolDefinition {
 },
 ```
 
-4. Agents that need the tool must list it in their manifest:
+1. Agents that need the tool must list it in their manifest:
 
 ```toml
 [capabilities]
 tools = ["my_tool"]
 ```
 
-5. Write tests for the tool function.
+1. Write tests for the tool function.
 
-6. If the tool requires kernel access (e.g., inter-agent communication), accept `Option<&Arc<dyn KernelHandle>>` and handle the `None` case gracefully.
+1. If the tool requires kernel access (e.g., inter-agent communication), accept `Option<&Arc<dyn KernelHandle>>` and handle the `None` case gracefully.
 
 ---
 
@@ -338,7 +338,7 @@ tools = ["my_tool"]
 
 Use clear, imperative-mood messages:
 
-```
+```text
 Add Matrix channel adapter with E2EE support
 Fix session restore crash on kernel reboot
 Refactor capability manager to use DashMap

@@ -40,6 +40,16 @@ pub fn bundled_hands() -> Vec<(&'static str, &'static str, &'static str)> {
             include_str!("../bundled/browser/HAND.toml"),
             include_str!("../bundled/browser/SKILL.md"),
         ),
+        (
+            "logic",
+            include_str!("../bundled/logic/HAND.toml"),
+            include_str!("../bundled/logic/SKILL.md"),
+        ),
+        (
+            "infra",
+            include_str!("../bundled/infra/HAND.toml"),
+            include_str!("../bundled/infra/SKILL.md"),
+        ),
     ]
 }
 

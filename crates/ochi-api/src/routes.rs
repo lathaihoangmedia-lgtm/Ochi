@@ -8425,6 +8425,104 @@ pub async fn cron_job_status(
 }
 
 // ---------------------------------------------------------------------------
+// Manus AI Webhook handling
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ManusWebhookPayload {
+    pub event_id: String,
+    pub event_type: String,
+    #[serde(flatten)]
+    pub detail: ManusWebhookDetail,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(untagged)]
+pub enum ManusWebhookDetail {
+    Created {
+        task_detail: ManusTaskDetailShort,
+    },
+    Progress {
+        progress_detail: ManusProgressDetail,
+    },
+    Stopped {
+        task_detail: ManusTaskStoppedDetail,
+    },
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ManusTaskDetailShort {
+    pub task_id: String,
+    pub task_title: String,
+    pub task_url: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ManusProgressDetail {
+    pub task_id: String,
+    pub progress_type: String,
+    pub message: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ManusTaskStoppedDetail {
+    pub task_id: String,
+    pub task_title: String,
+    pub task_url: String,
+    pub message: String,
+    pub stop_reason: String,
+    pub attachments: Vec<ochi_runtime::manus::ManusAttachment>,
+}
+
+/// POST /api/webhooks/manus — Endpoint for Manus AI lifecycle notifications.
+pub async fn manus_webhook(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<ManusWebhookPayload>,
+) -> impl IntoResponse {
+    info!(
+        event_id = %payload.event_id,
+        event_type = %payload.event_type,
+        "Received Manus webhook"
+    );
+
+    match payload.detail {
+        ManusWebhookDetail::Created { task_detail } => {
+            info!(
+                task_id = %task_detail.task_id,
+                title = %task_detail.task_title,
+                "Manus task created"
+            );
+        }
+        ManusWebhookDetail::Progress { progress_detail } => {
+            debug!(
+                task_id = %progress_detail.task_id,
+                msg = %progress_detail.message,
+                "Manus task progress"
+            );
+        }
+        ManusWebhookDetail::Stopped { task_detail } => {
+            info!(
+                task_id = %task_detail.task_id,
+                reason = %task_detail.stop_reason,
+                "Manus task stopped"
+            );
+
+            state.kernel.audit_log.record(
+                "manus",
+                ochi_runtime::audit::AuditAction::TaskExecute,
+                format!(
+                    "Manus task {} stopped: {} (reason: {})",
+                    task_detail.task_id, task_detail.task_title, task_detail.stop_reason
+                ),
+                "completed",
+            );
+        }
+    }
+
+    StatusCode::OK
+}
+
+// ---------------------------------------------------------------------------
 // Webhook trigger endpoints
 // ---------------------------------------------------------------------------
 
