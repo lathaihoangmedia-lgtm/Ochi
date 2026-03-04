@@ -14,17 +14,23 @@ providers = ["wit_ai", "zalo_ai", "manus_provider", "openai"]
 [provider.wit_ai]
 provider = "http_json"
 api_key_env = "WIT_AI_TOKEN"
-base_url = "https://api.wit.ai/message?v=20240516&q="
-# Cần thêm cấu hình để parse response của Wit.ai, ví dụ:
-# response_path = "$.intents[0].name"
-# text_path = "$.text"
+# Wit.ai yêu cầu version pin theo ngày (v=YYYYMMDD)
+base_url = "https://api.wit.ai/message?v=20240304&q="
+# Mapping response gợi ý cho NLP text:
+# - intent chính: $.intents[0].name
+# - confidence: $.intents[0].confidence
+# - entities: $.entities
+# - traits: $.traits
+# Các query params có thể mở rộng: n, context, entities (dynamic entities)
 
 [provider.zalo_ai]
 provider = "http_json"
 api_key_env = "ZALO_AI_TOKEN"
-base_url = "https://api.zalo.ai/v1/tts/synthesize"
-# Cần thêm cấu hình để parse response của Zalo AI, ví dụ:
-# response_path = "$.data.url"
+# Host chính thức theo docs: https://api.zalo.ai/{{target_api_url}}
+# TODO: thay {{target_api_url}} bằng endpoint NLP cụ thể khi có tài liệu chi tiết.
+base_url = "https://api.zalo.ai/{{target_api_url}}"
+# Zalo AI dùng header: apikey: $ZALO_AI_TOKEN (không phải Bearer)
+# Cần bổ sung mapping response NLP (intent/entities/confidence) khi có schema chính thức.
 
 [provider.manus_provider]
 provider = "grpc"
