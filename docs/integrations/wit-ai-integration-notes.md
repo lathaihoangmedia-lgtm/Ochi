@@ -56,12 +56,9 @@ Implementation guidance:
 
 ## 4) Open items still needed from Zalo AI
 
-Current known onboarding details from Zalo docs:
-- host pattern: `https://api.zalo.ai/{{target_api_url}}`
-- auth header: `apikey: <token>`
-
-To implement parity and fallback chain `Wit.ai -> Zalo AI -> Manus Provider -> OpenAI`, we still need:
+To implement parity and fallback chain `Wit.ai -> Zalo AI -> Manus Provider -> OpenAI`, we still need Zalo docs for:
 - exact NLP endpoint(s) and method
+- auth header scheme
 - request body/query schema
 - response schema for intents/entities/confidence
 - rate-limit + error contract
