@@ -1,4 +1,4 @@
-//! Core kernel for the OpenFang Agent Operating System.
+//! Core kernel for the Ochi Agent OS.
 //!
 //! The kernel manages agent lifecycles, memory, permissions, scheduling,
 //! and inter-agent communication.

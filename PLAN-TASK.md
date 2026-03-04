@@ -1,6 +1,6 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
-> **Cập nhật lần cuối:** 03-03-2026
+> **Cập nhật lần cuối:** 04-03-2026
 > **Commit mới nhất:** `436d82d` (feat(orchestration): Phase 6 — wire 9 Grand Agents into ochi-kernel)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
@@ -9,19 +9,19 @@
 
 **Mục tiêu cốt lõi:**
 
-1.  **Hoàn thiện Agent OS:** Xây dựng một nền tảng ổn định cho các agent tự trị hoạt động, bao gồm kernel, runtime, API, và các công cụ hỗ trợ.
-2.  **Kiến trúc Điều phối Thông minh:** Triển khai hệ thống điều phối 9 Đại Tác Tử (Ngũ Hành + Bát Quái) để tự động phân tích và định tuyến nhiệm vụ đến agent phù hợp nhất.
-3.  **Hệ sinh thái Agent Mở rộng:** Phát triển một hệ sinh thái gồm 36 Agent Chiến lược (Thiên Cương) và 72 Agent Thực thi (Địa Sát) để bao phủ một loạt các tác vụ phức tạp.
-4.  **Tích hợp Sâu rộng:** Kết nối với các dịch vụ bên thứ ba (như aaPanel, Lạc Việt DB, các nhà cung cấp NLP) thông qua giao thức MCP (Model Context Protocol).
+1. **Hoàn thiện Agent OS:** Xây dựng một nền tảng ổn định cho các agent tự trị hoạt động, bao gồm kernel, runtime, API, và các công cụ hỗ trợ.
+2. **Kiến trúc Điều phối Thông minh:** Triển khai hệ thống điều phối 9 Đại Tác Tử (Ngũ Hành + Bát Quái) để tự động phân tích và định tuyến nhiệm vụ đến agent phù hợp nhất.
+3. **Hệ sinh thái Agent Mở rộng:** Phát triển một hệ sinh thái gồm 36 Agent Chiến lược (Thiên Cương) và 72 Agent Thực thi (Địa Sát) để bao phủ một loạt các tác vụ phức tạp.
+4. **Tích hợp Sâu rộng:** Kết nối với các dịch vụ bên thứ ba (như aaPanel, Lạc Việt DB, các nhà cung cấp NLP) thông qua giao thức MCP (Model Context Protocol).
 
 ## 2. Trạng thái Hiện tại (Tính đến `436d82d`)
 
 | Hạng mục | Trạng thái | Mô tả |
 | :--- | :--- | :--- |
-| **Phase 3: Đổi tên** | ✅ **Hoàn tất** | Đổi tên thương hiệu toàn diện từ **OpenFang → Ochi** trên 13 crates, CI/CD, Docker, Scripts, Web UI, Docs, và SDK. | 
+| **Phase 3: Đổi tên** | ✅ **Hoàn tất** | Đổi tên thương hiệu toàn diện từ **OpenFang → Ochi** trên 13 crates, CI/CD, Docker, Scripts, Web UI, Docs, và SDK. |
 | **Phase 6: Orchestration** | ✅ **Hoàn tất** | Triển khai logic điều phối 9 Đại Tác Tử vào `ochi-kernel`, tích hợp vào API với endpoint `/api/orchestrate`. 20/20 unit tests PASS. |
 | **Launch Roadmap** | ⏳ **Đang tiến hành** | Hoàn thành 17/18 hạng mục trong 4 sprints. Chỉ còn **2.4 Install script domain** (hạ tầng) là PENDING. |
-| **Workspace** | Ổn định | 13 crates `ochi-*` đã được đổi tên và build thành công (không có `desktop`). | 
+| **Workspace** | Ổn định | 13 crates `ochi-*` đã được đổi tên và build thành công (không có `desktop`). |
 
 ## 3. Roadmap & Nhiệm vụ Tiếp theo
 
@@ -56,21 +56,24 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 
 ## 4. Hướng dẫn Onboarding cho AI mới
 
-1.  **Clone Repository:**
+1. **Clone Repository:**
+
     ```bash
     gh repo clone lathaihoangmedia-lgtm/Ochi
     cd Ochi
     ```
-2.  **Đọc tài liệu quan trọng:**
+
+2. **Đọc tài liệu quan trọng:**
     - `README.md`: Tổng quan dự án.
     - `docs/architecture.md`: Kiến trúc tổng thể.
     - `docs/ochi-full-rename-checklist.md`: Lịch sử đổi tên và các quyết định kỹ thuật.
     - `docs/launch-roadmap.md`: Lộ trình ra mắt sản phẩm.
     - `crates/ochi-kernel/src/orchestration.rs`: Logic điều phối 9 Đại Tác Tử.
-3.  **Thiết lập môi trường:**
+3. **Thiết lập môi trường:**
     - Cài đặt Rust toolchain theo file `rust-toolchain.toml`.
     - Cài đặt các dependency hệ thống (build-essential, libssl-dev, etc.).
-4.  **Chạy kiểm tra:**
+4. **Chạy kiểm tra:**
+
     ```bash
     # Kiểm tra build các crate cốt lõi
     cargo check -p ochi-kernel -p ochi-api -p ochi-cli
@@ -78,14 +81,14 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
     # Chạy unit tests cho kernel
     cargo test -p ochi-kernel
     ```
-5.  **Chọn một nhiệm vụ từ Roadmap (Luồng 2 hoặc 3) và bắt đầu phát triển.**
+
+5. **Chọn một nhiệm vụ từ Roadmap (Luồng 2 hoặc 3) và bắt đầu phát triển.**
 
 ## 5. Phụ lục: Danh sách Agent
 
--   [Danh sách 9 Đại Tác Tử](agents/grand_agents/)
--   [Danh sách 36 Thiên Cương](agents/thien_cuong/LIST.md)
--   [Danh sách 72 Địa Sát](agents/dia_sat/LIST.md)
-
+- [Danh sách 9 Đại Tác Tử](agents/grand_agents/)
+- [Danh sách 36 Thiên Cương](agents/thien_cuong/LIST.md)
+- [Danh sách 72 Địa Sát](agents/dia_sat/LIST.md)
 
 ## 6. Giao thức AI Builder (Bắt buộc)
 
@@ -93,29 +96,30 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 
 ### 6.1. Tôn trọng Kế hoạch
 
--   **Không tự ý thay đổi Roadmap:** Luôn bám sát các nhiệm vụ đã được định nghĩa trong **Mục 3: Roadmap & Nhiệm vụ Tiếp theo**. 
--   **Không làm ngoài phạm vi:** Chỉ thực hiện các công việc được mô tả trong Task ID đã chọn. Nếu phát hiện vấn đề hoặc có ý tưởng cải tiến, hãy tạo một commit riêng với tiền tố `chore(suggestion):` và mô tả rõ ràng, sau đó tiếp tục công việc chính.
--   **Ưu tiên theo luồng:** Hoàn thành các nhiệm vụ trong Luồng 1 trước khi chuyển sang Luồng 2 và 3, trừ khi có chỉ định khác.
+- **Không tự ý thay đổi Roadmap:** Luôn bám sát các nhiệm vụ đã được định nghĩa trong **Mục 3: Roadmap & Nhiệm vụ Tiếp theo**.
+- **Không làm ngoài phạm vi:** Chỉ thực hiện các công việc được mô tả trong Task ID đã chọn. Nếu phát hiện vấn đề hoặc có ý tưởng cải tiến, hãy tạo một commit riêng với tiền tố `chore(suggestion):` và mô tả rõ ràng, sau đó tiếp tục công việc chính.
+- **Ưu tiên theo luồng:** Hoàn thành các nhiệm vụ trong Luồng 1 trước khi chuyển sang Luồng 2 và 3, trừ khi có chỉ định khác.
 
 ### 6.2. Tự động Cập nhật Tiến độ
 
--   **Commit cho mỗi Task:** Mỗi Task ID hoàn thành phải tương ứng với một commit duy nhất. Commit message phải có định dạng:
-    ```
+- **Commit cho mỗi Task:** Mỗi Task ID hoàn thành phải tương ứng với một commit duy nhất. Commit message phải có định dạng:
+
+    ```text
     feat(scope): [Task ID] Mô tả ngắn gọn
 
     Mô tả chi tiết các thay đổi, lý do, và kết quả.
 
     Refs: #<issue_number_nếu_có>
     ```
+
     *Ví dụ:* `feat(infra): [INFRA-01] Set up ochi.sh domain`
 
--   **Tự động cập nhật PLAN-TASK.md:** Sau khi push commit thành công, AI builder **PHẢI** tự động đọc lại file `PLAN-TASK.md` này, đánh dấu `✅ Hoàn tất` vào Task ID tương ứng, và cập nhật commit mới nhất ở đầu file. Đây là một phần không thể thiếu của quy trình.
+- **Tự động cập nhật PLAN-TASK.md:** Sau khi push commit thành công, AI builder **PHẢI** tự động đọc lại file `PLAN-TASK.md` này, đánh dấu `✅ Hoàn tất` vào Task ID tương ứng, và cập nhật commit mới nhất ở đầu file. Đây là một phần không thể thiếu của quy trình.
 
 ### 6.3. Phối hợp Đa AI
 
--   **Kiểm tra trước khi làm:** Trước khi bắt đầu một Task, luôn `git pull` và đọc lại `PLAN-TASK.md` để đảm bảo không có AI nào khác đang thực hiện cùng nhiệm vụ.
--   **Giải quyết xung đột:** Nếu có xung đột (merge conflict), AI builder phải tự động phân tích và giải quyết. Ưu tiên giữ lại các thay đổi logic và cấu trúc mới nhất. Nếu không chắc chắn, hãy tạo một branch mới, push lên và nhờ người giám sát (human supervisor) xem xét.
-
+- **Kiểm tra trước khi làm:** Trước khi bắt đầu một Task, luôn `git pull` và đọc lại `PLAN-TASK.md` để đảm bảo không có AI nào khác đang thực hiện cùng nhiệm vụ.
+- **Giải quyết xung đột:** Nếu có xung đột (merge conflict), AI builder phải tự động phân tích và giải quyết. Ưu tiên giữ lại các thay đổi logic và cấu trúc mới nhất. Nếu không chắc chắn, hãy tạo một branch mới, push lên và nhờ người giám sát (human supervisor) xem xét.
 
 ## 7. Pre-release Checklist (v0.1.0)
 
@@ -127,10 +131,9 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 | `PRE-02` | **Set Public Key** | ⏳ **PENDING** | Chèn public key đã tạo vào `tauri.conf.json`. | `crates/ochi-desktop/tauri.conf.json` |
 | `PRE-03` | **GitHub Secrets** | ⏳ **PENDING** | Thêm `TAURI_SIGNING_PRIVATE_KEY` vào secrets của repo GitHub để CI/CD có thể ký release. | GitHub Repo Settings |
 | `PRE-04` | **Setup `ochi.sh` domain** | ⏳ **PENDING** | Cấu hình domain để người dùng có thể cài đặt bằng `curl`. Đây là hạng mục `INFRA-01` được nâng lên ưu tiên cao nhất. | `scripts/install.sh` |
-| `PRE-05` | **Update `CHANGELOG.md`** | ⏳ **PENDING** | Cập nhật file `CHANGELOG.md` để phản ánh tất cả các thay đổi lớn từ khi bắt đầu dự án. | `CHANGELOG.md` |
-| `PRE-06` | **Version Bump** | ⏳ **PENDING** | Tăng version trong `Cargo.toml` và `tauri.conf.json` lên `0.1.0`. | `Cargo.toml`, `crates/ochi-desktop/tauri.conf.json` |
+| `PRE-05` | **Update `CHANGELOG.md`** | ✅ **Hoàn tất** | Cập nhật file `CHANGELOG.md` để phản ánh tất cả các thay đổi lớn từ khi bắt đầu dự án. | `CHANGELOG.md` |
+| `PRE-06` | **Version Bump** | ✅ **Hoàn tất** | Tăng version trong `Cargo.toml` và `tauri.conf.json` lên `0.1.0`. | `Cargo.toml`, `crates/ochi-desktop/tauri.conf.json` |
 | `PRE-07` | **Final Verification** | ⏳ **PENDING** | Sau khi tag, kiểm tra lại tất cả các artifacts trên trang GitHub Release (installer, binary, checksum). | GitHub Release Page |
-
 
 ## 8. Chiến lược Pre-release (v0.1.0)
 

@@ -618,6 +618,16 @@ fn builtin_providers() -> Vec<ProviderInfo> {
             auth_status: AuthStatus::NotRequired,
             model_count: 0,
         },
+        // ── Manus AI ────────────────────────────────────────────────
+        ProviderInfo {
+            id: "manus".into(),
+            display_name: "Manus AI".into(),
+            api_key_env: "MANUS_API_KEY".into(),
+            base_url: "https://api.manus.ai".into(),
+            key_required: true,
+            auth_status: AuthStatus::Missing,
+            model_count: 0,
+        },
     ]
 }
 
@@ -685,6 +695,7 @@ fn builtin_aliases() -> HashMap<String, String> {
         ("claude-code-opus", "claude-code/opus"),
         ("claude-code-sonnet", "claude-code/sonnet"),
         ("claude-code-haiku", "claude-code/haiku"),
+        ("manus", "manus-1.6"),
     ];
     pairs
         .into_iter()
@@ -2883,6 +2894,23 @@ fn builtin_models() -> Vec<ModelCatalogEntry> {
             supports_vision: false,
             supports_streaming: true,
             aliases: vec!["claude-code-haiku".into()],
+        },
+        // ══════════════════════════════════════════════════════════════
+        // Manus AI (1)
+        // ══════════════════════════════════════════════════════════════
+        ModelCatalogEntry {
+            id: "manus-1.6".into(),
+            display_name: "Manus 1.6 (Autonomous)".into(),
+            provider: "manus".into(),
+            tier: ModelTier::Frontier,
+            context_window: 128_000,
+            max_output_tokens: 32_000,
+            input_cost_per_m: 0.0,
+            output_cost_per_m: 0.0,
+            supports_tools: true,
+            supports_vision: true,
+            supports_streaming: true,
+            aliases: vec!["manus".into()],
         },
     ]
 }

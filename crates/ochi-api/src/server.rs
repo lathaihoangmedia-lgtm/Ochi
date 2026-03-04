@@ -515,6 +515,7 @@ pub async fn build_router(
         // Webhook trigger endpoints (external event injection)
         .route("/hooks/wake", axum::routing::post(routes::webhook_wake))
         .route("/hooks/agent", axum::routing::post(routes::webhook_agent))
+        .route("/api/webhooks/manus", axum::routing::post(routes::manus_webhook))
         .route("/api/shutdown", axum::routing::post(routes::shutdown))
         // Chat commands endpoint (dynamic slash menu)
         .route("/api/commands", axum::routing::get(routes::list_commands))

@@ -1,4 +1,4 @@
-//! OpenFangKernel — assembles all subsystems and provides the main API.
+//! OchiKernel — assembles all subsystems and provides the main API.
 
 use crate::auth::AuthManager;
 use crate::background::{self, BackgroundExecutor};
@@ -39,7 +39,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock, Weak};
 use tracing::{debug, info, warn};
 
-/// The main OpenFang kernel — coordinates all subsystems.
+/// The main Ochi kernel — coordinates all subsystems.
 pub struct OpenFangKernel {
     /// Ochi Grand Agent orchestrator.
     pub orchestrator: Orchestrator,
@@ -136,6 +136,10 @@ pub struct OpenFangKernel {
     pub channel_adapters: dashmap::DashMap<String, Arc<dyn ochi_channels::types::ChannelAdapter>>,
     /// Weak self-reference for trigger dispatch (set after Arc wrapping).
     self_handle: OnceLock<Weak<OpenFangKernel>>,
+    /// Wit.ai NLU client for intent extraction and speech processing.
+    pub wit_client: Option<Arc<ochi_runtime::wit::WitClient>>,
+    /// Manus AI client for complex autonomous task delegation.
+    pub manus_client: Option<Arc<ochi_runtime::manus::ManusClient>>,
 }
 
 /// Bounded in-memory delivery receipt tracker.
@@ -504,7 +508,7 @@ impl OpenFangKernel {
                 warn!("Booting OpenFang kernel in DEV mode — experimental features enabled");
             }
             KernelMode::Default => {
-                info!("Booting OpenFang kernel...");
+                info!("Booting Ochi Agent OS kernel...");
             }
         }
 
@@ -597,6 +601,22 @@ impl OpenFangKernel {
         let auth = AuthManager::new(&config.users);
         if auth.is_enabled() {
             info!("RBAC enabled with {} users", auth.user_count());
+        }
+
+        // Initialize Wit.ai NLU client
+        let wit_client = ochi_runtime::wit::WitClient::from_env()
+            .map(Arc::new)
+            .ok();
+        if wit_client.is_some() {
+            info!("Wit.ai NLU client initialized");
+        }
+
+        // Initialize Manus AI client
+        let manus_client = ochi_runtime::manus::ManusClient::from_env()
+            .map(Arc::new)
+            .ok();
+        if manus_client.is_some() {
+            info!("Manus AI client initialized");
         }
 
         // Initialize model catalog, detect provider auth, and apply URL overrides
@@ -889,6 +909,8 @@ impl OpenFangKernel {
             whatsapp_gateway_pid: Arc::new(std::sync::Mutex::new(None)),
             channel_adapters: dashmap::DashMap::new(),
             self_handle: OnceLock::new(),
+            wit_client,
+            manus_client,
         };
 
         // Restore persisted agents from SQLite

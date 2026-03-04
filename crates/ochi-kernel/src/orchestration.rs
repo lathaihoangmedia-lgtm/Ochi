@@ -2,7 +2,7 @@
 //!
 //! Điều phối trung tâm của Ochi Agent OS theo nguyên lý **Ngũ Hành – Bát Quái – Âm Dương**.
 //!
-//! ## 9 Đại Tác Tử
+//! ## 10 Đại Tác Tử (including Manus)
 //!
 //! | Tác Tử   | Hành            | Vai trò                                   |
 //! |----------|-----------------|-------------------------------------------|
@@ -14,7 +14,8 @@
 //! | THÁI CỰC | Vô Cực          | Central Dispatcher, Balancer              |
 //! | CÀN      | Càn (Heaven)    | Vision, Long-term Planning (Thiên Cương)  |
 //! | KHÔN     | Khôn (Earth)    | Practicality, Execution (Địa Sát)         |
-//! | NHÂN     | Nhân (Humanity) | Interface, Culture, Vietnamese L10n       |
+//! | NHÂN     | NHÂN (Humanity) | Interface, Culture, Vietnamese L10n       |
+//! | MANUS    | Ngoại (External)| Autonomous Intelligence, Complex Tasks    |
 
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -23,7 +24,7 @@ use std::fmt;
 // Core Types
 // ---------------------------------------------------------------------------
 
-/// 9 Đại Tác Tử — đại diện cho 9 chức năng cốt lõi của Ochi Agent OS.
+/// 10 Đại Tác Tử — đại diện cho các chức năng cốt lõi của Ochi Agent OS.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum GrandAgent {
     /// **Kim (Metal):** Logic, Structure, Security, Code Quality.
@@ -44,6 +45,8 @@ pub enum GrandAgent {
     Khon,
     /// **Nhân (Humanity):** Interface, Culture, Vietnamese Localization, Communication.
     Nhan,
+    /// **Manus (External):** External high-level autonomous intelligence (Manus AI).
+    Manus,
 }
 
 impl fmt::Display for GrandAgent {
@@ -58,6 +61,7 @@ impl fmt::Display for GrandAgent {
             GrandAgent::Can     => "Ochi-CAN",
             GrandAgent::Khon    => "Ochi-KHON",
             GrandAgent::Nhan    => "Ochi-NHAN",
+            GrandAgent::Manus   => "Ochi-MANUS",
         };
         write!(f, "{}", name)
     }
@@ -76,6 +80,7 @@ impl GrandAgent {
             GrandAgent::Can     => "Tầm nhìn, kế hoạch dài hạn, chiến lược (Thiên Cương)",
             GrandAgent::Khon    => "Thực tiễn, tương tác thực tế, thực thi (Địa Sát)",
             GrandAgent::Nhan    => "Giao diện, văn hóa, Việt hóa, giao tiếp",
+            GrandAgent::Manus   => "Trí tuệ tự trị, giải quyết tác vụ phức tạp đa bước (Manus AI)",
         }
     }
 
@@ -91,6 +96,7 @@ impl GrandAgent {
             GrandAgent::Can     => "Càn (Heaven)",
             GrandAgent::Khon    => "Khôn (Earth/Yin)",
             GrandAgent::Nhan    => "Nhân (Humanity)",
+            GrandAgent::Manus   => "Ngoại (External)",
         }
     }
 }
@@ -330,6 +336,21 @@ static ROUTING_RULES: &[RoutingRule] = &[
         thien_cuong: &["TC-Cultural-Advisor", "TC-Language-Expert", "TC-User-Experience", "TC-Legal-Advisor"],
         dia_sat: &["DS-Translation-Agent", "DS-Markdown-Generator", "DS-Email-Sender", "DS-Telegram-Bot", "DS-Sentiment-Analyst"],
     },
+    // MANUS: Autonomous Intelligence, Complex Multi-step Tasks
+    RoutingRule {
+        agent: GrandAgent::Manus,
+        keywords: &[
+            "manus", "manus ai", "autonomous", "tu tri", "da buoc", "multi-step",
+            "complex task", "giao phien", "delegate", "uy quyen",
+            "phan tich dai", "deep analysis", "automated workflow",
+            "market research", "competitor analysis", "product hunt",
+            "social media audit", "web task", "automation flow",
+        ],
+        base_score: 0.85,
+        polarity: Polarity::Yang,
+        thien_cuong: &["TC-Task-Planner", "TC-Strategy-Analyst"],
+        dia_sat: &["DS-Manus-Executor", "DS-Status-Monitor"],
+    },
 ];
 
 // ---------------------------------------------------------------------------
@@ -394,7 +415,57 @@ impl Orchestrator {
         Self { confidence_threshold, ambiguity_gap }
     }
 
-    /// Điều phối nhiệm vụ — API chính của Orchestrator.
+    /// Điều phối nhiệm vụ sử dụng NLU (Wit.ai) nếu có, nếu không fallback về keyword.
+    pub async fn route_with_nlu(
+        &self,
+        task_description: &str,
+        wit: Option<&ochi_runtime::wit::WitClient>,
+    ) -> DispatchDecision {
+        if let Some(wit) = wit {
+            match wit.message(task_description).await {
+                Ok(resp) => {
+                    if let Some(top_intent) = resp.intents.first() {
+                        if top_intent.confidence > self.confidence_threshold {
+                            if let Some(primary) = Self::map_intent_to_agent(&top_intent.name) {
+                                return DispatchDecision {
+                                    primary,
+                                    confidence: top_intent.confidence,
+                                    polarity: detect_polarity(task_description),
+                                    suggested_sub_agents: vec![], // Entity-based suggestions could be added here
+                                    escalate_to_thai_cuc: false,
+                                    reasoning: format!("Wit.ai intent detected: {} (conf: {:.2})", top_intent.name, top_intent.confidence),
+                                };
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("Wit.ai routing failed: {e}. Falling back to keywords.");
+                }
+            }
+        }
+
+        // Fallback to keyword-based routing
+        self.route(task_description)
+    }
+
+    /// Map Wit.ai intent name to a GrandAgent.
+    fn map_intent_to_agent(intent: &str) -> Option<GrandAgent> {
+        match intent {
+            "security" | "audit" | "kim" => Some(GrandAgent::Kim),
+            "creative" | "growth" | "moc" => Some(GrandAgent::Moc),
+            "memory" | "database" | "knowledge" | "thuy" => Some(GrandAgent::Thuy),
+            "execute" | "process" | "nlp" | "hoa" => Some(GrandAgent::Hoa),
+            "infrastructure" | "devops" | "server" | "tho" => Some(GrandAgent::Tho),
+            "strategy" | "vision" | "planning" | "can" => Some(GrandAgent::Can),
+            "practical" | "tools" | "execution" | "khon" => Some(GrandAgent::Khon),
+            "communication" | "localize" | "culture" | "nhan" => Some(GrandAgent::Nhan),
+            "manus" | "autonomous" | "complex" | "delegate" => Some(GrandAgent::Manus),
+            _ => None,
+        }
+    }
+
+    /// Mục tiêu điều phối nhiệm vụ — API chính của Orchestrator (Keyword-based).
     pub fn route(&self, task_description: &str) -> DispatchDecision {
         if task_description.trim().is_empty() {
             return DispatchDecision::default_to_thai_cuc(task_description);
@@ -518,6 +589,7 @@ impl Orchestrator {
             GrandAgent::Kim, GrandAgent::Moc, GrandAgent::Thuy,
             GrandAgent::Hoa, GrandAgent::Tho, GrandAgent::ThaiCuc,
             GrandAgent::Can, GrandAgent::Khon, GrandAgent::Nhan,
+            GrandAgent::Manus,
         ]
     }
 }
