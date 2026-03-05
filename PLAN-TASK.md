@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 05-03-2026
-> **Commit mới nhất:** `63d0085` (docs(plan): update latest commit metadata)
+> **Commit mới nhất:** `e01f574` (merge PR #46: continue previous work)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -14,7 +14,7 @@
 3. **Hệ sinh thái Agent Mở rộng:** Phát triển một hệ sinh thái gồm 36 Agent Chiến lược (Thiên Cương) và 72 Agent Thực thi (Địa Sát) để bao phủ một loạt các tác vụ phức tạp.
 4. **Tích hợp Sâu rộng:** Kết nối với các dịch vụ bên thứ ba (như aaPanel, Lạc Việt DB, các nhà cung cấp NLP) thông qua giao thức MCP (Model Context Protocol).
 
-## 2. Trạng thái Hiện tại (Tính đến `436d82d`)
+## 2. Trạng thái Hiện tại (Tính đến `e01f574`)
 
 | Hạng mục | Trạng thái | Mô tả |
 | :--- | :--- | :--- |
