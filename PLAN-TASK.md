@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
-> **Cập nhật lần cuối:** 04-03-2026
-> **Commit mới nhất:** `436d82d` (feat(orchestration): Phase 6 — wire 9 Grand Agents into ochi-kernel)
+> **Cập nhật lần cuối:** 05-03-2026
+> **Commit mới nhất:** `be29c92` (Merge PR #44: Update UI to premium theme and revert default model to Gemma 2-9B)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -22,6 +22,8 @@
 | **Phase 6: Orchestration** | ✅ **Hoàn tất** | Triển khai logic điều phối 9 Đại Tác Tử vào `ochi-kernel`, tích hợp vào API với endpoint `/api/orchestrate`. 20/20 unit tests PASS. |
 | **Launch Roadmap** | ⏳ **Đang tiến hành** | Hoàn thành 17/18 hạng mục trong 4 sprints. Chỉ còn **2.4 Install script domain** (hạ tầng) là PENDING. |
 | **Workspace** | Ổn định | 13 crates `ochi-*` đã được đổi tên và build thành công (không có `desktop`). |
+| **DEBT-01: Đổi tên triệt để** | 🔴 **Cần làm** | Vẫn còn 1,271+ lần xuất hiện `openfang` trong mã Rust, `.toml`, `.js`, `.py`. Crate `openfang-desktop` chưa được đổi tên. |
+| **DEBT-02: Xử lý `unwrap()`/`expect()`** | 🔴 **Cần làm** | ~1,500 lệnh `.unwrap()` và 80 lệnh `.expect()` trong toàn workspace. Nguy cơ `panic` trong production cao. |
 
 ## 3. Roadmap & Nhiệm vụ Tiếp theo
 
@@ -152,3 +154,103 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 
 - **Mục tiêu:** Phát hành phiên bản desktop đầy đủ (`v0.1.0-desktop`) sau khi đã giải quyết các vấn đề về signing key và build trên Windows.
 - **Các mục cần hoàn thành:** `PRE-01`, `PRE-02`, `PRE-03`.
+
+---
+
+## 9. Checklist Nợ Kỹ thuật (Technical Debt)
+
+Các mục trong section này là **nợ kỹ thuật ưu tiên cao** được xác định qua audit ngày 05-03-2026. Mỗi AI builder chỉ nhận **một Task ID** tại một thời điểm. Tuân thủ quy tắc tại **Mục 6** trước khi bắt đầu.
+
+---
+
+### DEBT-01: Đổi tên Triệt để (OpenFang → Ochi)
+
+> **Mục tiêu:** Loại bỏ hoàn toàn mọi tham chiếu đến `OpenFang`/`openfang`/`OPENFANG` trong toàn bộ codebase, đảm bảo tính nhất quán thương hiệu và tránh lỗi cấu hình.
+>
+> **Phạm vi:** 1,271+ lần xuất hiện trong `.rs`, 26 lần trong `.toml`, 26 lần trong `.md`, và nhiều file `.js`/`.py`.
+>
+> **Quy tắc phân công:** Mỗi AI builder nhận **một sub-task ID** (ví dụ `DEBT-01-A`). Kiểm tra bảng bên dưới trước khi bắt đầu để tránh xung đột.
+
+#### Phân công Sub-tasks
+
+| Sub-task ID | Phạm vi | Trạng thái | Files liên quan |
+| :--- | :--- | :--- | :--- |
+| `DEBT-01-A` | **Đổi tên crate `openfang-desktop` → `ochi-desktop`** | ⏳ **PENDING** | `crates/openfang-desktop/Cargo.toml`, `Cargo.toml` (workspace members), `crates/openfang-desktop/tauri.conf.json`, `crates/openfang-desktop/src/*.rs` |
+| `DEBT-01-B` | **Dọn `openfang` trong `crates/ochi-runtime/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-runtime/src/*.rs` (~255 lần) |
+| `DEBT-01-C` | **Dọn `openfang` trong `crates/ochi-kernel/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-kernel/src/*.rs` (~209 lần) |
+| `DEBT-01-D` | **Dọn `openfang` trong `crates/ochi-api/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-api/src/*.rs` và `crates/ochi-api/static/js/` (~196 lần Rust + JS) |
+| `DEBT-01-E` | **Dọn `openfang` trong `crates/ochi-channels/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-channels/src/*.rs` (~157 lần) |
+| `DEBT-01-F` | **Dọn `openfang` trong `crates/ochi-migrate/` và `crates/ochi-types-legacy/`** | ⏳ **PENDING** | `crates/ochi-migrate/src/*.rs`, `crates/ochi-types-legacy/src/*.rs` (~137 + ~127 lần) |
+| `DEBT-01-G` | **Dọn `openfang` trong `crates/ochi-memory/`, `ochi-skills/`, `ochi-extensions/`** | ⏳ **PENDING** | `crates/ochi-memory/src/*.rs`, `crates/ochi-skills/src/*.rs`, `crates/ochi-extensions/src/*.rs` |
+| `DEBT-01-H` | **Dọn `openfang` trong `crates/ochi-cli/`, `ochi-wire/`, `ochi-hands/`, `xtask/`** | ⏳ **PENDING** | `crates/ochi-cli/src/*.rs`, `crates/ochi-wire/src/*.rs`, `crates/ochi-hands/src/*.rs`, `xtask/src/*.rs` |
+| `DEBT-01-I` | **Dọn `openfang` trong tất cả `.toml` files** | ⏳ **PENDING** | `crates/*/Cargo.toml`, `crates/ochi-extensions/integrations/*.toml`, `crates/ochi-hands/bundled/*/HAND.toml` |
+| `DEBT-01-J` | **Dọn `openfang` trong SDK và packages** | ⏳ **PENDING** | `sdk/python/*.py`, `sdk/python/examples/*.py`, `sdk/javascript/index.js`, `packages/whatsapp-gateway/index.js` — **Lưu ý:** Giữ lại file `openfang_client.py` và `openfang_sdk.py` như alias backward-compat, chỉ cập nhật nội dung bên trong. |
+| `DEBT-01-K` | **Dọn `openfang` trong `.env.example` và `deploy/`** | ⏳ **PENDING** | `.env.example` (cập nhật tên biến `OPENFANG_*` → `OCHI_*` với chú thích backward-compat), `deploy/openfang.service` → `deploy/ochi.service` |
+
+#### Tiêu chí Hoàn thành DEBT-01
+
+Nhiệm vụ DEBT-01 được coi là **HOÀN TẤT** khi:
+- `grep -r "openfang\|OpenFang\|OPENFANG" --include="*.rs" . | wc -l` trả về `0`.
+- `grep -r "openfang\|OpenFang\|OPENFANG" --include="*.toml" . | wc -l` trả về `0` (ngoại trừ các comment backward-compat có ghi chú rõ ràng).
+- `cargo check --workspace` vẫn PASS sau tất cả thay đổi.
+- `cargo test -p ochi-kernel -p ochi-types` vẫn PASS.
+
+---
+
+### DEBT-02: Xử lý `unwrap()` và `expect()` An toàn
+
+> **Mục tiêu:** Thay thế các lệnh gọi `.unwrap()` và `.expect()` không an toàn bằng các cấu trúc xử lý lỗi phù hợp, ngăn ngừa `panic` trong production.
+>
+> **Nguyên tắc thay thế:**
+> - Trong **production code** (không phải test): dùng `?`, `if let`, `match`, hoặc `.unwrap_or_else(|e| { tracing::error!(...); default_value })`.
+> - Trong **test code** (`#[cfg(test)]`): `.unwrap()` và `.expect()` được chấp nhận.
+> - Trong **`main.rs` hoặc `bin` entry points**: `.expect("message rõ ràng")` được chấp nhận nếu là lỗi không thể phục hồi khi khởi động.
+> - Ưu tiên xử lý các crate **kernel** và **runtime** trước vì chúng là critical path.
+>
+> **Quy tắc phân công:** Mỗi AI builder nhận **một sub-task ID**. Kiểm tra bảng trước khi bắt đầu.
+
+#### Phân công Sub-tasks
+
+| Sub-task ID | Crate mục tiêu | Số lượng ước tính | Trạng thái | Ưu tiên |
+| :--- | :--- | :--- | :--- | :--- |
+| `DEBT-02-A` | **`crates/ochi-kernel/`** | ~209 `unwrap` + 29 `expect` | ⏳ **PENDING** | 🔴 Cao nhất |
+| `DEBT-02-B` | **`crates/ochi-runtime/`** (phần `agent_loop.rs`, `tool_runner.rs`, `compactor.rs`) | ~100 `unwrap` (3 files nặng nhất) | ⏳ **PENDING** | 🔴 Cao nhất |
+| `DEBT-02-C` | **`crates/ochi-runtime/`** (phần còn lại) | ~155 `unwrap` + 16 `expect` | ⏳ **PENDING** | 🟠 Cao |
+| `DEBT-02-D` | **`crates/ochi-api/`** | ~196 `unwrap` + 16 `expect` | ⏳ **PENDING** | 🟠 Cao |
+| `DEBT-02-E` | **`crates/ochi-channels/`** | ~157 `unwrap` + 3 `expect` | ⏳ **PENDING** | 🟡 Trung bình |
+| `DEBT-02-F` | **`crates/ochi-memory/`** | ~125 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
+| `DEBT-02-G` | **`crates/ochi-migrate/`** | ~137 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
+| `DEBT-02-H` | **`crates/ochi-types-legacy/`** | ~127 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
+| `DEBT-02-I` | **`crates/ochi-skills/`, `ochi-extensions/`, `ochi-hands/`** | ~84 + 76 + 41 `unwrap` | ⏳ **PENDING** | 🟢 Thấp |
+| `DEBT-02-J` | **`crates/ochi-cli/`, `ochi-wire/`, `openfang-desktop/`, `xtask/`** | ~51 + 42 + 7 `expect` | ⏳ **PENDING** | 🟢 Thấp |
+
+#### Quy trình Thực hiện cho mỗi Sub-task
+
+```bash
+# 1. Đếm số lượng trước khi bắt đầu (để ghi vào commit message)
+grep -rn "\.unwrap()\|\.expect(" crates/<tên-crate>/src/ --include="*.rs" | grep -v "#\[cfg(test)\]" | wc -l
+
+# 2. Thực hiện thay thế từng file, ưu tiên các file có nhiều lần nhất
+# Ví dụ thay thế an toàn:
+#   TRƯỚC: let val = some_option.unwrap();
+#   SAU:   let val = some_option.ok_or(MyError::Missing)?;
+#   HOẶC:  let Some(val) = some_option else { return Err(MyError::Missing); };
+
+# 3. Kiểm tra sau mỗi file
+cargo check -p <tên-crate>
+
+# 4. Chạy test trước khi commit
+cargo test -p <tên-crate>
+```
+
+#### Tiêu chí Hoàn thành DEBT-02
+
+Nhiệm vụ DEBT-02 được coi là **HOÀN TẤT** khi:
+- `grep -rn "\.unwrap()" crates/ --include="*.rs" | grep -v "#\[cfg(test)\]\|//.*unwrap\|test_"` trả về số lượng giảm ít nhất **80%** so với ban đầu (~1,500 → dưới 300).
+- `cargo clippy --workspace -- -W clippy::unwrap_used 2>&1 | grep "unwrap_used" | wc -l` giảm đáng kể.
+- `cargo test --workspace` vẫn PASS.
+- Không có `panic` nào được ghi nhận trong integration test.
+
+---
+
+> **Lưu ý cho AI Builder:** Sau khi hoàn thành bất kỳ sub-task nào, hãy cập nhật trạng thái trong bảng tương ứng từ `⏳ PENDING` thành `✅ Hoàn tất` và ghi rõ commit hash. Đây là bắt buộc theo **Mục 6.2**.
