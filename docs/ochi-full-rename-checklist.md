@@ -53,7 +53,7 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 
 - [x] **B0 đã khởi động**: chạy baseline và ghi nhận rào cản môi trường cho workspace đầy đủ.
 - [x] **B1 đã bắt đầu (bước tương thích)**: thêm crate chuyển tiếp `ochi-types` re-export từ `ochi-types`.
-- [ ] B1 chưa đổi thư mục/package gốc `ochi-types` (giữ an toàn để migrate dần dependency graph).
+- [x] B1 đã đổi thư mục/package gốc `openfang-types` sang `ochi-types` và chuyển `openfang-types` thành compat re-export crate.
 - [x] **B2 đã bắt đầu (leaf extensions)**: migrate dependency `ochi-channels` và `ochi-skills` sang `ochi-types` qua alias.
 
 **Kết quả baseline B0 (batch log ngắn):**
@@ -64,9 +64,9 @@ Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi
 > Ghi chú triển khai: để tiếp tục đúng nhịp bảng B1, nên tách lane CI không bao gồm desktop GUI (hoặc provision `glib-2.0` đầy đủ) nhằm giữ vòng phản hồi nhanh cho rename crate thuần Rust.
 
 **Tiến độ B1 (incremental cutover):**
-- Đã thêm crate `crates/ochi-types` với `pub use openfang_types::*;`.
-- Đã đưa `crates/ochi-types` vào `workspace.members` và `workspace.default-members`.
-- Kiểm tra nhanh: `cargo check -p ochi-types` pass.
+- Đã cutover crate gốc sang `crates/ochi-types` (package `ochi-types`) và giữ `crates/ochi-types-legacy` làm compat package `openfang-types` re-export từ `ochi_types::*`.
+- Đã giữ cả hai crate trong `workspace.members`/`workspace.default-members` để đảm bảo migration không phá build.
+- Kiểm tra nhanh: `cargo check -p ochi-types` và `cargo check -p openfang-types` pass.
 - Đã migrate dependency của `openfang-wire` từ `ochi-types` sang `ochi-types` (bước 1 trong leaf-models).
 - Kiểm tra nhanh: `cargo check -p ochi-wire` pass sau migration dependency.
 - Đã migrate dependency của `openfang-memory` sang compat crate `ochi-types` (giữ import path `openfang_types` qua dependency alias).
