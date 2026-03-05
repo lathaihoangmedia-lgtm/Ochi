@@ -15,8 +15,6 @@ TimeoutStopSec=30
 
 # Environment
 EnvironmentFile=-/etc/ochi/env
-# Legacy path still supported during migration window (deprecated, remove in v1.0)
-EnvironmentFile=-/etc/openfang/env
 WorkingDirectory=/var/lib/ochi
 
 # Security hardening

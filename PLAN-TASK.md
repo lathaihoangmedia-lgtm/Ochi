@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 05-03-2026
-> **Commit mới nhất:** `be29c92` (Merge PR #44: Update UI to premium theme and revert default model to Gemma 2-9B)
+> **Commit mới nhất:** `63d0085` (docs(plan): update latest commit metadata)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -185,7 +185,7 @@ Các mục trong section này là **nợ kỹ thuật ưu tiên cao** được x
 | `DEBT-01-H` | **Dọn `openfang` trong `crates/ochi-cli/`, `ochi-wire/`, `ochi-hands/`, `xtask/`** | ⏳ **PENDING** | `crates/ochi-cli/src/*.rs`, `crates/ochi-wire/src/*.rs`, `crates/ochi-hands/src/*.rs`, `xtask/src/*.rs` |
 | `DEBT-01-I` | **Dọn `openfang` trong tất cả `.toml` files** | ⏳ **PENDING** | `crates/*/Cargo.toml`, `crates/ochi-extensions/integrations/*.toml`, `crates/ochi-hands/bundled/*/HAND.toml` |
 | `DEBT-01-J` | **Dọn `openfang` trong SDK và packages** | ⏳ **PENDING** | `sdk/python/*.py`, `sdk/python/examples/*.py`, `sdk/javascript/index.js`, `packages/whatsapp-gateway/index.js` — **Lưu ý:** Giữ lại file `openfang_client.py` và `openfang_sdk.py` như alias backward-compat, chỉ cập nhật nội dung bên trong. |
-| `DEBT-01-K` | **Dọn `openfang` trong `.env.example` và `deploy/`** | ⏳ **PENDING** | `.env.example` (cập nhật tên biến `OPENFANG_*` → `OCHI_*` với chú thích backward-compat), `deploy/openfang.service` → `deploy/ochi.service` |
+| `DEBT-01-K` | **Dọn `openfang` trong `.env.example` và `deploy/`** | ✅ **Hoàn tất** (`c0b7f69`) | `.env.example` (cập nhật tên biến `OPENFANG_*` → `OCHI_*` với chú thích backward-compat), `deploy/openfang.service` → `deploy/ochi.service` |
 
 #### Tiêu chí Hoàn thành DEBT-01
 
