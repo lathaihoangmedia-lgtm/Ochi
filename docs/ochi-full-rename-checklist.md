@@ -1,4 +1,6 @@
-# Checklist rename “Ochi toàn bộ” (an toàn + tương thích ngược)
+> **Lưu ý:** Nội dung trong tài liệu này đã được tổng hợp và chuyển vào file `PLAN-TASK.md` chính. Vui lòng tham khảo `PLAN-TASK.md` để có thông tin cập nhật và đầy đủ nhất.
+
+# Checklist rename “Ochi toàn bộ” (an toàn + tương thích ngược) (đã lỗi thời)
 
 Mục tiêu: chuyển brand/kỹ thuật sang Ochi theo lộ trình giảm rủi ro, không làm gãy runtime hiện tại.
 

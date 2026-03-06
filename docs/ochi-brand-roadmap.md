@@ -1,4 +1,6 @@
-# Ochi Brand nhất quán — Kế hoạch triển khai kỹ thuật
+> **Lưu ý:** Nội dung trong tài liệu này đã được tổng hợp và chuyển vào file `PLAN-TASK.md` chính. Vui lòng tham khảo `PLAN-TASK.md` để có thông tin cập nhật và đầy đủ nhất.
+
+# Ochi Brand nhất quán — Kế hoạch triển khai kỹ thuật (đã lỗi thời)
 
 Tài liệu này chốt lại quyết định **dùng Ochi làm brand nhất quán** cho toàn bộ hoạt động phát triển trong repository này, đồng thời tách rõ các phần legacy chưa đổi tên kỹ thuật.
 

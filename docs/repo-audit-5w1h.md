@@ -1,4 +1,6 @@
-# Rà soát repo Ochi theo chuẩn 5W-1H và Tam đoạn luận
+> **Lưu ý:** Nội dung trong tài liệu này đã được tổng hợp và chuyển vào file `PLAN-TASK.md` chính. Vui lòng tham khảo `PLAN-TASK.md` để có thông tin cập nhật và đầy đủ nhất.
+
+# Rà soát repo Ochi theo chuẩn 5W-1H và Tam đoạn luận (đã lỗi thời)
 
 ## 1) Mục tiêu & phương pháp
 

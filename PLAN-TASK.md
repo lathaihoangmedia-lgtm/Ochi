@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
-> **Cập nhật lần cuối:** 05-03-2026
-> **Commit mới nhất:** `e01f574` (merge PR #46: continue previous work)
+> **Cập nhật lần cuối:** 06-03-2026
+> **Commit mới nhất:** `55d5f48` (tổng hợp và chuẩn hóa các kế hoạch lẻ)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -187,6 +187,13 @@ Các mục trong section này là **nợ kỹ thuật ưu tiên cao** được x
 | `DEBT-01-J` | **Dọn `openfang` trong SDK và packages** | ⏳ **PENDING** | `sdk/python/*.py`, `sdk/python/examples/*.py`, `sdk/javascript/index.js`, `packages/whatsapp-gateway/index.js` — **Lưu ý:** Giữ lại file `openfang_client.py` và `openfang_sdk.py` như alias backward-compat, chỉ cập nhật nội dung bên trong. |
 | `DEBT-01-K` | **Dọn `openfang` trong `.env.example` và `deploy/`** | ✅ **Hoàn tất** (`c0b7f69`) | `.env.example` (cập nhật tên biến `OPENFANG_*` → `OCHI_*` với chú thích backward-compat), `deploy/openfang.service` → `deploy/ochi.service` |
 
+| `DEBT-01-L` | **Chạy full test matrix sau mỗi batch rename** | ⏳ **PENDING** | `cargo test --workspace --all-targets` |
+| `DEBT-01-M` | **Cập nhật docs publish/migration cho SDK** | ⏳ **PENDING** | `docs/sdk-migration.md` |
+| `DEBT-01-N` | **Thêm Telemetry/log warning cho đường dẫn legacy** | ⏳ **PENDING** | Kernel/CLI |
+| `DEBT-01-O` | **Chốt ngày dừng hỗ trợ alias `openfang`** | ⚪️ **Chưa bắt đầu** | Roadmap & Release Plan |
+| `DEBT-01-P` | **Xóa shim/bí danh legacy** | ⚪️ **Chưa bắt đầu** | Toàn bộ codebase |
+| `DEBT-01-Q` | **Hoàn thiện release note & migration guide** | ⚪️ **Chưa bắt đầu** | `CHANGELOG.md`, `docs/sdk-migration.md` |
+
 #### Tiêu chí Hoàn thành DEBT-01
 
 Nhiệm vụ DEBT-01 được coi là **HOÀN TẤT** khi:
@@ -254,3 +261,25 @@ Nhiệm vụ DEBT-02 được coi là **HOÀN TẤT** khi:
 ---
 
 > **Lưu ý cho AI Builder:** Sau khi hoàn thành bất kỳ sub-task nào, hãy cập nhật trạng thái trong bảng tương ứng từ `⏳ PENDING` thành `✅ Hoàn tất` và ghi rõ commit hash. Đây là bắt buộc theo **Mục 6.2**.
+
+---
+
+## 10. Cải tiến Quy trình & Nợ Kỹ thuật Tồn đọng
+
+Phần này tổng hợp các nhiệm vụ cải tiến quy trình và xử lý nợ kỹ thuật được rút ra từ các cuộc đánh giá (`repo-audit-5w1h.md`) và báo cáo chuyên sâu. Các nhiệm vụ này cần được ưu tiên để nâng cao chất lượng và độ ổn định của dự án.
+
+| Task ID | Nhiệm vụ | Trạng thái | Chi tiết | Files liên quan |
+| :--- | :--- | :--- | :--- | :--- |
+| `IMPROVE-01` | **Nâng cấp CI/CD Quality Gates** | ⏳ **PENDING** | Mở rộng workflow `.github/workflows/rust.yml` để chạy `cargo test --workspace` và `cargo clippy --workspace -- -D warnings` trên mỗi PR. | `.github/workflows/rust.yml` |
+| `IMPROVE-02` | **Dọn dẹp Cảnh báo (`warnings`)** | ⏳ **PENDING** | Xử lý các cảnh báo `unused variable` và các cảnh báo khác trong `ochi-cli` và các crate khác để log CI/CD được sạch sẽ. | `crates/ochi-cli/` |
+
+---
+
+## 11. Roadmap Tương lai
+
+Phần này ghi nhận các định hướng và ý tưởng phát triển trong dài hạn, được thu thập từ các tài liệu định hướng chiến lược.
+
+| Task ID | Nhiệm vụ | Trạng thái | Chi tiết | Nguồn |
+| :--- | :--- | :--- | :--- | :--- |
+| `FUTURE-01` | **Tích hợp Hyperledger Fabric** | ⚪️ **Chưa bắt đầu** | Tích hợp blockchain Hyperledger Fabric để cung cấp các tính năng audit trail, provenance, và notarization. | `docs/hyperledger-fabric-policy.md` |
+| `FUTURE-02` | **Mở rộng hỗ trợ Wit.ai** | ⚪️ **Chưa bắt đầu** | Hỗ trợ các endpoint `POST /speech`, `POST /dictation`, và `POST /synthesize` của Wit.ai để tăng cường khả năng xử lý âm thanh. | `docs/integrations/wit-ai-integration-notes.md` |
