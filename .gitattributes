@@ -1,0 +1,36 @@
+# =============================================================
+# Ochi — .gitattributes
+# =============================================================
+
+# ── Đảm bảo line endings nhất quán trên mọi hệ điều hành ────
+* text=auto
+
+# ── Rust source files: luôn dùng LF ─────────────────────────
+*.rs    text eol=lf
+*.toml  text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.sh    text eol=lf
+
+# ── Windows scripts: dùng CRLF ───────────────────────────────
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# ── Binary files: không xử lý line ending hay diff ───────────
+# Các file binary lớn nên được lưu trữ bằng Git LFS.
+# Kích hoạt: git lfs install && git lfs track "*.png"
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.wasm  binary
+*.zip   binary
+*.exe   binary
+*.dll   binary
+*.so    binary
+*.dylib binary

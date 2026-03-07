@@ -1,6 +1,6 @@
 //! Kernel lifecycle management for the desktop app.
 //!
-//! Boots the OpenFang kernel, binds to a random localhost port, and runs the
+//! Boots the Ochi kernel, binds to a random localhost port, and runs the
 //! API server on a background thread with its own tokio runtime.
 
 use ochi_api::server::build_router;
@@ -30,7 +30,7 @@ impl ServerHandle {
             let _ = handle.join();
         }
         self.kernel.shutdown();
-        info!("OpenFang embedded server stopped");
+        info!("Ochi embedded server stopped");
     }
 }
 
@@ -57,13 +57,13 @@ pub fn start_server() -> Result<ServerHandle, Box<dyn std::error::Error>> {
     let port = std_listener.local_addr()?.port();
     let listen_addr: SocketAddr = std_listener.local_addr()?;
 
-    info!("OpenFang embedded server bound to http://127.0.0.1:{port}");
+    info!("Ochi embedded server bound to http://127.0.0.1:{port}");
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
     let kernel_clone = kernel.clone();
 
     let server_thread = std::thread::Builder::new()
-        .name("openfang-server".into())
+        .name("ochi-server".into())
         .spawn(move || {
             let rt = tokio::runtime::Builder::new_multi_thread()
                 .enable_all()
@@ -103,7 +103,7 @@ async fn run_embedded_server(
     let listener = tokio::net::TcpListener::from_std(std_listener)
         .expect("Failed to convert std TcpListener to tokio");
 
-    info!("OpenFang embedded server listening on http://{listen_addr}");
+    info!("Ochi embedded server listening on http://{listen_addr}");
 
     let server = axum::serve(
         listener,

@@ -76,3 +76,22 @@ desktop.ini
 # ── Logs ─────────────────────────────────────────────────────
 *.log
 logs/
+
+# ── Tài nguyên lớn / media (dùng Git LFS nếu cần) ─────────────
+# Các file ảnh lớn không nên commit trực tiếp vào repo.
+# Dùng Git LFS hoặc lưu trữ ngoài (CDN, object storage).
+public/assets/*.png
+public/assets/*.jpg
+public/assets/*.jpeg
+public/assets/*.gif
+public/assets/*.webp
+public/assets/*.svg
+
+# ── Tauri: file sinh tự động khi build (KHÔNG commit) ─────────
+# Các file này được tạo bởi `tauri build` / `tauri dev`.
+# Chúng sẽ được tự động tái tạo — không cần theo dõi bằng Git.
+crates/ochi-desktop/gen/
+crates/openfang-desktop/gen/
+
+# ── Cargo: profile-specific override files ────────────────────
+.cargo/credentials.toml
