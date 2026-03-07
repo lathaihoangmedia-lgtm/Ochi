@@ -101,6 +101,14 @@ const PROVIDERS: &[ProviderInfo] = &[
         hint: "",
     },
     ProviderInfo {
+        name: "cerebras",
+        display: "Cerebras",
+        env_var: "CEREBRAS_API_KEY",
+        default_model: "llama-3.3-70b",
+        needs_key: true,
+        hint: "ultra-fast",
+    },
+    ProviderInfo {
         name: "ollama",
         display: "Ollama",
         env_var: "OLLAMA_API_KEY",
@@ -993,6 +1001,15 @@ api_listen = "127.0.0.1:4200"
 provider = "{provider}"
 model = "{model}"
 api_key_env = "{env_var}"
+
+# ── Fallback providers ─────────────────────────────────────────────────────
+# Ochi tries these in order if the primary provider fails.
+# Set CEREBRAS_API_KEY to enable the Cerebras backup (ultra-fast, cheap).
+#
+# [[fallback_providers]]
+# provider = "cerebras"
+# model = "llama-3.3-70b"
+# api_key_env = "CEREBRAS_API_KEY"
 
 [memory]
 decay_rate = 0.05
