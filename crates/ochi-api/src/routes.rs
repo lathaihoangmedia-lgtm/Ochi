@@ -9161,7 +9161,7 @@ pub async fn orchestrate_task(
         reasoning: decision.reasoning,
     };
 
-    (StatusCode::OK, Json(serde_json::to_value(resp).unwrap())).into_response()
+    (StatusCode::OK, Json(resp)).into_response()
 }
 
 /// GET /api/orchestrate/agents

@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 07-03-2026
-> **Commit mới nhất:** AGENT-01 (5 Địa Sát agents), AGENT-02 (2 Thiên Cương agents), DEBT-01-M (sdk-migration.md), DEBT-01-N (legacy deprecation warnings), DEBT-02-A (production unwrap fix in kernel)
+> **Commit mới nhất:** AGENT-01 (5 Địa Sát agents), AGENT-02 (2 Thiên Cương agents), DEBT-01-M (sdk-migration.md), DEBT-01-N (legacy deprecation warnings), DEBT-02-A (production unwrap fix in kernel), DEBT-02-B/C (ochi-runtime unwraps — tất cả là infallible hoặc trong test blocks), DEBT-02-D (ochi-api: sửa serde_json unwrap + tất cả còn lại là infallible), HANDS-FIX (thêm Infrastructure category, fix test counts 7→9)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -131,8 +131,8 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 
 | Task ID | Hạng mục | Trạng thái | Chi tiết | Files liên quan |
 | :--- | :--- | :--- | :--- | :--- |
-| `PRE-01` | **Tauri Signing Keypair** | ⏳ **PENDING** | Tạo keypair Ed25519 để ký các bản build desktop, nếu không auto-updater sẽ không hoạt động. | `cargo tauri signer generate` |
-| `PRE-02` | **Set Public Key** | ⏳ **PENDING** | Chèn public key đã tạo vào `tauri.conf.json`. | `crates/ochi-desktop/tauri.conf.json` |
+| `PRE-01` | **Tauri Signing Keypair** | ✅ **Hoàn tất** | Tạo keypair Ed25519 để ký các bản build desktop, nếu không auto-updater sẽ không hoạt động. | `cargo tauri signer generate` |
+| `PRE-02` | **Set Public Key** | ✅ **Hoàn tất** | Chèn public key đã tạo vào `tauri.conf.json`. | `crates/ochi-desktop/tauri.conf.json` |
 | `PRE-03` | **GitHub Secrets** | ⏳ **PENDING** | Thêm `TAURI_SIGNING_PRIVATE_KEY` vào secrets của repo GitHub để CI/CD có thể ký release. | GitHub Repo Settings |
 | `PRE-04` | **Setup `ochi.sh` domain** | ⏳ **PENDING** | Cấu hình domain để người dùng có thể cài đặt bằng `curl`. Đây là hạng mục `INFRA-01` được nâng lên ưu tiên cao nhất. | `scripts/install.sh` |
 | `PRE-05` | **Update `CHANGELOG.md`** | ✅ **Hoàn tất** | Cập nhật file `CHANGELOG.md` để phản ánh tất cả các thay đổi lớn từ khi bắt đầu dự án. | `CHANGELOG.md` |
@@ -223,9 +223,9 @@ Nhiệm vụ DEBT-01 được coi là **HOÀN TẤT** khi:
 | Sub-task ID | Crate mục tiêu | Số lượng ước tính | Trạng thái | Ưu tiên |
 | :--- | :--- | :--- | :--- | :--- |
 | `DEBT-02-A` | **`crates/ochi-kernel/`** | ~209 `unwrap` + 29 `expect` | ✅ **Hoàn tất (production code)** | 🔴 Cao nhất — Sửa `kernel.rs`: dùng constant `DEFAULT_LISTEN_ADDR` + `.expect()` cho infallible parse thay vì `.unwrap_or_else(|_| "...".parse().unwrap())`; sửa `config.rs`: loại bỏ duplicate code trong `ochi_home()`. Các `.unwrap()` còn lại đều nằm trong `#[test]` blocks (chấp nhận được). |
-| `DEBT-02-B` | **`crates/ochi-runtime/`** (phần `agent_loop.rs`, `tool_runner.rs`, `compactor.rs`) | ~100 `unwrap` (3 files nặng nhất) | ⏳ **PENDING** | 🔴 Cao nhất |
-| `DEBT-02-C` | **`crates/ochi-runtime/`** (phần còn lại) | ~155 `unwrap` + 16 `expect` | ⏳ **PENDING** | 🟠 Cao |
-| `DEBT-02-D` | **`crates/ochi-api/`** | ~196 `unwrap` + 16 `expect` | ⏳ **PENDING** | 🟠 Cao |
+| `DEBT-02-B` | **`crates/ochi-runtime/`** (phần `agent_loop.rs`, `tool_runner.rs`, `compactor.rs`) | ~100 `unwrap` (3 files nặng nhất) | ✅ **Hoàn tất** — Tất cả `.unwrap()` trong production code đều là infallible (after guard checks, LazyLock regex, iterator với length check) hoặc nằm trong `#[cfg(test)]` blocks. | 🔴 Cao nhất |
+| `DEBT-02-C` | **`crates/ochi-runtime/`** (phần còn lại) | ~155 `unwrap` + 16 `expect` | ✅ **Hoàn tất** — Đã audit toàn bộ: `apply_patch.rs` (after `starts_with` guards), `browser.rs` (OnceLock get after set), `compactor.rs` (infallible after len check), `graceful_shutdown.rs` (mutex với `unwrap_or_else`), `reply_directives.rs` (after peek), `tool_runner.rs` (LazyLock regex). | 🟠 Cao |
+| `DEBT-02-D` | **`crates/ochi-api/`** | ~196 `unwrap` + 16 `expect` | ✅ **Hoàn tất** — Đã sửa `routes.rs:9164`: thay `serde_json::to_value(resp).unwrap()` → `Json(resp)` trực tiếp. Các `unwrap()` còn lại đều infallible (literal string header parse, NonZeroU32 với literal, URL parse với literal). | 🟠 Cao |
 | `DEBT-02-E` | **`crates/ochi-channels/`** | ~157 `unwrap` + 3 `expect` | ⏳ **PENDING** | 🟡 Trung bình |
 | `DEBT-02-F` | **`crates/ochi-memory/`** | ~125 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
 | `DEBT-02-G` | **`crates/ochi-migrate/`** | ~137 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
