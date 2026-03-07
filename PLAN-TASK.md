@@ -1,8 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 07-03-2026
-> **Cập nhật lần cuối:** 07-03-2026
-> **Commit mới nhất:** AGENT-03 (5 Địa Sát: DS-WitAI-Integrator, DS-ZaloAI-Integrator, DS-Image-Processor, DS-aaPanel-Controller, DS-SQL-Expert), AGENT-04 (2 Thiên Cương: TC-Architect, TC-Strategy-Planner), DEBT-02-E (ochi-channels: 7 infallible unwrap → .expect()), DEBT-02-F (ochi-memory: audit hoàn tất — tất cả unwrap trong test), DEBT-02-G (ochi-migrate: audit hoàn tất — tất cả unwrap trong test), DEBT-02-H (ochi-types-legacy: 0 unwrap), DEBT-02-I (ochi-skills: marketplace đã có .expect(); ochi-extensions: vault.rs sửa .expect(); ochi-hands: 0 unwrap), DEBT-02-J (ochi-wire: peer.rs .expect(); ochi-cli: fix fs::write/create_dir_all + .expect() cho infallible)
+> **Commit mới nhất:** DEBT-01-O/P/Q (Xóa hoàn toàn backward-compat OpenFang: config.rs OPENFANG_HOME + ~/.openfang removed, ochi-types-legacy crate removed, install.sh/ps1 openfang shims removed, openfang_client.py/openfang_sdk.py removed, SKILL.md author updated, sdk-migration.md rewritten, MIGRATION.md OFP note updated)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -22,8 +21,8 @@
 | **Phase 3: Đổi tên** | ✅ **Hoàn tất** | Đổi tên thương hiệu toàn diện từ **OpenFang → Ochi** trên 13 crates, CI/CD, Docker, Scripts, Web UI, Docs, và SDK. |
 | **Phase 6: Orchestration** | ✅ **Hoàn tất** | Triển khai logic điều phối 9 Đại Tác Tử vào `ochi-kernel`, tích hợp vào API với endpoint `/api/orchestrate`. 20/20 unit tests PASS. |
 | **Launch Roadmap** | ⏳ **Đang tiến hành** | Hoàn thành 17/18 hạng mục trong 4 sprints. Chỉ còn **2.4 Install script domain** (hạ tầng) là PENDING. |
-| **Workspace** | Ổn định | 14 crates `ochi-*` đã được đổi tên và build thành công (bao gồm `ochi-desktop`). |
-| **DEBT-01: Đổi tên triệt để** | ✅ **Hoàn tất** | Đã xóa hoàn toàn mọi tham chiếu `openfang`/`OpenFang`/`OPENFANG` trong toàn bộ codebase (`.rs`, `.toml`, `.js`, `.py`). Chỉ còn `ochi-types-legacy/Cargo.toml` giữ `name = "openfang-types"` làm backward-compat shim. `cargo check --workspace --lib` PASS. |
+| **Workspace** | Ổn định | 13 crates `ochi-*` đã được đổi tên và build thành công (bao gồm `ochi-desktop`). Crate `ochi-types-legacy` đã bị xóa. |
+| **DEBT-01: Đổi tên triệt để** | ✅ **Hoàn tất** | Đã xóa **toàn bộ** mọi tham chiếu và backward-compat shim `openfang`/`OpenFang`/`OPENFANG` trong toàn bộ codebase (`.rs`, `.toml`, `.py`, `.sh`, `.ps1`). `cargo check --workspace --lib` PASS. |
 | **DEBT-02: Xử lý `unwrap()`/`expect()`** | ✅ **Hoàn tất** | Toàn bộ production unwrap đã được audit và fix/document qua DEBT-02-E đến DEBT-02-J. |
 | **IMPROVE-01: CI/CD Quality Gates** | ✅ **Hoàn tất** | Nâng cấp workflow CI để chạy `cargo check --workspace`, `cargo test --workspace`, và `cargo clippy --workspace -- -D warnings` trên mỗi PR. |
 | **IMPROVE-03: Giảm kích thước Repo** | ✅ **Hoàn tất** | Xóa ~4.1MB ảnh logo cũ (`openfang-*`), gỡ schema Tauri tự sinh, cập nhật `.gitignore` + thêm `.gitattributes`. |
@@ -194,10 +193,10 @@ Các mục trong section này là **nợ kỹ thuật ưu tiên cao** được x
 
 | `DEBT-01-L` | **Chạy full test matrix sau mỗi batch rename** | ✅ **Hoàn tất** | `cargo check --workspace --lib` PASS; `cargo test -p ochi-kernel -p ochi-types` → 273 tests PASS. |
 | `DEBT-01-M` | **Cập nhật docs publish/migration cho SDK** | ✅ **Hoàn tất** | `docs/sdk-migration.md` — Viết lại hoàn toàn: bảng thay đổi, hướng dẫn migration JS/Python/envvars/service, lịch trình deprecation, checklist migration. |
-| `DEBT-01-N` | **Thêm Telemetry/log warning cho đường dẫn legacy** | ✅ **Hoàn tất** | `crates/ochi-kernel/src/config.rs` — `ochi_home()` đã thêm `tracing::warn!` cho `OPENFANG_HOME` env var và `~/.openfang` fallback directory; đồng thời sửa duplicate code. |
-| `DEBT-01-O` | **Chốt ngày dừng hỗ trợ alias `openfang`** | ⚪️ **Chưa bắt đầu** | Roadmap & Release Plan |
-| `DEBT-01-P` | **Xóa shim/bí danh legacy** | ⚪️ **Chưa bắt đầu** | Toàn bộ codebase |
-| `DEBT-01-Q` | **Hoàn thiện release note & migration guide** | ⚪️ **Chưa bắt đầu** | `CHANGELOG.md`, `docs/sdk-migration.md` |
+| `DEBT-01-N` | **Thêm Telemetry/log warning cho đường dẫn legacy** | ✅ **Hoàn tất/Xóa** | Warning telemetry đã được thêm trước đây. Kể từ DEBT-01-P, toàn bộ code legacy path đã bị xóa khỏi `config.rs` nên warning không còn cần thiết. |
+| `DEBT-01-O` | **Chốt ngày dừng hỗ trợ alias `openfang`** | ✅ **Hoàn tất** | Không có giai đoạn deprecated — đã xóa trực tiếp trong v0.1.0 để release sạch. |
+| `DEBT-01-P` | **Xóa shim/bí danh legacy** | ✅ **Hoàn tất** | Đã xóa: `OPENFANG_HOME`/`~/.openfang` trong `config.rs`, crate `ochi-types-legacy`, `openfang_client.py`, `openfang_sdk.py`, shims trong `install.sh`/`install.ps1`, tác giả `OpenFang` trong `SKILL.md`. |
+| `DEBT-01-Q` | **Hoàn thiện release note & migration guide** | ✅ **Hoàn tất** | `docs/sdk-migration.md` viết lại: chỉ tóm tắt thay đổi và hướng dẫn migrate thư mục. Không còn deprecation schedule vì đã xóa hoàn toàn. |
 
 #### Tiêu chí Hoàn thành DEBT-01
 

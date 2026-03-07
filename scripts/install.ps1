@@ -3,10 +3,8 @@
  iex"| iex"
 #
 # Flags (via environment variables):
-#   $env:OCHI_INSTALL_DIR      = custom install directory
-#   $env:OPENFANG_INSTALL_DIR  = legacy custom install directory
-#   $env:OCHI_VERSION          = specific version tag (e.g. "v0.1.0")
-#   $env:OPENFANG_VERSION      = legacy version override
+#   $env:OCHI_INSTALL_DIR  = custom install directory
+#   $env:OCHI_VERSION      = specific version tag (e.g. "v0.1.0")
 
 $ErrorActionPreference = 'Stop'
 
@@ -14,8 +12,6 @@ $Repo = "lathaihoangmedia-lgtm/Ochi"
 $DefaultInstallDir = Join-Path $env:USERPROFILE ".ochi\bin"
 $InstallDir = if ($env:OCHI_INSTALL_DIR) {
     $env:OCHI_INSTALL_DIR
-} elseif ($env:OPENFANG_INSTALL_DIR) {
-    $env:OPENFANG_INSTALL_DIR
 } else {
     $DefaultInstallDir
 }
@@ -62,7 +58,6 @@ function Get-Architecture {
 
 function Get-LatestVersion {
     if ($env:OCHI_VERSION) { return $env:OCHI_VERSION }
-    if ($env:OPENFANG_VERSION) { return $env:OPENFANG_VERSION }
 
     Write-Host "  Fetching latest release..."
     try {
@@ -136,39 +131,20 @@ function Install-Ochi {
     Expand-Archive -Path $archivePath -DestinationPath $tempDir -Force
 
     $ochiExe = Join-Path $tempDir "ochi.exe"
-    $openfangExe = Join-Path $tempDir "openfang.exe"
 
     if (-not (Test-Path $ochiExe)) {
         $foundOchi = Get-ChildItem -Path $tempDir -Filter "ochi.exe" -Recurse | Select-Object -First 1
         if ($foundOchi) { $ochiExe = $foundOchi.FullName }
     }
-    if (-not (Test-Path $openfangExe)) {
-        $foundOpenfang = Get-ChildItem -Path $tempDir -Filter "openfang.exe" -Recurse | Select-Object -First 1
-        if ($foundOpenfang) { $openfangExe = $foundOpenfang.FullName }
-    }
 
-    if (-not (Test-Path $ochiExe) -and -not (Test-Path $openfangExe)) {
-        Write-Host "  Could not find ochi.exe/openfang.exe in archive." -ForegroundColor Red
+    if (-not (Test-Path $ochiExe)) {
+        Write-Host "  Could not find ochi.exe in archive." -ForegroundColor Red
         Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
         exit 1
     }
 
-    if (Test-Path $ochiExe) {
-        Copy-Item -Path $ochiExe -Destination (Join-Path $InstallDir "ochi.exe") -Force
-    }
-    if (Test-Path $openfangExe) {
-        Copy-Item -Path $openfangExe -Destination (Join-Path $InstallDir "openfang.exe") -Force
-    }
-
-    # Compatibility shim: if only one binary exists, duplicate to the other name
     $installedOchi = Join-Path $InstallDir "ochi.exe"
-    $installedOpenfang = Join-Path $InstallDir "openfang.exe"
-    if (-not (Test-Path $installedOchi) -and (Test-Path $installedOpenfang)) {
-        Copy-Item -Path $installedOpenfang -Destination $installedOchi -Force
-    }
-    if (-not (Test-Path $installedOpenfang) -and (Test-Path $installedOchi)) {
-        Copy-Item -Path $installedOchi -Destination $installedOpenfang -Force
-    }
+    Copy-Item -Path $ochiExe -Destination $installedOchi -Force
 
     Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
 
@@ -194,9 +170,6 @@ function Install-Ochi {
     Write-Host ""
     Write-Host "  Get started:" -ForegroundColor Cyan
     Write-Host "    ochi init"
-    Write-Host ""
-    Write-Host "  Compatibility alias remains available:"
-    Write-Host "    openfang init"
     Write-Host ""
 }
 

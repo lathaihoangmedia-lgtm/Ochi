@@ -11,7 +11,7 @@ mod tray;
 mod updater;
 
 use ochi_kernel::OchiKernel;
-use ochi_types_legacy::event::{EventPayload, LifecycleEvent, SystemEvent};
+use ochi_types::event::{EventPayload, LifecycleEvent, SystemEvent};
 use std::sync::Arc;
 use std::time::Instant;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};

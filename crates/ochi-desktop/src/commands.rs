@@ -59,7 +59,7 @@ pub fn import_agent_toml(
     let content = std::fs::read_to_string(file_path.as_path().ok_or("Invalid file path")?)
         .map_err(|e| format!("Failed to read file: {e}"))?;
 
-    let manifest: ochi_types_legacy::agent::AgentManifest =
+    let manifest: ochi_types::agent::AgentManifest =
         toml::from_str(&content).map_err(|e| format!("Invalid agent manifest: {e}"))?;
 
     let agent_name = manifest.name.clone();
