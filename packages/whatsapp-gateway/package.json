@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "description": "WhatsApp Web gateway for Ochi \u2014 QR code login, bidirectional messaging via Baileys",
   "bin": {
-    "ochi-whatsapp-gateway": "./index.js",
-    "openfang-whatsapp-gateway": "./index.js"
+    "ochi-whatsapp-gateway": "./index.js"
   },
   "type": "commonjs",
   "main": "index.js",

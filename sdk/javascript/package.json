@@ -4,7 +4,7 @@
   "description": "Official JavaScript/TypeScript client for the Ochi Agent OS REST API",
   "main": "index.js",
   "types": "index.d.ts",
-  "keywords": ["ochi", "openfang", "agent", "ai", "llm", "sdk"],
+  "keywords": ["ochi", "agent", "ai", "llm", "sdk"],
   "license": "MIT",
   "repository": {
     "type": "git",
