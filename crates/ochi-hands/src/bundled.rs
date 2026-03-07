@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn bundled_hands_count() {
         let hands = bundled_hands();
-        assert_eq!(hands.len(), 7);
+        assert_eq!(hands.len(), 9);
     }
 
     #[test]
