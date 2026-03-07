@@ -691,7 +691,7 @@ mod tests {
 
     #[test]
     fn test_estimate_cost_cerebras() {
-        let cost = MeteringEngine::estimate_cost("cerebras/llama3.3-70b", 1_000_000, 1_000_000);
+        let cost = MeteringEngine::estimate_cost("cerebras/llama-3.3-70b", 1_000_000, 1_000_000);
         assert!((cost - 0.12).abs() < 0.01); // $0.06 + $0.06
     }
 

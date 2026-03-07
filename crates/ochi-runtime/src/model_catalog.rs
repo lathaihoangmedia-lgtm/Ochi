@@ -696,6 +696,9 @@ fn builtin_aliases() -> HashMap<String, String> {
         ("claude-code-sonnet", "claude-code/sonnet"),
         ("claude-code-haiku", "claude-code/haiku"),
         ("manus", "manus-1.6"),
+        // Cerebras backward-compat aliases (old IDs without hyphens)
+        ("cerebras/llama3.3-70b", "cerebras/llama-3.3-70b"),
+        ("cerebras/llama3.1-8b", "cerebras/llama-3.1-8b"),
     ];
     pairs
         .into_iter()
@@ -2084,7 +2087,7 @@ fn builtin_models() -> Vec<ModelCatalogEntry> {
         // Cerebras (4)
         // ══════════════════════════════════════════════════════════════
         ModelCatalogEntry {
-            id: "cerebras/llama3.3-70b".into(),
+            id: "cerebras/llama-3.3-70b".into(),
             display_name: "Llama 3.3 70B (Cerebras)".into(),
             provider: "cerebras".into(),
             tier: ModelTier::Balanced,
@@ -2095,10 +2098,10 @@ fn builtin_models() -> Vec<ModelCatalogEntry> {
             supports_tools: true,
             supports_vision: false,
             supports_streaming: true,
-            aliases: vec![],
+            aliases: vec!["cerebras/llama3.3-70b".into()],
         },
         ModelCatalogEntry {
-            id: "cerebras/llama3.1-8b".into(),
+            id: "cerebras/llama-3.1-8b".into(),
             display_name: "Llama 3.1 8B (Cerebras)".into(),
             provider: "cerebras".into(),
             tier: ModelTier::Fast,
@@ -2109,7 +2112,7 @@ fn builtin_models() -> Vec<ModelCatalogEntry> {
             supports_tools: true,
             supports_vision: false,
             supports_streaming: true,
-            aliases: vec![],
+            aliases: vec!["cerebras/llama3.1-8b".into()],
         },
         ModelCatalogEntry {
             id: "cerebras/llama-4-scout-17b".into(),
