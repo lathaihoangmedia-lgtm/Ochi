@@ -1,9 +1,9 @@
 [package]
-name = "openfang-desktop"
+name = "ochi-desktop"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Native desktop application for the OpenFang Agent OS (Tauri 2.0)"
+description = "Native desktop application for the Ochi Agent OS (Tauri 2.0)"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -11,7 +11,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 ochi-kernel = { path = "../ochi-kernel" }
 ochi-api = { path = "../ochi-api" }
-openfang-types = { path = "../ochi-types-legacy" }
+ochi-types-legacy = { path = "../ochi-types-legacy" }
 tokio = { workspace = true }
 axum = { workspace = true }
 serde_json = { workspace = true }
@@ -34,5 +34,5 @@ open = "5"
 custom-protocol = ["tauri/custom-protocol"]
 
 [[bin]]
-name = "openfang-desktop"
+name = "ochi-desktop"
 path = "src/main.rs"

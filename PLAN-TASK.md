@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
-> **Cập nhật lần cuối:** 06-03-2026
-> **Commit mới nhất:** `55d5f48` (tổng hợp và chuẩn hóa các kế hoạch lẻ)
+> **Cập nhật lần cuối:** 07-03-2026
+> **Commit mới nhất:** `6495049` (IMPROVE-01: nâng cấp CI/CD; DEBT-01-A: đổi tên crate openfang-desktop → ochi-desktop)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -14,16 +14,17 @@
 3. **Hệ sinh thái Agent Mở rộng:** Phát triển một hệ sinh thái gồm 36 Agent Chiến lược (Thiên Cương) và 72 Agent Thực thi (Địa Sát) để bao phủ một loạt các tác vụ phức tạp.
 4. **Tích hợp Sâu rộng:** Kết nối với các dịch vụ bên thứ ba (như aaPanel, Lạc Việt DB, các nhà cung cấp NLP) thông qua giao thức MCP (Model Context Protocol).
 
-## 2. Trạng thái Hiện tại (Tính đến `e01f574`)
+## 2. Trạng thái Hiện tại (Tính đến `6495049`)
 
 | Hạng mục | Trạng thái | Mô tả |
 | :--- | :--- | :--- |
 | **Phase 3: Đổi tên** | ✅ **Hoàn tất** | Đổi tên thương hiệu toàn diện từ **OpenFang → Ochi** trên 13 crates, CI/CD, Docker, Scripts, Web UI, Docs, và SDK. |
 | **Phase 6: Orchestration** | ✅ **Hoàn tất** | Triển khai logic điều phối 9 Đại Tác Tử vào `ochi-kernel`, tích hợp vào API với endpoint `/api/orchestrate`. 20/20 unit tests PASS. |
 | **Launch Roadmap** | ⏳ **Đang tiến hành** | Hoàn thành 17/18 hạng mục trong 4 sprints. Chỉ còn **2.4 Install script domain** (hạ tầng) là PENDING. |
-| **Workspace** | Ổn định | 13 crates `ochi-*` đã được đổi tên và build thành công (không có `desktop`). |
-| **DEBT-01: Đổi tên triệt để** | 🔴 **Cần làm** | Vẫn còn 1,271+ lần xuất hiện `openfang` trong mã Rust, `.toml`, `.js`, `.py`. Crate `openfang-desktop` chưa được đổi tên. |
+| **Workspace** | Ổn định | 14 crates `ochi-*` đã được đổi tên và build thành công (bao gồm `ochi-desktop`). |
+| **DEBT-01: Đổi tên triệt để** | 🟡 **Đang tiến hành** | `crates/openfang-desktop` đã được đổi tên thành `crates/ochi-desktop` (DEBT-01-A ✅). Vẫn còn ~1,270+ lần xuất hiện `openfang` trong mã Rust, `.toml` (dependency alias), `.js`, `.py`. |
 | **DEBT-02: Xử lý `unwrap()`/`expect()`** | 🔴 **Cần làm** | ~1,500 lệnh `.unwrap()` và 80 lệnh `.expect()` trong toàn workspace. Nguy cơ `panic` trong production cao. |
+| **IMPROVE-01: CI/CD Quality Gates** | ✅ **Hoàn tất** | Nâng cấp workflow CI để chạy `cargo check --workspace`, `cargo test --workspace`, và `cargo clippy --workspace -- -D warnings` trên mỗi PR. |
 
 ## 3. Roadmap & Nhiệm vụ Tiếp theo
 
@@ -175,7 +176,7 @@ Các mục trong section này là **nợ kỹ thuật ưu tiên cao** được x
 
 | Sub-task ID | Phạm vi | Trạng thái | Files liên quan |
 | :--- | :--- | :--- | :--- |
-| `DEBT-01-A` | **Đổi tên crate `openfang-desktop` → `ochi-desktop`** | ⏳ **PENDING** | `crates/openfang-desktop/Cargo.toml`, `Cargo.toml` (workspace members), `crates/openfang-desktop/tauri.conf.json`, `crates/openfang-desktop/src/*.rs` |
+| `DEBT-01-A` | **Đổi tên crate `openfang-desktop` → `ochi-desktop`** | ✅ **Hoàn tất** (`6495049`) | `crates/openfang-desktop/` đã được đổi tên thành `crates/ochi-desktop/`. Cập nhật Cargo.toml (tên crate, dependency alias, binary name), tauri.conf.json (productName, identifier, updater endpoint, description), và toàn bộ `src/*.rs` (strings, comments, use declarations). |
 | `DEBT-01-B` | **Dọn `openfang` trong `crates/ochi-runtime/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-runtime/src/*.rs` (~255 lần) |
 | `DEBT-01-C` | **Dọn `openfang` trong `crates/ochi-kernel/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-kernel/src/*.rs` (~209 lần) |
 | `DEBT-01-D` | **Dọn `openfang` trong `crates/ochi-api/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-api/src/*.rs` và `crates/ochi-api/static/js/` (~196 lần Rust + JS) |
@@ -229,7 +230,7 @@ Nhiệm vụ DEBT-01 được coi là **HOÀN TẤT** khi:
 | `DEBT-02-G` | **`crates/ochi-migrate/`** | ~137 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
 | `DEBT-02-H` | **`crates/ochi-types-legacy/`** | ~127 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
 | `DEBT-02-I` | **`crates/ochi-skills/`, `ochi-extensions/`, `ochi-hands/`** | ~84 + 76 + 41 `unwrap` | ⏳ **PENDING** | 🟢 Thấp |
-| `DEBT-02-J` | **`crates/ochi-cli/`, `ochi-wire/`, `openfang-desktop/`, `xtask/`** | ~51 + 42 + 7 `expect` | ⏳ **PENDING** | 🟢 Thấp |
+| `DEBT-02-J` | **`crates/ochi-cli/`, `ochi-wire/`, `ochi-desktop/`, `xtask/`** | ~51 + 42 + 7 `expect` | ⏳ **PENDING** | 🟢 Thấp |
 
 #### Quy trình Thực hiện cho mỗi Sub-task
 
@@ -270,7 +271,7 @@ Phần này tổng hợp các nhiệm vụ cải tiến quy trình và xử lý 
 
 | Task ID | Nhiệm vụ | Trạng thái | Chi tiết | Files liên quan |
 | :--- | :--- | :--- | :--- | :--- |
-| `IMPROVE-01` | **Nâng cấp CI/CD Quality Gates** | ⏳ **PENDING** | Mở rộng workflow `.github/workflows/rust.yml` để chạy `cargo test --workspace` và `cargo clippy --workspace -- -D warnings` trên mỗi PR. | `.github/workflows/rust.yml` |
+| `IMPROVE-01` | **Nâng cấp CI/CD Quality Gates** | ✅ **Hoàn tất** (`6495049`) | Mở rộng workflow `.github/workflows/rust.yml` để chạy `cargo check --workspace`, `cargo test --workspace` và `cargo clippy --workspace -- -D warnings` trên mỗi PR. Tách thành 3 jobs song song: `check`, `test`, `clippy`. | `.github/workflows/rust.yml` |
 | `IMPROVE-02` | **Dọn dẹp Cảnh báo (`warnings`)** | ⏳ **PENDING** | Xử lý các cảnh báo `unused variable` và các cảnh báo khác trong `ochi-cli` và các crate khác để log CI/CD được sạch sẽ. | `crates/ochi-cli/` |
 
 ---

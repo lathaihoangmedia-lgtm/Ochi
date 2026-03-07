@@ -1,4 +1,4 @@
-//! OpenFang Desktop — Native Tauri 2.0 wrapper for the OpenFang Agent OS.
+//! Ochi Desktop — Native Tauri 2.0 wrapper for the Ochi Agent OS.
 //!
 //! Boots the kernel + embedded API server, then opens a native window pointing
 //! at the WebUI. Includes system tray, single-instance enforcement, native OS
@@ -11,7 +11,7 @@ mod tray;
 mod updater;
 
 use ochi_kernel::OpenFangKernel;
-use openfang_types::event::{EventPayload, LifecycleEvent, SystemEvent};
+use ochi_types_legacy::event::{EventPayload, LifecycleEvent, SystemEvent};
 use std::sync::Arc;
 use std::time::Instant;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
@@ -34,18 +34,18 @@ pub fn run() {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "openfang=info,tauri=info".into()),
+                .unwrap_or_else(|_| "ochi=info,tauri=info".into()),
         )
         .init();
 
-    info!("Starting OpenFang Desktop...");
+    info!("Starting Ochi Desktop...");
 
     // Boot kernel + embedded server (blocks until port is known)
-    let server_handle = server::start_server().expect("Failed to start OpenFang server");
+    let server_handle = server::start_server().expect("Failed to start Ochi server");
     let port = server_handle.port;
     let kernel_for_notifications = server_handle.kernel.clone();
 
-    info!("OpenFang server running on port {port}");
+    info!("Ochi server running on port {port}");
 
     let url = format!("http://127.0.0.1:{port}");
 
@@ -114,7 +114,7 @@ pub fn run() {
                 "main",
                 WebviewUrl::External(url.parse().expect("Invalid server URL")),
             )
-            .title("OpenFang")
+            .title("Ochi")
             .inner_size(1280.0, 800.0)
             .min_inner_size(800.0, 600.0)
             .center()
@@ -145,7 +145,7 @@ pub fn run() {
                                 ),
                                 EventPayload::System(SystemEvent::KernelStopping) => (
                                     "Kernel Stopping".to_string(),
-                                    "OpenFang kernel is shutting down".to_string(),
+                                    "Ochi kernel is shutting down".to_string(),
                                 ),
                                 EventPayload::System(SystemEvent::QuotaEnforced {
                                     agent_id,
@@ -186,7 +186,7 @@ pub fn run() {
             #[cfg(desktop)]
             updater::spawn_startup_check(app.handle().clone());
 
-            info!("OpenFang Desktop window created");
+            info!("Ochi Desktop window created");
             Ok(())
         })
         .on_window_event(|window, event| {
