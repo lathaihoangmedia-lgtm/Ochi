@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 07-03-2026
-> **Commit mới nhất:** `6495049` (IMPROVE-01: nâng cấp CI/CD; DEBT-01-A: đổi tên crate openfang-desktop → ochi-desktop)
+> **Commit mới nhất:** `5c48ae4` (IMPROVE-01 CI/CD; DEBT-01-A desktop rename; IMPROVE-03 giảm kích thước repo)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -14,7 +14,7 @@
 3. **Hệ sinh thái Agent Mở rộng:** Phát triển một hệ sinh thái gồm 36 Agent Chiến lược (Thiên Cương) và 72 Agent Thực thi (Địa Sát) để bao phủ một loạt các tác vụ phức tạp.
 4. **Tích hợp Sâu rộng:** Kết nối với các dịch vụ bên thứ ba (như aaPanel, Lạc Việt DB, các nhà cung cấp NLP) thông qua giao thức MCP (Model Context Protocol).
 
-## 2. Trạng thái Hiện tại (Tính đến `6495049`)
+## 2. Trạng thái Hiện tại (Tính đến `5c48ae4`)
 
 | Hạng mục | Trạng thái | Mô tả |
 | :--- | :--- | :--- |
@@ -25,6 +25,7 @@
 | **DEBT-01: Đổi tên triệt để** | 🟡 **Đang tiến hành** | `crates/openfang-desktop` đã được đổi tên thành `crates/ochi-desktop` (DEBT-01-A ✅). Vẫn còn ~1,270+ lần xuất hiện `openfang` trong mã Rust, `.toml` (dependency alias), `.js`, `.py`. |
 | **DEBT-02: Xử lý `unwrap()`/`expect()`** | 🔴 **Cần làm** | ~1,500 lệnh `.unwrap()` và 80 lệnh `.expect()` trong toàn workspace. Nguy cơ `panic` trong production cao. |
 | **IMPROVE-01: CI/CD Quality Gates** | ✅ **Hoàn tất** | Nâng cấp workflow CI để chạy `cargo check --workspace`, `cargo test --workspace`, và `cargo clippy --workspace -- -D warnings` trên mỗi PR. |
+| **IMPROVE-03: Giảm kích thước Repo** | ✅ **Hoàn tất** | Xóa ~4.1MB ảnh logo cũ (`openfang-*`), gỡ schema Tauri tự sinh, cập nhật `.gitignore` + thêm `.gitattributes`. |
 
 ## 3. Roadmap & Nhiệm vụ Tiếp theo
 
@@ -271,8 +272,9 @@ Phần này tổng hợp các nhiệm vụ cải tiến quy trình và xử lý 
 
 | Task ID | Nhiệm vụ | Trạng thái | Chi tiết | Files liên quan |
 | :--- | :--- | :--- | :--- | :--- |
-| `IMPROVE-01` | **Nâng cấp CI/CD Quality Gates** | ✅ **Hoàn tất** (`6495049`) | Mở rộng workflow `.github/workflows/rust.yml` để chạy `cargo check --workspace`, `cargo test --workspace` và `cargo clippy --workspace -- -D warnings` trên mỗi PR. Tách thành 3 jobs song song: `check`, `test`, `clippy`. | `.github/workflows/rust.yml` |
+| `IMPROVE-01` | **Nâng cấp CI/CD Quality Gates** | ✅ **Hoàn tất** (`5c48ae4`) | Mở rộng workflow `.github/workflows/rust.yml` để chạy `cargo check --workspace`, `cargo test --workspace` và `cargo clippy --workspace -- -D warnings` trên mỗi PR. Tách thành 3 jobs song song: `check`, `test`, `clippy`. | `.github/workflows/rust.yml` |
 | `IMPROVE-02` | **Dọn dẹp Cảnh báo (`warnings`)** | ⏳ **PENDING** | Xử lý các cảnh báo `unused variable` và các cảnh báo khác trong `ochi-cli` và các crate khác để log CI/CD được sạch sẽ. | `crates/ochi-cli/` |
+| `IMPROVE-03` | **Giảm kích thước Repository** | ✅ **Hoàn tất** (`5c48ae4`) | Xóa các file nhị phân cũ không còn sử dụng (~4.1MB ảnh logo `openfang-*`), gỡ bỏ các schema Tauri tự sinh (`crates/ochi-desktop/gen/`), cập nhật `.gitignore` để chặn commit ảnh lớn trong tương lai, thêm `.gitattributes` cho line endings và binary markers. | `.gitignore`, `.gitattributes`, `public/assets/` |
 
 ---
 
