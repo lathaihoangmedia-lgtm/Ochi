@@ -327,8 +327,7 @@ OpenClaw's tool profiles map to explicit tool lists:
 | **Event triggers** | None | Pattern-matching event triggers with templated prompts |
 | **WASM sandbox** | None | Wasmtime-based sandboxed execution |
 | **Python runtime** | None | Subprocess-based Python agent execution |
-| **Networking** | None | OFP (OpenFang Protocol, legacy naming) peer-to-peer |
-| **Networking** | None | OFP (OpenFang Protocol, legacy name retained) peer-to-peer |
+| **Networking** | None | OFP (Ochi Wire Protocol) peer-to-peer |
 | **API server** | Basic REST | REST + WebSocket + SSE streaming |
 | **WebChat UI** | Separate | Embedded in daemon |
 | **Channel adapters** | Telegram, Discord | Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email |

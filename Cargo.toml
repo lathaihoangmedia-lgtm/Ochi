@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/ochi-types-legacy",
     "crates/ochi-types",
     "crates/ochi-memory",
     "crates/ochi-runtime",
@@ -18,7 +17,6 @@ members = [
 ]
 
 default-members = [
-    "crates/ochi-types-legacy",
     "crates/ochi-types",
     "crates/ochi-memory",
     "crates/ochi-runtime",

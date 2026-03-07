@@ -231,11 +231,9 @@ pub fn default_config_path() -> PathBuf {
 /// Get the default Ochi home directory.
 ///
 /// Resolution order:
-/// 1. `OCHI_HOME` environment variable (preferred)
-/// 2. `OPENFANG_HOME` environment variable (legacy, prints deprecation warning)
-/// 3. `~/.ochi/` directory (if it exists)
-/// 4. `~/.openfang/` directory (legacy fallback, prints deprecation warning)
-/// 5. `~/.ochi/` as default (created on first use)
+/// 1. `OCHI_HOME` environment variable
+/// 2. `~/.ochi/` directory (if it exists)
+/// 3. `~/.ochi/` as default (created on first use)
 pub fn ochi_home() -> PathBuf {
     if let Ok(path) = std::env::var("OCHI_HOME") {
         let trimmed = path.trim();
@@ -244,38 +242,8 @@ pub fn ochi_home() -> PathBuf {
         }
     }
 
-    // Legacy: OPENFANG_HOME — supported for backward compatibility, but deprecated.
-    if let Ok(path) = std::env::var("OPENFANG_HOME") {
-        let trimmed = path.trim();
-        if !trimmed.is_empty() {
-            tracing::warn!(
-                "OPENFANG_HOME is deprecated and will be removed in v0.3.0. \
-                 Please rename it to OCHI_HOME. \
-                 See docs/sdk-migration.md (section 4: Environment Variables) for details."
-            );
-            return PathBuf::from(trimmed);
-        }
-    }
-
     let home = dirs::home_dir().unwrap_or_else(std::env::temp_dir);
-    let ochi_dir = home.join(".ochi");
-    if ochi_dir.exists() {
-        return ochi_dir;
-    }
-
-    // Legacy: ~/.openfang — fall back with a migration warning.
-    let legacy_dir = home.join(".openfang");
-    if legacy_dir.exists() {
-        tracing::warn!(
-            "Found legacy config directory '~/.openfang'. \
-             Please migrate to '~/.ochi' by running: scripts/migrate-home.sh --yes \
-             See docs/sdk-migration.md (section 5: Local Config Directory) for migration steps. \
-             This fallback will be removed in v0.3.0."
-        );
-        return legacy_dir;
-    }
-
-    ochi_dir
+    home.join(".ochi")
 }
 
 #[cfg(test)]

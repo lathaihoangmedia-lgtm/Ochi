@@ -3,16 +3,14 @@
 # Usage: curl -sSf https://ochi.sh | sh
 #
 # Environment variables:
-#   OCHI_INSTALL_DIR      — custom install directory (default: ~/.ochi/bin)
-#   OPENFANG_INSTALL_DIR  — legacy install directory override
-#   OCHI_VERSION          — install a specific version tag (default: latest)
-#   OPENFANG_VERSION      — legacy version override
+#   OCHI_INSTALL_DIR  — custom install directory (default: ~/.ochi/bin)
+#   OCHI_VERSION      — install a specific version tag (default: latest)
 
 set -euo pipefail
 
 REPO="lathaihoangmedia-lgtm/Ochi"
-INSTALL_DIR="${OCHI_INSTALL_DIR:-${OPENFANG_INSTALL_DIR:-$HOME/.ochi/bin}}"
-REQUESTED_VERSION="${OCHI_VERSION:-${OPENFANG_VERSION:-}}"
+INSTALL_DIR="${OCHI_INSTALL_DIR:-$HOME/.ochi/bin}"
+REQUESTED_VERSION="${OCHI_VERSION:-}"
 
 print_install_help() {
     echo "    cargo install --git https://github.com/$REPO ochi-cli --bin ochi"
@@ -116,20 +114,11 @@ install() {
     # Extract
     tar xzf "$ARCHIVE" -C "$INSTALL_DIR"
 
-    # Prefer ochi binary; create compatibility shim if only openfang exists
     if [ -f "$INSTALL_DIR/ochi" ]; then
         chmod +x "$INSTALL_DIR/ochi"
-    elif [ -f "$INSTALL_DIR/openfang" ]; then
-        chmod +x "$INSTALL_DIR/openfang"
-        ln -sf "$INSTALL_DIR/openfang" "$INSTALL_DIR/ochi"
     else
-        echo "  Could not find ochi/openfang binary in archive."
+        echo "  Could not find ochi binary in archive."
         exit 1
-    fi
-
-    # Keep openfang compatibility shim if only ochi exists
-    if [ ! -f "$INSTALL_DIR/openfang" ] && [ -f "$INSTALL_DIR/ochi" ]; then
-        ln -sf "$INSTALL_DIR/ochi" "$INSTALL_DIR/openfang"
     fi
 
     # Add to PATH
@@ -166,9 +155,6 @@ install() {
     echo ""
     echo "  Get started:"
     echo "    ochi init"
-    echo ""
-    echo "  Compatibility alias remains available:"
-    echo "    openfang init"
     echo ""
 }
 
