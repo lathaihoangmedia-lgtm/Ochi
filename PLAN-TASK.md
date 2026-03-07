@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 07-03-2026
-> **Commit mới nhất:** (DEBT-01-B→J hoàn tất: đổi tên triệt để openfang→ochi; IMPROVE-02 dọn warnings)
+> **Commit mới nhất:** AGENT-01 (5 Địa Sát agents), AGENT-02 (2 Thiên Cương agents), DEBT-01-M (sdk-migration.md), DEBT-01-N (legacy deprecation warnings), DEBT-02-A (production unwrap fix in kernel)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -55,8 +55,8 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 
 | Task ID | Nhiệm vụ | Chi tiết | Files liên quan |
 | :--- | :--- | :--- | :--- |
-| `AGENT-01` | **Triển khai 5 Địa Sát đầu tiên** | Chọn và triển khai 5 agent thực thi từ danh sách 72 Địa Sát. Gợi ý: `DS-Web-Scraper`, `DS-File-Manager`, `DS-Git-Operator`, `DS-Shell-Scripting`, `DS-Docker-Manager`. | `agents/dia_sat/`, `crates/ochi-skills/` |
-| `AGENT-02` | **Triển khai 2 Thiên Cương đầu tiên** | Chọn và triển khai 2 agent chiến lược từ danh sách 36 Thiên Cương. Gợi ý: `TC-Task-Decomposer`, `TC-Code-Reviewer`. | `agents/thien_cuong/`, `crates/ochi-runtime/` |
+| `AGENT-01` | **Triển khai 5 Địa Sát đầu tiên** | ✅ **Hoàn tất** | `agents/dia_sat/ds-web-scraper/`, `agents/dia_sat/ds-file-manager/`, `agents/dia_sat/ds-git-operator/`, `agents/dia_sat/ds-shell-scripting/`, `agents/dia_sat/ds-docker-manager/` — Mỗi agent có `agent.toml` đầy đủ với system prompt, capabilities, fallback models. |
+| `AGENT-02` | **Triển khai 2 Thiên Cương đầu tiên** | ✅ **Hoàn tất** | `agents/thien_cuong/tc-task-decomposer/`, `agents/thien_cuong/tc-quality-assurance/` — TC-Task-Decomposer phân rã nhiệm vụ và phân công cho Địa Sát; TC-Quality-Assurance review code và enforce standards. |
 
 ## 4. Hướng dẫn Onboarding cho AI mới
 
@@ -190,8 +190,8 @@ Các mục trong section này là **nợ kỹ thuật ưu tiên cao** được x
 | `DEBT-01-K` | **Dọn `openfang` trong `.env.example` và `deploy/`** | ✅ **Hoàn tất** (`c0b7f69`) | `.env.example` (cập nhật tên biến `OPENFANG_*` → `OCHI_*` với chú thích backward-compat), `deploy/openfang.service` → `deploy/ochi.service` |
 
 | `DEBT-01-L` | **Chạy full test matrix sau mỗi batch rename** | ✅ **Hoàn tất** | `cargo check --workspace --lib` PASS; `cargo test -p ochi-kernel -p ochi-types` → 273 tests PASS. |
-| `DEBT-01-M` | **Cập nhật docs publish/migration cho SDK** | ⏳ **PENDING** | `docs/sdk-migration.md` |
-| `DEBT-01-N` | **Thêm Telemetry/log warning cho đường dẫn legacy** | ⏳ **PENDING** | Kernel/CLI |
+| `DEBT-01-M` | **Cập nhật docs publish/migration cho SDK** | ✅ **Hoàn tất** | `docs/sdk-migration.md` — Viết lại hoàn toàn: bảng thay đổi, hướng dẫn migration JS/Python/envvars/service, lịch trình deprecation, checklist migration. |
+| `DEBT-01-N` | **Thêm Telemetry/log warning cho đường dẫn legacy** | ✅ **Hoàn tất** | `crates/ochi-kernel/src/config.rs` — `ochi_home()` đã thêm `tracing::warn!` cho `OPENFANG_HOME` env var và `~/.openfang` fallback directory; đồng thời sửa duplicate code. |
 | `DEBT-01-O` | **Chốt ngày dừng hỗ trợ alias `openfang`** | ⚪️ **Chưa bắt đầu** | Roadmap & Release Plan |
 | `DEBT-01-P` | **Xóa shim/bí danh legacy** | ⚪️ **Chưa bắt đầu** | Toàn bộ codebase |
 | `DEBT-01-Q` | **Hoàn thiện release note & migration guide** | ⚪️ **Chưa bắt đầu** | `CHANGELOG.md`, `docs/sdk-migration.md` |
@@ -222,7 +222,7 @@ Nhiệm vụ DEBT-01 được coi là **HOÀN TẤT** khi:
 
 | Sub-task ID | Crate mục tiêu | Số lượng ước tính | Trạng thái | Ưu tiên |
 | :--- | :--- | :--- | :--- | :--- |
-| `DEBT-02-A` | **`crates/ochi-kernel/`** | ~209 `unwrap` + 29 `expect` | ⏳ **PENDING** | 🔴 Cao nhất |
+| `DEBT-02-A` | **`crates/ochi-kernel/`** | ~209 `unwrap` + 29 `expect` | ✅ **Hoàn tất (production code)** | 🔴 Cao nhất — Sửa `kernel.rs`: dùng constant `DEFAULT_LISTEN_ADDR` + `.expect()` cho infallible parse thay vì `.unwrap_or_else(|_| "...".parse().unwrap())`; sửa `config.rs`: loại bỏ duplicate code trong `ochi_home()`. Các `.unwrap()` còn lại đều nằm trong `#[test]` blocks (chấp nhận được). |
 | `DEBT-02-B` | **`crates/ochi-runtime/`** (phần `agent_loop.rs`, `tool_runner.rs`, `compactor.rs`) | ~100 `unwrap` (3 files nặng nhất) | ⏳ **PENDING** | 🔴 Cao nhất |
 | `DEBT-02-C` | **`crates/ochi-runtime/`** (phần còn lại) | ~155 `unwrap` + 16 `expect` | ⏳ **PENDING** | 🟠 Cao |
 | `DEBT-02-D` | **`crates/ochi-api/`** | ~196 `unwrap` + 16 `expect` | ⏳ **PENDING** | 🟠 Cao |
