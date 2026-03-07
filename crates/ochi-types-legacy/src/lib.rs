@@ -1,0 +1,4 @@
+//! Compatibility crate for legacy `ochi-types` package name.
+//! During Phase 3 rename, this crate re-exports all symbols from `ochi-types`.
+
+pub use ochi_types::*;

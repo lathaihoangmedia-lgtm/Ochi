@@ -2,7 +2,7 @@
 
 This guide covers migrating from OpenClaw (and other frameworks) to Ochi. The migration engine handles config conversion, agent import, memory transfer, channel re-configuration, and skill scanning.
 
-> **Compatibility note:** the legacy `openfang` CLI alias and `~/.openfang` home path are still accepted during the transition window, but all examples below use Ochi-first naming.
+> **Compatibility note:** the legacy `ochi` CLI alias and `~/.ochi` home path are still accepted during the transition window, but all examples below use Ochi-first naming.
 
 ## Table of Contents
 
@@ -32,9 +32,9 @@ This auto-detects your OpenClaw workspace at `~/.openclaw/` and imports everythi
 
 During the rename window, these legacy entry points still work:
 
-- CLI alias: `openfang migrate --from openclaw`
-- Home path fallback: `~/.openfang/`
-- Env var fallback: `OPENFANG_HOME`
+- CLI alias: `ochi migrate --from openclaw`
+- Home path fallback: `~/.ochi/`
+- Env var fallback: `OCHI_HOME`
 
 Use the Ochi-first forms in new scripts and documentation to avoid carrying forward legacy naming.
 
@@ -65,9 +65,9 @@ ochi migrate --from autogpt     # Coming soon
 
 | Area | Legacy | Current (preferred) | Notes |
 |------|--------|---------------------|-------|
-| CLI binary | `openfang` | `ochi` | `openfang` remains a compatibility alias during cutover. |
-| Home directory | `~/.openfang/` | `~/.ochi/` | Runtime prefers `~/.ochi/` but can fall back to legacy path. |
-| Home env var | `OPENFANG_HOME` | `OCHI_HOME` | Resolver accepts both, prefer `OCHI_HOME` for new deployments. |
+| CLI binary | `ochi` | `ochi` | `ochi` remains a compatibility alias during cutover. |
+| Home directory | `~/.ochi/` | `~/.ochi/` | Runtime prefers `~/.ochi/` but can fall back to legacy path. |
+| Home env var | `OCHI_HOME` | `OCHI_HOME` | Resolver accepts both, prefer `OCHI_HOME` for new deployments. |
 
 ---
 

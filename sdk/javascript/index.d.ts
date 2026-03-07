@@ -1,4 +1,4 @@
-export class OpenFangError extends Error {
+export class OchiError extends Error {
   status: number;
   body: string;
   constructor(message: string, status: number, body: string);
@@ -23,7 +23,7 @@ export interface StreamEvent {
   [key: string]: unknown;
 }
 
-export class OpenFang {
+export class Ochi {
   baseUrl: string;
   agents: AgentResource;
   sessions: SessionResource;
@@ -140,5 +140,6 @@ export class ScheduleResource {
 }
 
 
-export class Ochi extends OpenFang {}
-export { OpenFangError as OchiError };
+export class Ochi extends Ochi {} // primary class
+export { OchiError };
+export { OchiError as OpenFangError }; // backward compat

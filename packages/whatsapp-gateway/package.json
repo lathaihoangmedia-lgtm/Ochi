@@ -1,8 +1,9 @@
 {
-  "name": "@openfang/whatsapp-gateway",
+  "name": "@ochi/whatsapp-gateway",
   "version": "0.1.0",
-  "description": "WhatsApp Web gateway for OpenFang — QR code login, bidirectional messaging via Baileys",
+  "description": "WhatsApp Web gateway for Ochi \u2014 QR code login, bidirectional messaging via Baileys",
   "bin": {
+    "ochi-whatsapp-gateway": "./index.js",
     "openfang-whatsapp-gateway": "./index.js"
   },
   "type": "commonjs",
@@ -18,5 +19,16 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "ochi",
+    "whatsapp",
+    "gateway",
+    "agent",
+    "ai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lathaihoangmedia-lgtm/Ochi"
+  }
 }

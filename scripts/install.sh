@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Ochi installer — works on Linux, macOS, WSL
-# Usage: curl -sSf https://openfang.sh | sh
+# Usage: curl -sSf https://ochi.sh | sh
 #
 # Environment variables:
 #   OCHI_INSTALL_DIR      — custom install directory (default: ~/.ochi/bin)
@@ -10,12 +10,12 @@
 
 set -euo pipefail
 
-REPO="RightNow-AI/openfang"
+REPO="lathaihoangmedia-lgtm/Ochi"
 INSTALL_DIR="${OCHI_INSTALL_DIR:-${OPENFANG_INSTALL_DIR:-$HOME/.ochi/bin}}"
 REQUESTED_VERSION="${OCHI_VERSION:-${OPENFANG_VERSION:-}}"
 
 print_install_help() {
-    echo "    cargo install --git https://github.com/$REPO openfang-cli --bin ochi"
+    echo "    cargo install --git https://github.com/$REPO ochi-cli --bin ochi"
 }
 
 detect_platform() {
@@ -32,7 +32,7 @@ detect_platform() {
         mingw*|msys*|cygwin*)
             echo ""
             echo "  For Windows, use PowerShell instead:"
-            echo "    irm https://openfang.sh/install.ps1 | iex"
+            echo "    irm https://ochi.sh/install.ps1 | iex"
             echo ""
             echo "  Or download the .msi installer from:"
             echo "    https://github.com/$REPO/releases/latest"
@@ -69,7 +69,7 @@ install() {
         exit 1
     fi
 
-    URL="https://github.com/$REPO/releases/download/$VERSION/openfang-$PLATFORM.tar.gz"
+    URL="https://github.com/$REPO/releases/download/$VERSION/ochi-$PLATFORM.tar.gz"
     CHECKSUM_URL="$URL.sha256"
 
     echo "  Installing Ochi $VERSION for $PLATFORM..."
@@ -77,7 +77,7 @@ install() {
 
     # Download to temp
     TMPDIR=$(mktemp -d)
-    ARCHIVE="$TMPDIR/openfang.tar.gz"
+    ARCHIVE="$TMPDIR/ochi.tar.gz"
     CHECKSUM_FILE="$TMPDIR/checksum.sha256"
 
     cleanup() { rm -rf "$TMPDIR"; }

@@ -1,15 +1,40 @@
 # Changelog
 
-All notable changes to OpenFang will be documented in this file.
+All notable changes to Ochi will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-02-24
+## [Unreleased]
 
-### Added
+## [0.1.0] - 2026-03-04
+
+### Added (v0.1.0)
+
+- **Phase 6: Orchestration Core (Thái Cực)**: Triển khai `ochi-kernel/src/orchestration.rs` với logic điều phối 9 Đại Tác Tử (KIM, MỘC, THỦY, HỎA, THỔ, THÁI CỰC, CÀN, KHÔN, NHÂN). Bao gồm multi-signal routing, confidence scoring, và phân cực Âm/Dương. (436d82d)
+- **Hệ sinh thái Agents**: Khởi tạo cấu trúc 36 Thiên Cương và 72 Địa Sát, sẵn sàng để triển khai các sub-agents chuyên biệt. (95c716e)
+- **API Endpoints mới**: Thêm `/api/orchestrate` để điều phối nhiệm vụ và `/api/orchestrate/agents` để liệt kê 9 Đại Tác Tử. (436d82d)
+- **Giao thức AI Builder**: Bổ sung `PLAN-TASK.md` với các quy tắc bắt buộc cho AI builder về tôn trọng kế hoạch, tự động cập nhật tiến độ, và phối hợp đa AI. (bd47b07)
+- **Chiến lược Pre-release**: Cập nhật `PLAN-TASK.md` với chiến lược phát hành 2 giai đoạn (Web-first, sau đó là Desktop). (221c2e3)
+
+### Changed (v0.1.0)
+
+- **Phase 3: Brand Rename (OpenFang → Ochi)**: Hoàn thành đổi tên thương hiệu toàn diện trên 13 crates Rust, bao gồm `ochi-kernel`, `ochi-api`, `ochi-cli`, và các thư viện cốt lõi. (59e30eb)
+- **Toàn bộ hệ sinh thái**: Cập nhật đổi tên trên tất cả các layer không phải Rust, bao gồm Docker, scripts cài đặt, Web UI (localStorage, JS classes), SDK (Python, JS), và toàn bộ tài liệu. (3b5738d)
+- **Cấu hình & Môi trường**: Chuyển đường dẫn mặc định từ `~/.openfang` sang `~/.ochi` và biến môi trường `OPENFANG_HOME` sang `OCHI_HOME`. (b61448a, d1a9032)
+- **CI/CD**: Cập nhật workflow `.github/workflows/rust.yml` để sử dụng tên package `ochi-*` mới. (9ae95f7)
+
+### Fixed (v0.1.0)
+
+- **CLI**: Sửa lỗi cảnh báo `duplicate-target` bằng cách tách `ochi` và `ochi-legacy` thành hai binary riêng biệt. (bcf1e99)
+- **Build Dependencies**: Sửa lỗi build do thiếu các dependency của môi trường đồ họa (GUI) và các vấn đề tương thích của `ochi-types`. (1d05652, và các commit trong quá trình debug)
+
+## [0.0.1] - 2026-02-24
+
+### Added (v0.0.1)
 
 #### Core Platform
+
 - 15-crate Rust workspace: types, memory, runtime, kernel, api, channels, wire, cli, migrate, skills, hands, extensions, desktop, xtask
 - Agent lifecycle management: spawn, list, kill, clone, mode switching (Full/Assist/Observe)
 - SQLite-backed memory substrate with structured KV, semantic recall, vector embeddings
@@ -22,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 7 Hands packages for autonomous agent actions
 
 #### LLM Support
+
 - 3 native LLM drivers: Anthropic, Google Gemini, OpenAI-compatible
 - 27 providers: Anthropic, Gemini, OpenAI, Groq, OpenRouter, DeepSeek, Together, Mistral, Fireworks, Cohere, Perplexity, xAI, AI21, Cerebras, SambaNova, Hugging Face, Replicate, Ollama, vLLM, LM Studio, and more
 - Model catalog with 130+ built-in models, 23 aliases, tier classification
@@ -31,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Streaming support (SSE) across all drivers
 
 #### Token Management & Context
+
 - Token-aware session compaction (chars/4 heuristic, triggers at 70% context capacity)
 - In-loop emergency trimming at 70%/90% thresholds with summary injection
 - Tool profile filtering (cuts default 41 tools to 4-10 for chat agents, saving 15-20K tokens)
@@ -39,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default token quota raised from 100K to 1M per hour
 
 #### Security
+
 - Capability-based access control with privilege escalation prevention
 - Path traversal protection in all file tools
 - SSRF protection blocking private IPs and cloud metadata endpoints
@@ -56,12 +84,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Session repair (validates and fixes orphaned tool results, empty messages)
 
 #### Channels
+
 - 40 channel adapters: Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email, Teams, Mattermost, Google Chat, Webex, Feishu/Lark, LINE, Viber, Facebook Messenger, Mastodon, Bluesky, Reddit, LinkedIn, Twitch, IRC, XMPP, and 18 more
 - Unified bridge with agent routing, command handling, message splitting
 - Per-channel user filtering and RBAC enforcement
 - Graceful shutdown, exponential backoff, secret zeroization on all adapters
 
 #### API
+
 - 100+ REST/WS/SSE API endpoints (axum 0.8)
 - WebSocket real-time streaming with per-agent connections
 - OpenAI-compatible `/v1/chat/completions` API (streaming SSE + non-streaming)
@@ -74,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Config hot-reload via polling (30-second interval, no restart required)
 
 #### Web UI
+
 - Chat message search with Ctrl+F, real-time filtering, text highlighting
 - Voice input with hold-to-record mic button (WebM/Opus codec)
 - TTS audio playback inline in tool cards
@@ -86,18 +117,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual workflow builder with drag-and-drop canvas
 
 #### Client SDKs
-- JavaScript SDK (`@openfang/sdk`): full REST API client with streaming, TypeScript declarations
-- Python client SDK (`openfang_client`): zero-dependency stdlib client with SSE streaming
-- Python agent SDK (`openfang_sdk`): decorator-based framework for writing Python agents
+
+- JavaScript SDK (`@ochi/sdk`): full REST API client with streaming, TypeScript declarations
+- Python client SDK (`ochi_client`): zero-dependency stdlib client with SSE streaming
+- Python agent SDK (`ochi_sdk`): decorator-based framework for writing Python agents
 - Usage examples for both languages (basic + streaming)
 
 #### CLI
+
 - 14+ subcommands: init, start, agent, workflow, trigger, migrate, skill, channel, config, chat, status, doctor, dashboard, mcp
 - Daemon auto-detection via PID file
 - Shell completion generation (bash, zsh, fish, PowerShell)
 - MCP server mode for IDE integration
 
 #### Skills Ecosystem
+
 - 60 bundled skills across 14 categories
 - Skill registry with TOML manifests
 - 4 runtimes: Python, Node.js, WASM, PromptOnly
@@ -108,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prompt injection scanning on skill content
 
 #### Desktop App
+
 - Tauri 2.0 native desktop app
 - System tray with status and quick actions
 - Single-instance enforcement
@@ -115,6 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated CSP for media, frame, and blob sources
 
 #### Session Management
+
 - LLM-based session compaction with token-aware triggers
 - Multi-session per agent with named labels
 - Session switching via API and UI
@@ -122,25 +158,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extended chat commands: `/new`, `/compact`, `/model`, `/stop`, `/usage`, `/think`
 
 #### Image Support
+
 - `ContentBlock::Image` with base64 inline data
 - Media type validation (png, jpeg, gif, webp only)
 - 5MB size limit enforcement
 - Mapped to all 3 native LLM drivers
 
 #### Usage Tracking
+
 - Per-response cost estimation with model-aware pricing
 - Usage footer in WebSocket responses and WebChat UI
 - Usage events persisted to SQLite
 - Quota enforcement with hourly windows
 
 #### Interoperability
+
 - OpenClaw migration engine (YAML/JSON5 to TOML)
 - MCP client (JSON-RPC 2.0 over stdio/SSE, tool namespacing)
-- MCP server (exposes OpenFang tools via MCP protocol)
+- MCP server (exposes Ochi tools via MCP protocol)
 - A2A protocol client and server
 - Tool name compatibility mappings (21 OpenClaw tool names)
 
 #### Infrastructure
+
 - Multi-stage Dockerfile (debian:bookworm-slim runtime)
 - docker-compose.yml with volume persistence
 - GitHub Actions CI (check, test, clippy, format)
@@ -149,12 +189,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - systemd service file for Linux deployment
 
 #### Multi-User
+
 - RBAC with Owner/Admin/User/Viewer roles
 - Channel identity resolution
 - Per-user authorization checks
 - Device pairing and approval system
 
 #### Production Readiness
+
 - 1731+ tests across 15 crates, 0 failures
 - Cross-platform support (Linux, macOS, Windows)
 - Graceful shutdown with signal handling (SIGINT/SIGTERM on Unix, Ctrl+C on Windows)
@@ -163,4 +205,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prometheus metrics for monitoring
 - Config hot-reload without restart
 
-[0.1.0]: https://github.com/RightNow-AI/openfang/releases/tag/v0.1.0
+[0.1.0]: https://github.com/lathaihoangmedia-lgtm/Ochi/releases/tag/v0.1.0

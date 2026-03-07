@@ -1,6 +1,6 @@
-# Contributing to OpenFang
+# Contributing to Ochi
 
-Thank you for your interest in contributing to OpenFang. This guide covers everything you need to get started, from setting up your development environment to submitting pull requests.
+Thank you for your interest in contributing to Ochi. This guide covers everything you need to get started, from setting up your development environment to submitting pull requests.
 
 ## Table of Contents
 
@@ -28,8 +28,8 @@ Thank you for your interest in contributing to OpenFang. This guide covers every
 ### Clone and Build
 
 ```bash
-git clone https://github.com/RightNow-AI/openfang.git
-cd openfang
+git clone https://github.com/lathaihoangmedia-lgtm/Ochi.git
+cd ochi
 cargo build
 ```
 
@@ -67,9 +67,9 @@ The test suite is currently 1,744+ tests. All must pass before merging.
 ### Run Tests for a Single Crate
 
 ```bash
-cargo test -p openfang-kernel
-cargo test -p openfang-runtime
-cargo test -p openfang-memory
+cargo test -p ochi-kernel
+cargo test -p ochi-runtime
+cargo test -p ochi-memory
 ```
 
 ### Check for Clippy Warnings
@@ -105,10 +105,10 @@ cargo run -- doctor
 - **Documentation**: All public types and functions must have doc comments (`///`).
 - **Error Handling**: Use `thiserror` for error types. Avoid `unwrap()` in library code; prefer `?` propagation.
 - **Naming**:
-  - Types: `PascalCase` (e.g., `OpenFangKernel`, `AgentManifest`)
+  - Types: `PascalCase` (e.g., `OchiKernel`, `AgentManifest`)
   - Functions/methods: `snake_case`
   - Constants: `SCREAMING_SNAKE_CASE`
-  - Crate names: `openfang-{name}` (kebab-case)
+  - Crate names: `ochi-{name}` (kebab-case)
 - **Dependencies**: Workspace dependencies are declared in the root `Cargo.toml`. Prefer reusing workspace deps over adding new ones. If you need a new dependency, justify it in the PR.
 - **Testing**: Every new feature must include tests. Use `tempfile::TempDir` for filesystem isolation and random port binding for network tests.
 - **Serde**: All config structs use `#[serde(default)]` for forward compatibility with partial TOML.
@@ -117,30 +117,30 @@ cargo run -- doctor
 
 ## Architecture Overview
 
-OpenFang is organized as a Cargo workspace with 14 crates:
+Ochi is organized as a Cargo workspace with 14 crates:
 
 | Crate | Role |
-|-------|------|
-| `openfang-types` | Shared type definitions, taint tracking, manifest signing (Ed25519), model catalog, MCP/A2A config types |
-| `openfang-memory` | SQLite-backed memory substrate with vector embeddings, usage tracking, canonical sessions, JSONL mirroring |
-| `openfang-runtime` | Agent loop, 3 LLM drivers (Anthropic/Gemini/OpenAI-compat), 38 built-in tools, WASM sandbox, MCP client/server, A2A protocol |
-| `openfang-hands` | Hands system (curated autonomous capability packages), 7 bundled hands |
-| `openfang-extensions` | Integration registry (25 bundled MCP templates), AES-256-GCM credential vault, OAuth2 PKCE |
-| `openfang-kernel` | Assembles all subsystems: workflow engine, RBAC auth, heartbeat monitor, cron scheduler, config hot-reload |
-| `openfang-api` | REST/WS/SSE API (Axum 0.8), 76 endpoints, 14-page SPA dashboard, OpenAI-compatible `/v1/chat/completions` |
-| `openfang-channels` | 40 channel adapters (Telegram, Discord, Slack, WhatsApp, and 36 more), formatter, rate limiter |
-| `openfang-wire` | OFP (OpenFang Protocol): TCP P2P networking with HMAC-SHA256 mutual authentication |
-| `openfang-cli` | Clap CLI with daemon auto-detect (HTTP mode vs. in-process fallback), MCP server |
-| `openfang-migrate` | Migration engine for importing from OpenClaw (and future frameworks) |
-| `openfang-skills` | Skill system: 60 bundled skills, FangHub marketplace, OpenClaw compatibility, prompt injection scanning |
-| `openfang-desktop` | Tauri 2.0 native desktop app (WebView + system tray + single-instance + notifications) |
+| ------- | ------ |
+| `ochi-types` | Shared type definitions, taint tracking, manifest signing (Ed25519), model catalog, MCP/A2A config types |
+| `ochi-memory` | SQLite-backed memory substrate with vector embeddings, usage tracking, canonical sessions, JSONL mirroring |
+| `ochi-runtime` | Agent loop, 3 LLM drivers (Anthropic/Gemini/OpenAI-compat), 38 built-in tools, WASM sandbox, MCP client/server, A2A protocol |
+| `ochi-hands` | Hands system (curated autonomous capability packages), 7 bundled hands |
+| `ochi-extensions` | Integration registry (25 bundled MCP templates), AES-256-GCM credential vault, OAuth2 PKCE |
+| `ochi-kernel` | Assembles all subsystems: workflow engine, RBAC auth, heartbeat monitor, cron scheduler, config hot-reload |
+| `ochi-api` | REST/WS/SSE API (Axum 0.8), 76 endpoints, 14-page SPA dashboard, OpenAI-compatible `/v1/chat/completions` |
+| `ochi-channels` | 40 channel adapters (Telegram, Discord, Slack, WhatsApp, and 36 more), formatter, rate limiter |
+| `ochi-wire` | OFP (Ochi Protocol): TCP P2P networking with HMAC-SHA256 mutual authentication |
+| `ochi-cli` | Clap CLI with daemon auto-detect (HTTP mode vs. in-process fallback), MCP server |
+| `ochi-migrate` | Migration engine for importing from OpenClaw (and future frameworks) |
+| `ochi-skills` | Skill system: 60 bundled skills, FangHub marketplace, OpenClaw compatibility, prompt injection scanning |
+| `ochi-desktop` | Tauri 2.0 native desktop app (WebView + system tray + single-instance + notifications) |
 | `xtask` | Build automation tasks |
 
 ### Key Architectural Patterns
 
-- **`KernelHandle` trait**: Defined in `openfang-runtime`, implemented on `OpenFangKernel` in `openfang-kernel`. This avoids circular crate dependencies while enabling inter-agent tools.
+- **`KernelHandle` trait**: Defined in `ochi-runtime`, implemented on `OchiKernel` in `ochi-kernel`. This avoids circular crate dependencies while enabling inter-agent tools.
 - **Shared memory**: A fixed UUID (`AgentId(Uuid::from_bytes([0..0, 0x01]))`) provides a cross-agent KV namespace.
-- **Daemon detection**: The CLI checks `~/.openfang/daemon.json` and pings the health endpoint. If a daemon is running, commands use HTTP; otherwise, they boot an in-process kernel.
+- **Daemon detection**: The CLI checks `~/.ochi/daemon.json` and pings the health endpoint. If a daemon is running, commands use HTTP; otherwise, they boot an in-process kernel.
 - **Capability-based security**: Every agent operation is checked against the agent's granted capabilities before execution.
 
 ---
@@ -149,21 +149,21 @@ OpenFang is organized as a Cargo workspace with 14 crates:
 
 Agent templates live in the `agents/` directory. Each template is a folder containing an `agent.toml` manifest.
 
-### Steps
+### Steps to Add a Template
 
 1. Create a new directory under `agents/`:
 
-```
+```text
 agents/my-agent/agent.toml
 ```
 
-2. Write the manifest:
+1. Write the manifest:
 
 ```toml
 name = "my-agent"
 version = "0.1.0"
 description = "A brief description of what this agent does."
-author = "openfang"
+author = "ochi"
 module = "builtin:chat"
 tags = ["category"]
 
@@ -181,7 +181,7 @@ memory_write = ["self.*"]
 agent_spawn = false
 ```
 
-3. Include a system prompt if needed by adding it to the `[model]` section:
+1. Include a system prompt if needed by adding it to the `[model]` section:
 
 ```toml
 [model]
@@ -192,23 +192,23 @@ You are a specialized agent that...
 """
 ```
 
-4. Test by spawning:
+1. Test by spawning:
 
 ```bash
-openfang agent spawn agents/my-agent/agent.toml
+ochi agent spawn agents/my-agent/agent.toml
 ```
 
-5. Submit a PR with the new template.
+1. Submit a PR with the new template.
 
 ---
 
 ## How to Add a New Channel Adapter
 
-Channel adapters live in `crates/openfang-channels/src/`. Each adapter implements the `ChannelAdapter` trait.
+Channel adapters live in `crates/ochi-channels/src/`. Each adapter implements the `ChannelAdapter` trait.
 
-### Steps
+### Steps to Add an Adapter
 
-1. Create a new file: `crates/openfang-channels/src/myplatform.rs`
+1. Create a new file: `crates/ochi-channels/src/myplatform.rs`
 
 2. Implement the `ChannelAdapter` trait (defined in `types.rs`):
 
@@ -242,27 +242,27 @@ impl ChannelAdapter for MyPlatformAdapter {
 }
 ```
 
-3. Register the module in `crates/openfang-channels/src/lib.rs`:
+1. Register the module in `crates/ochi-channels/src/lib.rs`:
 
 ```rust
 pub mod myplatform;
 ```
 
-4. Wire it up in the channel bridge (`crates/openfang-api/src/channel_bridge.rs`) so the daemon starts it alongside other adapters.
+1. Wire it up in the channel bridge (`crates/ochi-api/src/channel_bridge.rs`) so the daemon starts it alongside other adapters.
 
-5. Add configuration support in `openfang-types` config structs (add a `[channels.myplatform]` section).
+1. Add configuration support in `ochi-types` config structs (add a `[channels.myplatform]` section).
 
-6. Add CLI setup wizard instructions in `crates/openfang-cli/src/main.rs` under `cmd_channel_setup`.
+1. Add CLI setup wizard instructions in `crates/ochi-cli/src/main.rs` under `cmd_channel_setup`.
 
-7. Write tests and submit a PR.
+1. Write tests and submit a PR.
 
 ---
 
 ## How to Add a New Tool
 
-Built-in tools are defined in `crates/openfang-runtime/src/tool_runner.rs`.
+Built-in tools are defined in `crates/ochi-runtime/src/tool_runner.rs`.
 
-### Steps
+### Steps to Add a Tool
 
 1. Add the tool implementation function:
 
@@ -277,13 +277,13 @@ async fn tool_my_tool(input: &serde_json::Value) -> Result<String, String> {
 }
 ```
 
-2. Register it in the `execute_tool` match block:
+1. Register it in the `execute_tool` match block:
 
 ```rust
 "my_tool" => tool_my_tool(input).await,
 ```
 
-3. Add the tool definition to `builtin_tool_definitions()`:
+1. Add the tool definition to `builtin_tool_definitions()`:
 
 ```rust
 ToolDefinition {
@@ -302,16 +302,16 @@ ToolDefinition {
 },
 ```
 
-4. Agents that need the tool must list it in their manifest:
+1. Agents that need the tool must list it in their manifest:
 
 ```toml
 [capabilities]
 tools = ["my_tool"]
 ```
 
-5. Write tests for the tool function.
+1. Write tests for the tool function.
 
-6. If the tool requires kernel access (e.g., inter-agent communication), accept `Option<&Arc<dyn KernelHandle>>` and handle the `None` case gracefully.
+1. If the tool requires kernel access (e.g., inter-agent communication), accept `Option<&Arc<dyn KernelHandle>>` and handle the `None` case gracefully.
 
 ---
 
@@ -338,7 +338,7 @@ tools = ["my_tool"]
 
 Use clear, imperative-mood messages:
 
-```
+```text
 Add Matrix channel adapter with E2EE support
 Fix session restore crash on kernel reboot
 Refactor capability manager to use DashMap
@@ -356,6 +356,6 @@ Please report unacceptable behavior to the maintainers.
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/RightNow-AI/openfang/discussions) for questions.
-- Open a [GitHub Issue](https://github.com/RightNow-AI/openfang/issues) for bugs or feature requests.
+- Open a [GitHub Discussion](https://github.com/lathaihoangmedia-lgtm/Ochi/discussions) for questions.
+- Open a [GitHub Issue](https://github.com/lathaihoangmedia-lgtm/Ochi/issues) for bugs or feature requests.
 - Check the [docs/](docs/) directory for detailed guides on specific topics.

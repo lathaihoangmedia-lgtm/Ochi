@@ -1,6 +1,6 @@
 # LLM Providers Guide
 
-OpenFang ships with a comprehensive model catalog covering **3 native LLM drivers**, **20 providers**, **51 builtin models**, and **23 aliases**. Every provider uses one of three battle-tested drivers: the native **Anthropic** driver, the native **Gemini** driver, or the universal **OpenAI-compatible** driver. This guide is the single source of truth for configuring, selecting, and managing LLM providers in OpenFang.
+Ochi ships with a comprehensive model catalog covering **3 native LLM drivers**, **20 providers**, **51 builtin models**, and **23 aliases**. Every provider uses one of three battle-tested drivers: the native **Anthropic** driver, the native **Gemini** driver, or the universal **OpenAI-compatible** driver. This guide is the single source of truth for configuring, selecting, and managing LLM providers in Ochi.
 
 ---
 
@@ -34,7 +34,7 @@ export ANTHROPIC_API_KEY="your-key"
 export OPENAI_API_KEY="your-key"
 ```
 
-OpenFang auto-detects which providers have API keys configured at boot. Any model whose provider is authenticated becomes immediately available. Local providers (Ollama, vLLM, LM Studio) require no key at all.
+Ochi auto-detects which providers have API keys configured at boot. Any model whose provider is authenticated becomes immediately available. Local providers (Ollama, vLLM, LM Studio) require no key at all.
 
 For Gemini specifically, either `GEMINI_API_KEY` or `GOOGLE_API_KEY` will work.
 
@@ -299,7 +299,7 @@ For Gemini specifically, either `GEMINI_API_KEY` or `GOOGLE_API_KEY` will work.
 3. Start the server: `ollama serve`
 4. No env var needed -- Ollama is always available
 
-**Notes:** OpenFang auto-discovers models from a running Ollama instance and merges them into the catalog with `Local` tier and zero cost. Any model you pull becomes usable immediately.
+**Notes:** Ochi auto-discovers models from a running Ollama instance and merges them into the catalog with `Local` tier and zero cost. Any model you pull becomes usable immediately.
 
 ---
 
@@ -437,13 +437,23 @@ For Gemini specifically, either `GEMINI_API_KEY` or `GOOGLE_API_KEY` will work.
 | **Models** | 2 |
 
 **Available Models:**
-- `cerebras/llama3.3-70b` (Balanced)
-- `cerebras/llama3.1-8b` (Fast)
+- `cerebras/llama-3.3-70b` (Balanced)
+- `cerebras/llama-3.1-8b` (Fast)
+- `cerebras/llama-4-scout-17b` (Smart)
+- `cerebras/qwen-2.5-32b` (Balanced)
 
 **Setup:**
 1. Sign up at [cloud.cerebras.ai](https://cloud.cerebras.ai)
 2. Create an API key
-3. `export CEREBRAS_API_KEY="..."`
+3. `export CEREBRAS_API_KEY="csk-..."`
+
+**Using Cerebras as a fallback provider** (recommended for high availability):
+```toml
+[[fallback_providers]]
+provider = "cerebras"
+model = "llama-3.3-70b"
+api_key_env = "CEREBRAS_API_KEY"
+```
 
 **Notes:** Cerebras runs inference on wafer-scale chips. Ultra-fast and ultra-cheap ($0.06/M tokens for both input and output on the 70B model).
 
@@ -587,8 +597,8 @@ The complete catalog of all 51 builtin models, sorted by provider. Pricing is pe
 | 37 | `command-r-plus` | Command R+ | cohere | Smart | 128,000 | 4,096 | $2.50 | $10.00 | Yes | No |
 | 38 | `command-r` | Command R | cohere | Balanced | 128,000 | 4,096 | $0.15 | $0.60 | Yes | No |
 | 39 | `jamba-1.5-large` | Jamba 1.5 Large | ai21 | Smart | 256,000 | 4,096 | $2.00 | $8.00 | Yes | No |
-| 40 | `cerebras/llama3.3-70b` | Llama 3.3 70B (Cerebras) | cerebras | Balanced | 128,000 | 8,192 | $0.06 | $0.06 | Yes | No |
-| 41 | `cerebras/llama3.1-8b` | Llama 3.1 8B (Cerebras) | cerebras | Fast | 128,000 | 8,192 | $0.01 | $0.01 | Yes | No |
+| 40 | `cerebras/llama-3.3-70b` | Llama 3.3 70B (Cerebras) | cerebras | Balanced | 128,000 | 8,192 | $0.06 | $0.06 | Yes | No |
+| 41 | `cerebras/llama-3.1-8b` | Llama 3.1 8B (Cerebras) | cerebras | Fast | 128,000 | 8,192 | $0.01 | $0.01 | Yes | No |
 | 42 | `sambanova/llama-3.3-70b` | Llama 3.3 70B (SambaNova) | sambanova | Balanced | 128,000 | 8,192 | $0.06 | $0.06 | Yes | No |
 | 43 | `grok-2` | Grok 2 | xai | Smart | 131,072 | 32,768 | $2.00 | $10.00 | Yes | Yes |
 | 44 | `grok-2-mini` | Grok 2 Mini | xai | Fast | 131,072 | 32,768 | $0.30 | $0.50 | Yes | No |
@@ -683,7 +693,7 @@ When `pinned_model` is set on an agent manifest, that agent always uses the spec
 
 ## Model Routing
 
-OpenFang can automatically select the cheapest model capable of handling each query. This is configured per-agent via `ModelRoutingConfig`.
+Ochi can automatically select the cheapest model capable of handling each query. This is configured per-agent via `ModelRoutingConfig`.
 
 ### How It Works
 
@@ -729,7 +739,7 @@ The router also integrates with the model catalog:
 
 ## Cost Tracking
 
-OpenFang tracks the cost of every LLM call and can enforce per-agent spending quotas.
+Ochi tracks the cost of every LLM call and can enforce per-agent spending quotas.
 
 ### Per-Response Cost Estimation
 

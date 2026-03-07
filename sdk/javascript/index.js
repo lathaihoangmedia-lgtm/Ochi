@@ -17,18 +17,18 @@
 
 "use strict";
 
-class OpenFangError extends Error {
+class OchiError extends Error {
   constructor(message, status, body) {
     super(message);
-    this.name = "OpenFangError";
+    this.name = "OchiError";
     this.status = status;
     this.body = body;
   }
 }
 
-class OpenFang {
+class Ochi {
   /**
-   * @param {string} baseUrl - OpenFang server URL (e.g. "http://localhost:3000")
+   * @param {string} baseUrl - Ochi server URL (e.g. "http://localhost:3000")
    * @param {object} [opts]
    * @param {Record<string, string>} [opts.headers] - Extra headers for every request
    */
@@ -58,7 +58,7 @@ class OpenFang {
     var res = await fetch(url, init);
     if (!res.ok) {
       var text = await res.text().catch(function () { return ""; });
-      throw new OpenFangError("HTTP " + res.status + ": " + text, res.status, text);
+      throw new OchiError("HTTP " + res.status + ": " + text, res.status, text);
     }
     var ct = res.headers.get("content-type") || "";
     if (ct.includes("application/json")) {
@@ -78,7 +78,7 @@ class OpenFang {
     var res = await fetch(url, init);
     if (!res.ok) {
       var text = await res.text().catch(function () { return ""; });
-      throw new OpenFangError("HTTP " + res.status + ": " + text, res.status, text);
+      throw new OchiError("HTTP " + res.status + ": " + text, res.status, text);
     }
     var reader = res.body.getReader();
     var decoder = new TextDecoder();
@@ -255,7 +255,7 @@ class AgentResource {
     var form = new FormData();
     form.append("file", file, filename);
     var res = await fetch(url, { method: "POST", body: form });
-    if (!res.ok) throw new OpenFangError("Upload failed: " + res.status, res.status);
+    if (!res.ok) throw new OchiError("Upload failed: " + res.status, res.status);
     return res.json();
   }
 
@@ -476,11 +476,13 @@ class ScheduleResource {
 
 // ── Exports ─────────────────────────────────────────────────────
 
-class Ochi extends OpenFang {}
+// Ochi is the primary class (Ochi is an alias below for backward compat)
 
 module.exports = {
   Ochi: Ochi,
-  OchiError: OpenFangError,
-  OpenFang: OpenFang, // backward compatibility
-  OpenFangError: OpenFangError // backward compatibility
+  OchiError: OchiError,
+  Ochi: Ochi,
+  OchiError: OchiError,
+  Ochi: Ochi, // backward compatibility alias
+  OchiError: OchiError // backward compatibility alias
 };

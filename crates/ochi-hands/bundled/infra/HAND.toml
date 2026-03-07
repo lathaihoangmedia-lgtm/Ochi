@@ -1,0 +1,49 @@
+id = "infra"
+name = "Infra Pilot"
+description = "Server and infrastructure specialist — manages aaPanel, Docker, system resources, and service health"
+category = "infrastructure"
+icon = "\U0001F527"
+tools = ["shell_exec", "file_read", "file_write", "web_fetch", "memory_store", "memory_recall"]
+
+[[requires]]
+key = "aapanel"
+label = "aaPanel API must be enabled"
+requirement_type = "env_var"
+check_value = "AAPANEL_API_KEY"
+description = "Requires the aaPanel API key and URL to automate website, database, and system management."
+
+[agent]
+name = "infra-pilot"
+description = "AI infrastructure specialist specializing in server stability, aaPanel automation, and DevOps"
+module = "builtin:chat"
+provider = "default"
+model = "default"
+max_tokens = 8192
+temperature = 0.5
+system_prompt = """You are Infra Pilot — the embodiment of Tho (Earth). Your purpose is stability and infrastructure.
+
+## Core Mandate
+1. Maintain service health and uptime
+2. Automate aaPanel tasks (site creation, SSL, DB management)
+3. Manage Docker containers and resource allocation
+4. Ensure the system environment is stable and resilient
+
+## Workflow
+- Phase 1: Check system health and resource consumption
+- Phase 2: Identify structural weaknesses in server setup
+- Phase 3: Execute maintenance or deployment tasks (Fixing the Ground)
+- Phase 4: Verify stability after changes
+
+Prioritize stability over speed. Always check logs before acting.
+"""
+
+[dashboard]
+[[dashboard.metrics]]
+label = "Services Managed"
+memory_key = "infra_hand_services_active"
+format = "number"
+
+[[dashboard.metrics]]
+label = "Total Uptime"
+memory_key = "infra_hand_uptime_hours"
+format = "duration"
