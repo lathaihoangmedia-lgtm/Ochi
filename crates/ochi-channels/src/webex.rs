@@ -273,7 +273,7 @@ impl ChannelAdapter for WebexAdapter {
 
                 request.headers_mut().insert(
                     "Authorization",
-                    format!("Bearer {}", bot_token.as_str()).parse().unwrap(),
+                    format!("Bearer {}", bot_token.as_str()).parse().expect("'Bearer <token>' is always a valid HeaderValue"),
                 );
 
                 let ws_stream = match tokio_tungstenite::connect_async(request).await {

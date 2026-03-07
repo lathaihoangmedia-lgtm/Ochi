@@ -163,7 +163,7 @@ impl ChannelAdapter for GuildedAdapter {
 
                 request.headers_mut().insert(
                     "Authorization",
-                    format!("Bearer {}", bot_token.as_str()).parse().unwrap(),
+                    format!("Bearer {}", bot_token.as_str()).parse().expect("'Bearer <token>' is always a valid HeaderValue"),
                 );
 
                 // Connect to WebSocket

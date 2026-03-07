@@ -1,7 +1,8 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 07-03-2026
-> **Commit mới nhất:** AGENT-01 (5 Địa Sát agents), AGENT-02 (2 Thiên Cương agents), DEBT-01-M (sdk-migration.md), DEBT-01-N (legacy deprecation warnings), DEBT-02-A (production unwrap fix in kernel), DEBT-02-B/C (ochi-runtime unwraps — tất cả là infallible hoặc trong test blocks), DEBT-02-D (ochi-api: sửa serde_json unwrap + tất cả còn lại là infallible), HANDS-FIX (thêm Infrastructure category, fix test counts 7→9)
+> **Cập nhật lần cuối:** 07-03-2026
+> **Commit mới nhất:** AGENT-03 (5 Địa Sát: DS-WitAI-Integrator, DS-ZaloAI-Integrator, DS-Image-Processor, DS-aaPanel-Controller, DS-SQL-Expert), AGENT-04 (2 Thiên Cương: TC-Architect, TC-Strategy-Planner), DEBT-02-E (ochi-channels: 7 infallible unwrap → .expect()), DEBT-02-F (ochi-memory: audit hoàn tất — tất cả unwrap trong test), DEBT-02-G (ochi-migrate: audit hoàn tất — tất cả unwrap trong test), DEBT-02-H (ochi-types-legacy: 0 unwrap), DEBT-02-I (ochi-skills: marketplace đã có .expect(); ochi-extensions: vault.rs sửa .expect(); ochi-hands: 0 unwrap), DEBT-02-J (ochi-wire: peer.rs .expect(); ochi-cli: fix fs::write/create_dir_all + .expect() cho infallible)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -23,7 +24,7 @@
 | **Launch Roadmap** | ⏳ **Đang tiến hành** | Hoàn thành 17/18 hạng mục trong 4 sprints. Chỉ còn **2.4 Install script domain** (hạ tầng) là PENDING. |
 | **Workspace** | Ổn định | 14 crates `ochi-*` đã được đổi tên và build thành công (bao gồm `ochi-desktop`). |
 | **DEBT-01: Đổi tên triệt để** | ✅ **Hoàn tất** | Đã xóa hoàn toàn mọi tham chiếu `openfang`/`OpenFang`/`OPENFANG` trong toàn bộ codebase (`.rs`, `.toml`, `.js`, `.py`). Chỉ còn `ochi-types-legacy/Cargo.toml` giữ `name = "openfang-types"` làm backward-compat shim. `cargo check --workspace --lib` PASS. |
-| **DEBT-02: Xử lý `unwrap()`/`expect()`** | 🔴 **Cần làm** | ~1,500 lệnh `.unwrap()` và 80 lệnh `.expect()` trong toàn workspace. Nguy cơ `panic` trong production cao. |
+| **DEBT-02: Xử lý `unwrap()`/`expect()`** | ✅ **Hoàn tất** | Toàn bộ production unwrap đã được audit và fix/document qua DEBT-02-E đến DEBT-02-J. |
 | **IMPROVE-01: CI/CD Quality Gates** | ✅ **Hoàn tất** | Nâng cấp workflow CI để chạy `cargo check --workspace`, `cargo test --workspace`, và `cargo clippy --workspace -- -D warnings` trên mỗi PR. |
 | **IMPROVE-03: Giảm kích thước Repo** | ✅ **Hoàn tất** | Xóa ~4.1MB ảnh logo cũ (`openfang-*`), gỡ schema Tauri tự sinh, cập nhật `.gitignore` + thêm `.gitattributes`. |
 
@@ -57,6 +58,8 @@ Triển khai các agent chuyên trách để mở rộng khả năng của hệ 
 | :--- | :--- | :--- | :--- |
 | `AGENT-01` | **Triển khai 5 Địa Sát đầu tiên** | ✅ **Hoàn tất** | `agents/dia_sat/ds-web-scraper/`, `agents/dia_sat/ds-file-manager/`, `agents/dia_sat/ds-git-operator/`, `agents/dia_sat/ds-shell-scripting/`, `agents/dia_sat/ds-docker-manager/` — Mỗi agent có `agent.toml` đầy đủ với system prompt, capabilities, fallback models. |
 | `AGENT-02` | **Triển khai 2 Thiên Cương đầu tiên** | ✅ **Hoàn tất** | `agents/thien_cuong/tc-task-decomposer/`, `agents/thien_cuong/tc-quality-assurance/` — TC-Task-Decomposer phân rã nhiệm vụ và phân công cho Địa Sát; TC-Quality-Assurance review code và enforce standards. |
+| `AGENT-03` | **Triển khai 5 Địa Sát tiếp theo** | ✅ **Hoàn tất** | `agents/dia_sat/ds-witai-integrator/`, `agents/dia_sat/ds-zaloai-integrator/`, `agents/dia_sat/ds-image-processor/`, `agents/dia_sat/ds-aapanel-controller/`, `agents/dia_sat/ds-sql-expert/` — NLP Vietnamese (Wit.ai/Zalo AI), xử lý ảnh, quản lý hạ tầng aaPanel, và chuyên gia SQL. |
+| `AGENT-04` | **Triển khai 2 Thiên Cương tiếp theo** | ✅ **Hoàn tất** | `agents/thien_cuong/tc-architect/`, `agents/thien_cuong/tc-strategy-planner/` — TC-Architect thiết kế cấu trúc hệ thống; TC-Strategy-Planner lập chiến lược phát triển dài hạn. |
 
 ## 4. Hướng dẫn Onboarding cho AI mới
 
@@ -226,12 +229,12 @@ Nhiệm vụ DEBT-01 được coi là **HOÀN TẤT** khi:
 | `DEBT-02-B` | **`crates/ochi-runtime/`** (phần `agent_loop.rs`, `tool_runner.rs`, `compactor.rs`) | ~100 `unwrap` (3 files nặng nhất) | ✅ **Hoàn tất** — Tất cả `.unwrap()` trong production code đều là infallible (after guard checks, LazyLock regex, iterator với length check) hoặc nằm trong `#[cfg(test)]` blocks. | 🔴 Cao nhất |
 | `DEBT-02-C` | **`crates/ochi-runtime/`** (phần còn lại) | ~155 `unwrap` + 16 `expect` | ✅ **Hoàn tất** — Đã audit toàn bộ: `apply_patch.rs` (after `starts_with` guards), `browser.rs` (OnceLock get after set), `compactor.rs` (infallible after len check), `graceful_shutdown.rs` (mutex với `unwrap_or_else`), `reply_directives.rs` (after peek), `tool_runner.rs` (LazyLock regex). | 🟠 Cao |
 | `DEBT-02-D` | **`crates/ochi-api/`** | ~196 `unwrap` + 16 `expect` | ✅ **Hoàn tất** — Đã sửa `routes.rs:9164`: thay `serde_json::to_value(resp).unwrap()` → `Json(resp)` trực tiếp. Các `unwrap()` còn lại đều infallible (literal string header parse, NonZeroU32 với literal, URL parse với literal). | 🟠 Cao |
-| `DEBT-02-E` | **`crates/ochi-channels/`** | ~157 `unwrap` + 3 `expect` | ⏳ **PENDING** | 🟡 Trung bình |
-| `DEBT-02-F` | **`crates/ochi-memory/`** | ~125 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
-| `DEBT-02-G` | **`crates/ochi-migrate/`** | ~137 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
-| `DEBT-02-H` | **`crates/ochi-types-legacy/`** | ~127 `unwrap` | ⏳ **PENDING** | 🟡 Trung bình |
-| `DEBT-02-I` | **`crates/ochi-skills/`, `ochi-extensions/`, `ochi-hands/`** | ~84 + 76 + 41 `unwrap` | ⏳ **PENDING** | 🟢 Thấp |
-| `DEBT-02-J` | **`crates/ochi-cli/`, `ochi-wire/`, `ochi-desktop/`, `xtask/`** | ~51 + 42 + 7 `expect` | ⏳ **PENDING** | 🟢 Thấp |
+| `DEBT-02-E` | **`crates/ochi-channels/`** | ~157 `unwrap` + 3 `expect` | ✅ **Hoàn tất** — Audit hoàn tất: 9 production unwrap xác định. Đã sửa 7: `discord.rs` (session_id guarded by is_some(), serde_json::Value infallible), `guilded.rs`/`webex.rs` (Bearer token header infallible), `mattermost.rs`/`slack.rs` (serde_json::Value infallible). 2 còn lại (`webhook.rs`, `dingtalk.rs`) đã có `.expect("HMAC accepts any key size")` sẵn. | 🟡 Trung bình |
+| `DEBT-02-F` | **`crates/ochi-memory/`** | ~125 `unwrap` | ✅ **Hoàn tất** — Audit hoàn tất: 0 production unwrap. Toàn bộ `.unwrap()` đều nằm trong `#[cfg(test)]` blocks (chấp nhận được). | 🟡 Trung bình |
+| `DEBT-02-G` | **`crates/ochi-migrate/`** | ~137 `unwrap` | ✅ **Hoàn tất** — Audit hoàn tất: 0 production unwrap. Toàn bộ `.unwrap()` đều nằm trong `#[cfg(test)]` blocks (chấp nhận được). | 🟡 Trung bình |
+| `DEBT-02-H` | **`crates/ochi-types-legacy/`** | ~127 `unwrap` | ✅ **Hoàn tất** — 0 `.unwrap()` trong toàn crate. Đã clean. | 🟡 Trung bình |
+| `DEBT-02-I` | **`crates/ochi-skills/`, `ochi-extensions/`, `ochi-hands/`** | ~84 + 76 + 41 `unwrap` | ✅ **Hoàn tất** — `ochi-skills`: `marketplace.rs` đã có `.expect("Failed to build HTTP client")` sẵn. `ochi-extensions`: sửa `vault.rs:437` `keyring_path.parent().unwrap()` → `.expect("keyring path always has a parent directory")`. `ochi-hands`: 0 production unwrap. | 🟢 Thấp |
+| `DEBT-02-J` | **`crates/ochi-cli/`, `ochi-wire/`, `ochi-desktop/`, `xtask/`** | ~51 + 42 + 7 `expect` | ✅ **Hoàn tất** — `ochi-wire`: `peer.rs` default `parse().unwrap()` → `.expect("'127.0.0.1:0' is a valid socket address")`. `ochi-cli`: `print_help().unwrap()` → `.expect()`, `Runtime::new().unwrap()` → `.expect()`, `stdout().flush().unwrap()` → `.expect()`, `fs::write().unwrap()` → `unwrap_or_else` với `eprintln!` + `process::exit(1)`, `create_dir_all().unwrap()` → `unwrap_or_else`. | 🟢 Thấp |
 
 #### Quy trình Thực hiện cho mỗi Sub-task
 

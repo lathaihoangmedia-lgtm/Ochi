@@ -244,7 +244,7 @@ impl ChannelAdapter for DiscordAdapter {
                             let has_seq = sequence.read().await.is_some();
 
                             let gateway_msg = if has_session && has_seq {
-                                let sid = session_id_store.read().await.clone().unwrap();
+                                let sid = session_id_store.read().await.clone().expect("session_id confirmed is_some() above");
                                 let seq = *sequence.read().await;
                                 info!("Discord: sending RESUME (session={sid})");
                                 serde_json::json!({
@@ -273,7 +273,7 @@ impl ChannelAdapter for DiscordAdapter {
 
                             if let Err(e) = ws_tx
                                 .send(tokio_tungstenite::tungstenite::Message::Text(
-                                    serde_json::to_string(&gateway_msg).unwrap(),
+                                    serde_json::to_string(&gateway_msg).expect("serde_json::Value serialization is infallible"),
                                 ))
                                 .await
                             {
@@ -336,7 +336,7 @@ impl ChannelAdapter for DiscordAdapter {
                             let hb = serde_json::json!({ "op": opcode::HEARTBEAT, "d": seq });
                             let _ = ws_tx
                                 .send(tokio_tungstenite::tungstenite::Message::Text(
-                                    serde_json::to_string(&hb).unwrap(),
+                                    serde_json::to_string(&hb).expect("serde_json::Value serialization is infallible"),
                                 ))
                                 .await;
                         }

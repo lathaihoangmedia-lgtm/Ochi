@@ -290,7 +290,7 @@ impl ChannelAdapter for MattermostAdapter {
 
                 if let Err(e) = ws_tx
                     .send(tokio_tungstenite::tungstenite::Message::Text(
-                        serde_json::to_string(&auth_msg).unwrap(),
+                        serde_json::to_string(&auth_msg).expect("serde_json::Value serialization is infallible"),
                     ))
                     .await
                 {
