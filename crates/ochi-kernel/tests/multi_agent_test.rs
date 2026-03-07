@@ -2,9 +2,9 @@
 //!
 //! Run with: GROQ_API_KEY=gsk_... cargo test -p ochi-kernel --test multi_agent_test -- --nocapture
 
-use ochi_kernel::OpenFangKernel;
-use openfang_types::agent::AgentManifest;
-use openfang_types::config::{DefaultModelConfig, KernelConfig};
+use ochi_kernel::OchiKernel;
+use ochi_types::agent::AgentManifest;
+use ochi_types::config::{DefaultModelConfig, KernelConfig};
 
 fn test_config() -> KernelConfig {
     let tmp = std::env::temp_dir().join("ochi-multi-agent-test");
@@ -35,7 +35,7 @@ async fn test_six_agent_fleet() {
         return;
     }
 
-    let kernel = OpenFangKernel::boot_with_config(test_config()).expect("Kernel should boot");
+    let kernel = OchiKernel::boot_with_config(test_config()).expect("Kernel should boot");
 
     // Define all 6 agents with different roles and models
     let agents = vec![
@@ -137,7 +137,7 @@ memory_write = ["self.*"]
     ];
 
     println!("\n{}", "=".repeat(60));
-    println!("  OPENFANG MULTI-AGENT FLEET TEST");
+    println!("  OCHI MULTI-AGENT FLEET TEST");
     println!("  Spawning {} agents...", agents.len());
     println!("{}\n", "=".repeat(60));
 

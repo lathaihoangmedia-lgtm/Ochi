@@ -1,4 +1,4 @@
-// OpenFang Overview Dashboard — Landing page with system stats + provider status
+// Ochi Overview Dashboard — Landing page with system stats + provider status
 'use strict';
 
 function overviewPage() {

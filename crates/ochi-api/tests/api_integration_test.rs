@@ -1,4 +1,4 @@
-//! Real HTTP integration tests for the OpenFang API.
+//! Real HTTP integration tests for the Ochi API.
 //!
 //! These tests boot a real kernel, start a real axum HTTP server on a random
 //! port, and hit actual endpoints with reqwest.  No mocking.
@@ -11,8 +11,8 @@ use axum::Router;
 use ochi_api::middleware;
 use ochi_api::routes::{self, AppState};
 use ochi_api::ws;
-use ochi_kernel::OpenFangKernel;
-use openfang_types::config::{DefaultModelConfig, KernelConfig};
+use ochi_kernel::OchiKernel;
+use ochi_types::config::{DefaultModelConfig, KernelConfig};
 use std::sync::Arc;
 use std::time::Instant;
 use tower_http::cors::CorsLayer;
@@ -65,7 +65,7 @@ async fn start_test_server_with_provider(
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = OchiKernel::boot_with_config(config).expect("Kernel should boot");
     let kernel = Arc::new(kernel);
     kernel.set_self_handle();
 
@@ -691,7 +691,7 @@ async fn start_test_server_with_auth(api_key: &str) -> TestServer {
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = OchiKernel::boot_with_config(config).expect("Kernel should boot");
     let kernel = Arc::new(kernel);
     kernel.set_self_handle();
 

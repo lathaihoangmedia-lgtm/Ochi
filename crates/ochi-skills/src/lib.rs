@@ -1,4 +1,4 @@
-//! Skill system for OpenFang.
+//! Skill system for Ochi.
 //!
 //! Skills are pluggable tool bundles that extend agent capabilities.
 //! They can be:
@@ -65,9 +65,9 @@ pub enum SkillRuntime {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum SkillSource {
-    /// Built into OpenFang or manually installed.
+    /// Built into Ochi or manually installed.
     Native,
-    /// Bundled at compile time (ships with OpenFang binary).
+    /// Bundled at compile time (ships with Ochi binary).
     Bundled,
     /// Converted from OpenClaw format.
     OpenClaw,

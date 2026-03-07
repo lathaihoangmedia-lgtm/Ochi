@@ -15,7 +15,7 @@ pub struct AgentTemplate {
 /// Discover template directories. Checks:
 /// 1. The repo `agents/` dir (for dev builds)
 /// 2. `~/.ochi/agents/` (installed templates)
-/// 3. `OPENFANG_AGENTS_DIR` env var
+/// 3. `OCHI_AGENTS_DIR` env var
 pub fn discover_template_dirs() -> Vec<PathBuf> {
     let mut dirs = Vec::new();
 
@@ -42,7 +42,7 @@ pub fn discover_template_dirs() -> Vec<PathBuf> {
     }
 
     // Environment override
-    if let Ok(env_dir) = std::env::var("OPENFANG_AGENTS_DIR") {
+    if let Ok(env_dir) = std::env::var("OCHI_AGENTS_DIR") {
         let p = PathBuf::from(env_dir);
         if p.is_dir() && !dirs.contains(&p) {
             dirs.push(p);

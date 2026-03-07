@@ -33,8 +33,8 @@ def read_input() -> Dict[str, Any]:
     line = sys.stdin.readline().strip()
     if not line:
         # Fallback: check environment variables
-        agent_id = os.environ.get("OCHI_AGENT_ID", os.environ.get("OPENFANG_AGENT_ID", ""))
-        message = os.environ.get("OCHI_MESSAGE", os.environ.get("OPENFANG_MESSAGE", ""))
+        agent_id = os.environ.get("OCHI_AGENT_ID", os.environ.get("OCHI_AGENT_ID", ""))
+        message = os.environ.get("OCHI_MESSAGE", os.environ.get("OCHI_MESSAGE", ""))
         return {
             "type": "message",
             "agent_id": agent_id,

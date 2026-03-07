@@ -26,13 +26,13 @@ use ochi_runtime::python_runtime::{self, PythonConfig};
 use ochi_runtime::routing::ModelRouter;
 use ochi_runtime::sandbox::{SandboxConfig, WasmSandbox};
 use ochi_runtime::tool_runner::builtin_tool_definitions;
-use openfang_types::agent::*;
-use openfang_types::capability::Capability;
-use openfang_types::config::KernelConfig;
-use openfang_types::error::OpenFangError;
-use openfang_types::event::*;
-use openfang_types::memory::Memory;
-use openfang_types::tool::ToolDefinition;
+use ochi_types::agent::*;
+use ochi_types::capability::Capability;
+use ochi_types::config::KernelConfig;
+use ochi_types::error::OchiError;
+use ochi_types::event::*;
+use ochi_types::memory::Memory;
+use ochi_types::tool::ToolDefinition;
 
 use async_trait::async_trait;
 use std::path::{Path, PathBuf};
@@ -40,7 +40,7 @@ use std::sync::{Arc, OnceLock, Weak};
 use tracing::{debug, info, warn};
 
 /// The main Ochi kernel — coordinates all subsystems.
-pub struct OpenFangKernel {
+pub struct OchiKernel {
     /// Ochi Grand Agent orchestrator.
     pub orchestrator: Orchestrator,
     /// Kernel configuration.
@@ -107,7 +107,7 @@ pub struct OpenFangKernel {
     /// Integration health monitor.
     pub extension_health: ochi_extensions::health::HealthMonitor,
     /// Effective MCP server list (manual config + extension-installed, merged at boot).
-    pub effective_mcp_servers: std::sync::RwLock<Vec<openfang_types::config::McpServerConfigEntry>>,
+    pub effective_mcp_servers: std::sync::RwLock<Vec<ochi_types::config::McpServerConfigEntry>>,
     /// Delivery receipt tracker (bounded LRU, max 10K entries).
     pub delivery_tracker: DeliveryTracker,
     /// Cron job scheduler.
@@ -115,9 +115,9 @@ pub struct OpenFangKernel {
     /// Execution approval manager.
     pub approval_manager: crate::approval::ApprovalManager,
     /// Agent bindings for multi-account routing (Mutex for runtime add/remove).
-    pub bindings: std::sync::Mutex<Vec<openfang_types::config::AgentBinding>>,
+    pub bindings: std::sync::Mutex<Vec<ochi_types::config::AgentBinding>>,
     /// Broadcast configuration.
-    pub broadcast: openfang_types::config::BroadcastConfig,
+    pub broadcast: ochi_types::config::BroadcastConfig,
     /// Auto-reply engine.
     pub auto_reply_engine: crate::auto_reply::AutoReplyEngine,
     /// Plugin lifecycle hook registry.
@@ -135,7 +135,7 @@ pub struct OpenFangKernel {
     /// Channel adapters registered at bridge startup (for proactive `channel_send` tool).
     pub channel_adapters: dashmap::DashMap<String, Arc<dyn ochi_channels::types::ChannelAdapter>>,
     /// Weak self-reference for trigger dispatch (set after Arc wrapping).
-    self_handle: OnceLock<Weak<OpenFangKernel>>,
+    self_handle: OnceLock<Weak<OchiKernel>>,
     /// Wit.ai NLU client for intent extraction and speech processing.
     pub wit_client: Option<Arc<ochi_runtime::wit::WitClient>>,
     /// Manus AI client for complex autonomous task delegation.
@@ -252,7 +252,7 @@ impl DeliveryTracker {
 fn ensure_workspace(workspace: &Path) -> KernelResult<()> {
     for subdir in &["data", "output", "sessions", "skills", "logs", "memory"] {
         std::fs::create_dir_all(workspace.join(subdir)).map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Ochi(OchiError::Internal(format!(
                 "Failed to create workspace dir {}/{subdir}: {e}",
                 workspace.display()
             )))
@@ -423,7 +423,7 @@ fn append_daily_memory_log(workspace: &Path, response: &str) {
         }
     }
     // Truncate long responses for the log (UTF-8 safe)
-    let summary = openfang_types::truncate_str(trimmed, 500);
+    let summary = ochi_types::truncate_str(trimmed, 500);
     let timestamp = chrono::Utc::now().format("%H:%M:%S").to_string();
     if let Ok(mut f) = std::fs::OpenOptions::new()
         .create(true)
@@ -481,7 +481,7 @@ fn gethostname() -> Option<String> {
     }
 }
 
-impl OpenFangKernel {
+impl OchiKernel {
     /// Boot the kernel with configuration from the given path.
     pub fn boot(config_path: Option<&Path>) -> KernelResult<Self> {
         let config = load_config(config_path);
@@ -490,10 +490,10 @@ impl OpenFangKernel {
 
     /// Boot the kernel with an explicit configuration.
     pub fn boot_with_config(mut config: KernelConfig) -> KernelResult<Self> {
-        use openfang_types::config::KernelMode;
+        use ochi_types::config::KernelMode;
 
         // Env var overrides — useful for Docker where config.toml is baked in.
-        if let Ok(listen) = std::env::var("OPENFANG_LISTEN") {
+        if let Ok(listen) = std::env::var("OCHI_LISTEN") {
             config.api_listen = listen;
         }
 
@@ -502,10 +502,10 @@ impl OpenFangKernel {
 
         match config.mode {
             KernelMode::Stable => {
-                info!("Booting OpenFang kernel in STABLE mode — conservative defaults enforced");
+                info!("Booting Ochi kernel in STABLE mode — conservative defaults enforced");
             }
             KernelMode::Dev => {
-                warn!("Booting OpenFang kernel in DEV mode — experimental features enabled");
+                warn!("Booting Ochi kernel in DEV mode — experimental features enabled");
             }
             KernelMode::Default => {
                 info!("Booting Ochi Agent OS kernel...");
@@ -969,7 +969,7 @@ impl OpenFangKernel {
             }
         }
 
-        info!("OpenFang kernel booted successfully");
+        info!("Ochi kernel booted successfully");
         Ok(kernel)
     }
 
@@ -993,7 +993,7 @@ impl OpenFangKernel {
         // Create session
         self.memory
             .create_session(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         // Inherit kernel exec_policy as fallback if agent manifest doesn't have one
         let mut manifest = manifest;
@@ -1058,7 +1058,7 @@ impl OpenFangKernel {
         };
         self.registry
             .register(entry.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         // Update parent's children list
         if let Some(parent_id) = parent {
@@ -1068,7 +1068,7 @@ impl OpenFangKernel {
         // Persist agent to SQLite so it survives restarts
         self.memory
             .save_agent(&entry)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         info!(agent = %name, id = %agent_id, "Agent spawned");
 
@@ -1113,14 +1113,14 @@ impl OpenFangKernel {
     /// Call this before `spawn_agent` when a `SignedManifest` JSON is provided
     /// alongside the TOML. Returns the verified manifest TOML string on success.
     pub fn verify_signed_manifest(&self, signed_json: &str) -> KernelResult<String> {
-        let signed: openfang_types::manifest_signing::SignedManifest =
+        let signed: ochi_types::manifest_signing::SignedManifest =
             serde_json::from_str(signed_json).map_err(|e| {
-                KernelError::OpenFang(openfang_types::error::OpenFangError::Config(format!(
+                KernelError::Ochi(ochi_types::error::OchiError::Config(format!(
                     "Invalid signed manifest JSON: {e}"
                 )))
             })?;
         signed.verify().map_err(|e| {
-            KernelError::OpenFang(openfang_types::error::OpenFangError::Config(format!(
+            KernelError::Ochi(ochi_types::error::OchiError::Config(format!(
                 "Manifest signature verification failed: {e}"
             )))
         })?;
@@ -1157,10 +1157,10 @@ impl OpenFangKernel {
         // Enforce quota before running the agent loop
         self.scheduler
             .check_quota(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         // Dispatch based on module type
@@ -1233,10 +1233,10 @@ impl OpenFangKernel {
         // Enforce quota before spawning the streaming task
         self.scheduler
             .check_quota(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let is_wasm = entry.manifest.module.starts_with("wasm:");
@@ -1270,7 +1270,7 @@ impl OpenFangKernel {
                             .await;
                         let _ = tx
                             .send(StreamEvent::ContentComplete {
-                                stop_reason: openfang_types::message::StopReason::EndTurn,
+                                stop_reason: ochi_types::message::StopReason::EndTurn,
                                 usage: result.total_usage,
                             })
                             .await;
@@ -1297,7 +1297,7 @@ impl OpenFangKernel {
         let mut session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Ochi)?
             .unwrap_or_else(|| ochi_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -1603,7 +1603,7 @@ impl OpenFangKernel {
                 Err(e) => {
                     kernel_clone.supervisor.record_panic();
                     warn!(agent_id = %agent_id, error = %e, "Streaming agent loop failed");
-                    Err(KernelError::OpenFang(e))
+                    Err(KernelError::Ochi(e))
                 }
             }
         });
@@ -1634,7 +1634,7 @@ impl OpenFangKernel {
         info!(agent = %entry.name, path = %wasm_path.display(), "Executing WASM agent");
 
         let wasm_bytes = std::fs::read(&wasm_path).map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Ochi(OchiError::Internal(format!(
                 "Failed to read WASM module '{}': {e}",
                 wasm_path.display()
             )))
@@ -1666,7 +1666,7 @@ impl OpenFangKernel {
             )
             .await
             .map_err(|e| {
-                KernelError::OpenFang(OpenFangError::Internal(format!(
+                KernelError::Ochi(OchiError::Internal(format!(
                     "WASM execution failed: {e}"
                 )))
             })?;
@@ -1689,7 +1689,7 @@ impl OpenFangKernel {
 
         Ok(AgentLoopResult {
             response,
-            total_usage: openfang_types::message::TokenUsage {
+            total_usage: ochi_types::message::TokenUsage {
                 input_tokens: 0,
                 output_tokens: 0,
             },
@@ -1740,7 +1740,7 @@ impl OpenFangKernel {
         )
         .await
         .map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Ochi(OchiError::Internal(format!(
                 "Python execution failed: {e}"
             )))
         })?;
@@ -1749,7 +1749,7 @@ impl OpenFangKernel {
 
         Ok(AgentLoopResult {
             response: result.response,
-            total_usage: openfang_types::message::TokenUsage {
+            total_usage: ochi_types::message::TokenUsage {
                 input_tokens: 0,
                 output_tokens: 0,
             },
@@ -1771,12 +1771,12 @@ impl OpenFangKernel {
         // Check metering quota before starting
         self.metering
             .check_quota(agent_id, &entry.manifest.resources)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         let mut session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Ochi)?
             .unwrap_or_else(|| ochi_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -1909,7 +1909,7 @@ impl OpenFangKernel {
             }
         }
 
-        let is_stable = self.config.mode == openfang_types::config::KernelMode::Stable;
+        let is_stable = self.config.mode == ochi_types::config::KernelMode::Stable;
 
         if is_stable {
             // In Stable mode: use pinned_model if set, otherwise default model
@@ -1928,7 +1928,7 @@ impl OpenFangKernel {
             // Build a probe request to score complexity
             let probe = CompletionRequest {
                 model: strip_provider_prefix(&manifest.model.model, &manifest.model.provider),
-                messages: vec![openfang_types::message::Message::user(message)],
+                messages: vec![ochi_types::message::Message::user(message)],
                 tools: tools.clone(),
                 max_tokens: manifest.model.max_tokens,
                 temperature: manifest.model.temperature,
@@ -2010,7 +2010,7 @@ impl OpenFangKernel {
             Some(&self.process_manager),
         )
         .await
-        .map_err(KernelError::OpenFang)?;
+        .map_err(KernelError::Ochi)?;
 
         // Append new messages to canonical session for cross-channel memory
         if session.messages.len() > messages_before {
@@ -2052,14 +2052,14 @@ impl OpenFangKernel {
         // Populate cost on the result based on usage_footer mode
         let mut result = result;
         match self.config.usage_footer {
-            openfang_types::config::UsageFooterMode::Off => {
+            ochi_types::config::UsageFooterMode::Off => {
                 result.cost_usd = None;
             }
-            openfang_types::config::UsageFooterMode::Cost
-            | openfang_types::config::UsageFooterMode::Full => {
+            ochi_types::config::UsageFooterMode::Cost
+            | ochi_types::config::UsageFooterMode::Full => {
                 result.cost_usd = if cost > 0.0 { Some(cost) } else { None };
             }
-            openfang_types::config::UsageFooterMode::Tokens => {
+            ochi_types::config::UsageFooterMode::Tokens => {
                 // Tokens are already in result.total_usage, omit cost
                 result.cost_usd = None;
             }
@@ -2085,7 +2085,7 @@ impl OpenFangKernel {
     /// and creates a fresh session ID.
     pub fn reset_session(&self, agent_id: AgentId) -> KernelResult<()> {
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         // Auto-save session context to workspace memory before clearing
@@ -2102,12 +2102,12 @@ impl OpenFangKernel {
         let new_session = self
             .memory
             .create_session(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         // Update registry with new session ID
         self.registry
             .update_session_id(agent_id, new_session.id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         info!(agent_id = %agent_id, "Session reset (summary saved to memory)");
         Ok(())
@@ -2117,13 +2117,13 @@ impl OpenFangKernel {
     pub fn list_agent_sessions(&self, agent_id: AgentId) -> KernelResult<Vec<serde_json::Value>> {
         // Verify agent exists
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let mut sessions = self
             .memory
             .list_agent_sessions(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         // Mark the active session
         for s in &mut sessions {
@@ -2148,18 +2148,18 @@ impl OpenFangKernel {
     ) -> KernelResult<serde_json::Value> {
         // Verify agent exists
         let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .create_session_with_label(agent_id, label)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         // Switch to the new session
         self.registry
             .update_session_id(agent_id, session.id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         info!(agent_id = %agent_id, label = ?label, "Created new session");
 
@@ -2177,27 +2177,27 @@ impl OpenFangKernel {
     ) -> KernelResult<()> {
         // Verify agent exists
         let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         // Verify session exists and belongs to this agent
         let session = self
             .memory
             .get_session(session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Ochi)?
             .ok_or_else(|| {
-                KernelError::OpenFang(OpenFangError::Internal("Session not found".to_string()))
+                KernelError::Ochi(OchiError::Internal("Session not found".to_string()))
             })?;
 
         if session.agent_id != agent_id {
-            return Err(KernelError::OpenFang(OpenFangError::Internal(
+            return Err(KernelError::Ochi(OchiError::Internal(
                 "Session belongs to a different agent".to_string(),
             )));
         }
 
         self.registry
             .update_session_id(agent_id, session_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         info!(agent_id = %agent_id, session_id = %session_id.0, "Switched session");
         Ok(())
@@ -2210,7 +2210,7 @@ impl OpenFangKernel {
         entry: &AgentEntry,
         session: &ochi_memory::session::Session,
     ) {
-        use openfang_types::message::{MessageContent, Role};
+        use ochi_types::message::{MessageContent, Role};
 
         // Take last 10 messages (or all if fewer)
         let recent = &session.messages[session.messages.len().saturating_sub(10)..];
@@ -2295,12 +2295,12 @@ impl OpenFangKernel {
         if let Some(provider) = provider {
             self.registry
                 .update_model_and_provider(agent_id, model.to_string(), provider.clone())
-                .map_err(KernelError::OpenFang)?;
+                .map_err(KernelError::Ochi)?;
             info!(agent_id = %agent_id, model = %model, provider = %provider, "Agent model+provider updated");
         } else {
             self.registry
                 .update_model(agent_id, model.to_string())
-                .map_err(KernelError::OpenFang)?;
+                .map_err(KernelError::Ochi)?;
             info!(agent_id = %agent_id, model = %model, "Agent model updated (provider unchanged)");
         }
 
@@ -2323,7 +2323,7 @@ impl OpenFangKernel {
             let known = registry.skill_names();
             for name in &skills {
                 if !known.contains(name) {
-                    return Err(KernelError::OpenFang(OpenFangError::Internal(format!(
+                    return Err(KernelError::Ochi(OchiError::Internal(format!(
                         "Unknown skill: {name}"
                     ))));
                 }
@@ -2332,7 +2332,7 @@ impl OpenFangKernel {
 
         self.registry
             .update_skills(agent_id, skills.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         if let Some(entry) = self.registry.get(agent_id) {
             let _ = self.memory.save_agent(&entry);
@@ -2361,7 +2361,7 @@ impl OpenFangKernel {
                 for name in &servers {
                     let normalized = ochi_runtime::mcp::normalize_name(name);
                     if !known_servers.contains(&normalized) {
-                        return Err(KernelError::OpenFang(OpenFangError::Internal(format!(
+                        return Err(KernelError::Ochi(OchiError::Internal(format!(
                             "Unknown MCP server: {name}"
                         ))));
                     }
@@ -2371,7 +2371,7 @@ impl OpenFangKernel {
 
         self.registry
             .update_mcp_servers(agent_id, servers.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         if let Some(entry) = self.registry.get(agent_id) {
             let _ = self.memory.save_agent(&entry);
@@ -2384,13 +2384,13 @@ impl OpenFangKernel {
     /// Get session token usage and estimated cost for an agent.
     pub fn session_usage_cost(&self, agent_id: AgentId) -> KernelResult<(u64, u64, f64)> {
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         let (input_tokens, output_tokens) = session
             .map(|s| {
@@ -2401,9 +2401,9 @@ impl OpenFangKernel {
                     let len = msg.content.text_content().len() as u64;
                     let tokens = len / 4;
                     match msg.role {
-                        openfang_types::message::Role::User => input += tokens,
-                        openfang_types::message::Role::Assistant => output += tokens,
-                        openfang_types::message::Role::System => input += tokens,
+                        ochi_types::message::Role::User => input += tokens,
+                        ochi_types::message::Role::Assistant => output += tokens,
+                        ochi_types::message::Role::System => input += tokens,
                     }
                 }
                 (input, output)
@@ -2440,13 +2440,13 @@ impl OpenFangKernel {
         use ochi_runtime::compactor::{compact_session, needs_compaction, CompactionConfig};
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Ochi)?
             .unwrap_or_else(|| ochi_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -2470,12 +2470,12 @@ impl OpenFangKernel {
 
         let result = compact_session(driver, &model, &session, &config)
             .await
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e)))?;
+            .map_err(|e| KernelError::Ochi(OchiError::Internal(e)))?;
 
         // Store the LLM summary in the canonical session
         self.memory
             .store_llm_summary(agent_id, &result.summary, result.kept_messages.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         // Post-compaction audit: validate and repair the kept messages
         let (repaired_messages, repair_stats) =
@@ -2486,7 +2486,7 @@ impl OpenFangKernel {
         updated_session.messages = repaired_messages;
         self.memory
             .save_session(&updated_session)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
 
         // Build result message with audit summary
         let mut msg = format!(
@@ -2523,13 +2523,13 @@ impl OpenFangKernel {
         use ochi_runtime::tool_runner::builtin_tool_definitions;
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Ochi(OchiError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Ochi)?
             .unwrap_or_else(|| ochi_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -2560,7 +2560,7 @@ impl OpenFangKernel {
         let entry = self
             .registry
             .remove(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Ochi)?;
         self.background.stop_agent(agent_id);
         self.scheduler.unregister(agent_id);
         self.capabilities.revoke_all(agent_id);
@@ -2596,7 +2596,7 @@ impl OpenFangKernel {
             .hand_registry
             .get_definition(hand_id)
             .ok_or_else(|| {
-                KernelError::OpenFang(OpenFangError::AgentNotFound(format!(
+                KernelError::Ochi(OchiError::AgentNotFound(format!(
                     "Hand not found: {hand_id}"
                 )))
             })?
@@ -2607,10 +2607,10 @@ impl OpenFangKernel {
             .hand_registry
             .activate(hand_id, config)
             .map_err(|e| match e {
-                HandError::AlreadyActive(id) => KernelError::OpenFang(OpenFangError::Internal(
+                HandError::AlreadyActive(id) => KernelError::Ochi(OchiError::Internal(
                     format!("Hand already active: {id}"),
                 )),
-                other => KernelError::OpenFang(OpenFangError::Internal(other.to_string())),
+                other => KernelError::Ochi(OchiError::Internal(other.to_string())),
             })?;
 
         // Build an agent manifest from the hand definition.
@@ -2655,8 +2655,8 @@ impl OpenFangKernel {
             mcp_servers: def.mcp_servers.clone(),
             // Hands are curated packages — if they declare shell_exec, grant full exec access
             exec_policy: if def.tools.iter().any(|t| t == "shell_exec") {
-                Some(openfang_types::config::ExecPolicy {
-                    mode: openfang_types::config::ExecSecurityMode::Full,
+                Some(ochi_types::config::ExecPolicy {
+                    mode: ochi_types::config::ExecSecurityMode::Full,
                     timeout_secs: 300, // hands may run long commands (ffmpeg, yt-dlp)
                     no_output_timeout_secs: 120,
                     ..Default::default()
@@ -2696,7 +2696,7 @@ impl OpenFangKernel {
         // Link agent to instance
         self.hand_registry
             .set_agent(instance.instance_id, agent_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))?;
+            .map_err(|e| KernelError::Ochi(OchiError::Internal(e.to_string())))?;
 
         info!(
             hand = %hand_id,
@@ -2717,7 +2717,7 @@ impl OpenFangKernel {
         let instance = self
             .hand_registry
             .deactivate(instance_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))?;
+            .map_err(|e| KernelError::Ochi(OchiError::Internal(e.to_string())))?;
 
         if let Some(agent_id) = instance.agent_id {
             if let Err(e) = self.kill_agent(agent_id) {
@@ -2731,14 +2731,14 @@ impl OpenFangKernel {
     pub fn pause_hand(&self, instance_id: uuid::Uuid) -> KernelResult<()> {
         self.hand_registry
             .pause(instance_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))
+            .map_err(|e| KernelError::Ochi(OchiError::Internal(e.to_string())))
     }
 
     /// Resume a paused hand.
     pub fn resume_hand(&self, instance_id: uuid::Uuid) -> KernelResult<()> {
         self.hand_registry
             .resume(instance_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))
+            .map_err(|e| KernelError::Ochi(OchiError::Internal(e.to_string())))
     }
 
     /// Set the weak self-reference for trigger dispatch.
@@ -2751,7 +2751,7 @@ impl OpenFangKernel {
     // ─── Agent Binding management ──────────────────────────────────────
 
     /// List all agent bindings.
-    pub fn list_bindings(&self) -> Vec<openfang_types::config::AgentBinding> {
+    pub fn list_bindings(&self) -> Vec<ochi_types::config::AgentBinding> {
         self.bindings
             .lock()
             .unwrap_or_else(|e| e.into_inner())
@@ -2759,7 +2759,7 @@ impl OpenFangKernel {
     }
 
     /// Add a binding at runtime.
-    pub fn add_binding(&self, binding: openfang_types::config::AgentBinding) {
+    pub fn add_binding(&self, binding: ochi_types::config::AgentBinding) {
         let mut bindings = self.bindings.lock().unwrap_or_else(|e| e.into_inner());
         bindings.push(binding);
         // Sort by specificity descending
@@ -2767,7 +2767,7 @@ impl OpenFangKernel {
     }
 
     /// Remove a binding by index, returns the removed binding if valid.
-    pub fn remove_binding(&self, index: usize) -> Option<openfang_types::config::AgentBinding> {
+    pub fn remove_binding(&self, index: usize) -> Option<ochi_types::config::AgentBinding> {
         let mut bindings = self.bindings.lock().unwrap_or_else(|e| e.into_inner());
         if index < bindings.len() {
             Some(bindings.remove(index))
@@ -2812,7 +2812,7 @@ impl OpenFangKernel {
     fn apply_hot_actions(
         &self,
         plan: &crate::config_reload::ReloadPlan,
-        new_config: &openfang_types::config::KernelConfig,
+        new_config: &ochi_types::config::KernelConfig,
     ) {
         use crate::config_reload::HotAction;
 
@@ -2891,7 +2891,7 @@ impl OpenFangKernel {
     ) -> KernelResult<TriggerId> {
         // Verify agent exists
         if self.registry.get(agent_id).is_none() {
-            return Err(KernelError::OpenFang(OpenFangError::AgentNotFound(
+            return Err(KernelError::Ochi(OchiError::AgentNotFound(
                 agent_id.to_string(),
             )));
         }
@@ -2934,7 +2934,7 @@ impl OpenFangKernel {
             .create_run(workflow_id, input)
             .await
             .ok_or_else(|| {
-                KernelError::OpenFang(OpenFangError::Internal("Workflow not found".to_string()))
+                KernelError::Ochi(OchiError::Internal("Workflow not found".to_string()))
             })?;
 
         // Agent resolver: looks up by name or ID in the registry
@@ -2975,12 +2975,12 @@ impl OpenFangKernel {
         )
         .await
         .map_err(|_| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Ochi(OchiError::Internal(format!(
                 "Workflow timed out after {MAX_WORKFLOW_SECS}s"
             )))
         })?
         .map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!("Workflow failed: {e}")))
+            KernelError::Ochi(OchiError::Internal(format!("Workflow failed: {e}")))
         })?;
 
         Ok((run_id, output))
@@ -3170,7 +3170,7 @@ impl OpenFangKernel {
                         let job_name = job.name.clone();
 
                         match &job.action {
-                            openfang_types::scheduler::CronAction::SystemEvent { text } => {
+                            ochi_types::scheduler::CronAction::SystemEvent { text } => {
                                 tracing::debug!(job = %job_name, "Cron: firing system event");
                                 let payload_bytes = serde_json::to_vec(&serde_json::json!({
                                     "type": format!("cron.{}", job_name),
@@ -3186,7 +3186,7 @@ impl OpenFangKernel {
                                 kernel.publish_event(event).await;
                                 kernel.cron_scheduler.record_success(job_id);
                             }
-                            openfang_types::scheduler::CronAction::AgentTurn {
+                            ochi_types::scheduler::CronAction::AgentTurn {
                                 message,
                                 timeout_secs,
                                 ..
@@ -3333,7 +3333,7 @@ impl OpenFangKernel {
                 // SAFETY: These fields are only written once during startup.
                 // We use unsafe to set them because start_background_agents runs
                 // after the Arc is created and the kernel is otherwise immutable.
-                let self_ptr = Arc::as_ptr(self) as *mut OpenFangKernel;
+                let self_ptr = Arc::as_ptr(self) as *mut OchiKernel;
                 unsafe {
                     (*self_ptr).peer_registry = Some(registry.clone());
                     (*self_ptr).peer_node = Some(node.clone());
@@ -3474,7 +3474,7 @@ impl OpenFangKernel {
     /// This cleanly shuts down in-memory state but preserves persistent agent
     /// data so agents are restored on the next boot.
     pub fn shutdown(&self) {
-        info!("Shutting down OpenFang kernel...");
+        info!("Shutting down Ochi kernel...");
 
         // Kill WhatsApp gateway child process if running
         if let Ok(guard) = self.whatsapp_gateway_pid.lock() {
@@ -3510,7 +3510,7 @@ impl OpenFangKernel {
         }
 
         info!(
-            "OpenFang kernel shut down ({} agents preserved)",
+            "Ochi kernel shut down ({} agents preserved)",
             self.registry.list().len()
         );
     }
@@ -3614,7 +3614,7 @@ impl OpenFangKernel {
     /// Connect to all configured MCP servers and cache their tool definitions.
     async fn connect_mcp_servers(self: &Arc<Self>) {
         use ochi_runtime::mcp::{McpConnection, McpServerConfig, McpTransport};
-        use openfang_types::config::McpTransportEntry;
+        use ochi_types::config::McpTransportEntry;
 
         let servers = self
             .effective_mcp_servers
@@ -3681,7 +3681,7 @@ impl OpenFangKernel {
     /// Called by the API reload endpoint after CLI installs/removes integrations.
     pub async fn reload_extension_mcps(self: &Arc<Self>) -> Result<usize, String> {
         use ochi_runtime::mcp::{McpConnection, McpServerConfig, McpTransport};
-        use openfang_types::config::McpTransportEntry;
+        use ochi_types::config::McpTransportEntry;
 
         // 1. Reload installed integrations from disk
         let installed_count = {
@@ -3817,7 +3817,7 @@ impl OpenFangKernel {
     /// Reconnect a single extension MCP server by ID.
     pub async fn reconnect_extension_mcp(self: &Arc<Self>, id: &str) -> Result<usize, String> {
         use ochi_runtime::mcp::{McpConnection, McpServerConfig, McpTransport};
-        use openfang_types::config::McpTransportEntry;
+        use ochi_types::config::McpTransportEntry;
 
         // Find the config for this server
         let server_config = {
@@ -4376,12 +4376,12 @@ fn shared_memory_agent_id() -> AgentId {
 
 /// Deliver a cron job's agent response to the configured delivery target.
 async fn cron_deliver_response(
-    kernel: &OpenFangKernel,
+    kernel: &OchiKernel,
     agent_id: AgentId,
     response: &str,
-    delivery: &openfang_types::scheduler::CronDelivery,
+    delivery: &ochi_types::scheduler::CronDelivery,
 ) {
-    use openfang_types::scheduler::CronDelivery;
+    use ochi_types::scheduler::CronDelivery;
 
     if response.is_empty() {
         return;
@@ -4443,14 +4443,14 @@ async fn cron_deliver_response(
 }
 
 #[async_trait]
-impl KernelHandle for OpenFangKernel {
+impl KernelHandle for OchiKernel {
     async fn spawn_agent(
         &self,
         manifest_toml: &str,
         parent_id: Option<&str>,
     ) -> Result<(String, String), String> {
         // Verify manifest integrity if a signed manifest hash is present
-        let content_hash = openfang_types::manifest_signing::hash_manifest(manifest_toml);
+        let content_hash = ochi_types::manifest_signing::hash_manifest(manifest_toml);
         tracing::debug!(hash = %content_hash, "Manifest SHA-256 computed for integrity tracking");
 
         let manifest: AgentManifest =
@@ -4501,7 +4501,7 @@ impl KernelHandle for OpenFangKernel {
         let id: AgentId = agent_id
             .parse()
             .map_err(|_| "Invalid agent ID".to_string())?;
-        OpenFangKernel::kill_agent(self, id).map_err(|e| format!("Kill failed: {e}"))
+        OchiKernel::kill_agent(self, id).map_err(|e| format!("Kill failed: {e}"))
     }
 
     fn memory_store(&self, key: &str, value: serde_json::Value) -> Result<(), String> {
@@ -4596,13 +4596,13 @@ impl KernelHandle for OpenFangKernel {
             EventTarget::Broadcast,
             EventPayload::Custom(payload_bytes),
         );
-        OpenFangKernel::publish_event(self, event).await;
+        OchiKernel::publish_event(self, event).await;
         Ok(())
     }
 
     async fn knowledge_add_entity(
         &self,
-        entity: openfang_types::memory::Entity,
+        entity: ochi_types::memory::Entity,
     ) -> Result<String, String> {
         self.memory
             .add_entity(entity)
@@ -4612,7 +4612,7 @@ impl KernelHandle for OpenFangKernel {
 
     async fn knowledge_add_relation(
         &self,
-        relation: openfang_types::memory::Relation,
+        relation: ochi_types::memory::Relation,
     ) -> Result<String, String> {
         self.memory
             .add_relation(relation)
@@ -4622,8 +4622,8 @@ impl KernelHandle for OpenFangKernel {
 
     async fn knowledge_query(
         &self,
-        pattern: openfang_types::memory::GraphPattern,
-    ) -> Result<Vec<openfang_types::memory::GraphMatch>, String> {
+        pattern: ochi_types::memory::GraphPattern,
+    ) -> Result<Vec<ochi_types::memory::GraphMatch>, String> {
         self.memory
             .query_graph(pattern)
             .await
@@ -4638,7 +4638,7 @@ impl KernelHandle for OpenFangKernel {
         agent_id: &str,
         job_json: serde_json::Value,
     ) -> Result<String, String> {
-        use openfang_types::scheduler::{
+        use ochi_types::scheduler::{
             CronAction, CronDelivery, CronJob, CronJobId, CronSchedule,
         };
 
@@ -4658,7 +4658,7 @@ impl KernelHandle for OpenFangKernel {
         };
         let one_shot = job_json["one_shot"].as_bool().unwrap_or(false);
 
-        let aid = openfang_types::agent::AgentId(
+        let aid = ochi_types::agent::AgentId(
             uuid::Uuid::parse_str(agent_id).map_err(|e| format!("Invalid agent ID: {e}"))?,
         );
 
@@ -4693,7 +4693,7 @@ impl KernelHandle for OpenFangKernel {
     }
 
     async fn cron_list(&self, agent_id: &str) -> Result<Vec<serde_json::Value>, String> {
-        let aid = openfang_types::agent::AgentId(
+        let aid = ochi_types::agent::AgentId(
             uuid::Uuid::parse_str(agent_id).map_err(|e| format!("Invalid agent ID: {e}"))?,
         );
         let jobs = self.cron_scheduler.list_jobs(aid);
@@ -4705,7 +4705,7 @@ impl KernelHandle for OpenFangKernel {
     }
 
     async fn cron_cancel(&self, job_id: &str) -> Result<(), String> {
-        let id = openfang_types::scheduler::CronJobId(
+        let id = ochi_types::scheduler::CronJobId(
             uuid::Uuid::parse_str(job_id).map_err(|e| format!("Invalid job ID: {e}"))?,
         );
         self.cron_scheduler
@@ -4815,7 +4815,7 @@ impl KernelHandle for OpenFangKernel {
         tool_name: &str,
         action_summary: &str,
     ) -> Result<bool, String> {
-        use openfang_types::approval::{ApprovalDecision, ApprovalRequest as TypedRequest};
+        use ochi_types::approval::{ApprovalDecision, ApprovalRequest as TypedRequest};
 
         // Hand agents are curated trusted packages — auto-approve tool execution.
         // Check if this agent has a "hand:" tag indicating it was spawned by activate_hand().
@@ -4907,7 +4907,7 @@ impl KernelHandle for OpenFangKernel {
         &self,
         manifest_toml: &str,
         parent_id: Option<&str>,
-        parent_caps: &[openfang_types::capability::Capability],
+        parent_caps: &[ochi_types::capability::Capability],
     ) -> Result<(String, String), String> {
         // Parse the child manifest to extract its capabilities
         let child_manifest: AgentManifest =
@@ -4915,7 +4915,7 @@ impl KernelHandle for OpenFangKernel {
         let child_caps = manifest_to_capabilities(&child_manifest);
 
         // Enforce: child capabilities must be a subset of parent capabilities
-        openfang_types::capability::validate_capability_inheritance(parent_caps, &child_caps)?;
+        ochi_types::capability::validate_capability_inheritance(parent_caps, &child_caps)?;
 
         tracing::info!(
             parent = parent_id.unwrap_or("kernel"),
@@ -4932,7 +4932,7 @@ impl KernelHandle for OpenFangKernel {
 // --- OFP Wire Protocol integration ---
 
 #[async_trait]
-impl ochi_wire::peer::PeerHandle for OpenFangKernel {
+impl ochi_wire::peer::PeerHandle for OchiKernel {
     fn local_agents(&self) -> Vec<ochi_wire::message::RemoteAgentInfo> {
         self.registry
             .list()
@@ -5176,7 +5176,7 @@ mod tests {
 
     #[test]
     fn test_manifest_to_capabilities_with_profile() {
-        use openfang_types::agent::ToolProfile;
+        use ochi_types::agent::ToolProfile;
         let manifest = AgentManifest {
             profile: Some(ToolProfile::Coding),
             ..Default::default()
@@ -5195,7 +5195,7 @@ mod tests {
 
     #[test]
     fn test_manifest_to_capabilities_profile_overridden_by_explicit_tools() {
-        use openfang_types::agent::ToolProfile;
+        use ochi_types::agent::ToolProfile;
         let mut manifest = AgentManifest {
             profile: Some(ToolProfile::Coding),
             ..Default::default()

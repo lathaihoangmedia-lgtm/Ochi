@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 
 use crate::tui::theme;
 use ochi_runtime::model_catalog::ModelCatalog;
-use openfang_types::model_catalog::ModelTier;
+use ochi_types::model_catalog::ModelTier;
 
 // ── Provider metadata ──────────────────────────────────────────────────────
 
@@ -984,7 +984,7 @@ complex_threshold = 500
 
     let config_path = ochi_dir.join("config.toml");
     let config = format!(
-        r#"# OpenFang Agent OS configuration
+        r#"# Ochi Agent OS configuration
 # See https://github.com/lathaihoangmedia-lgtm/Ochi for documentation
 
 api_listen = "127.0.0.1:4200"
@@ -1074,10 +1074,10 @@ fn draw(f: &mut Frame, area: Rect, state: &mut State) {
     ])
     .split(content);
 
-    // Header: "OpenFang Init  Step X of 7"
+    // Header: "Ochi Init  Step X of 7"
     let header = Line::from(vec![
         Span::styled(
-            "OpenFang",
+            "Ochi",
             Style::default()
                 .fg(theme::ACCENT)
                 .add_modifier(Modifier::BOLD),
@@ -2124,7 +2124,7 @@ fn draw_complete(f: &mut Frame, area: Rect, state: &mut State) {
     // ── Question ──
     f.render_widget(
         Paragraph::new(Line::from(vec![Span::styled(
-            "  How do you want to use OpenFang?",
+            "  How do you want to use Ochi?",
             Style::default()
                 .fg(theme::ACCENT)
                 .add_modifier(Modifier::BOLD),

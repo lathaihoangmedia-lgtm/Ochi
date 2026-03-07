@@ -129,7 +129,7 @@ async fn node_available() -> bool {
 /// 5. Monitors the process and restarts on crash (up to 3 times)
 ///
 /// The PID is stored in the kernel's `whatsapp_gateway_pid` for shutdown cleanup.
-pub async fn start_whatsapp_gateway(kernel: &Arc<super::kernel::OpenFangKernel>) {
+pub async fn start_whatsapp_gateway(kernel: &Arc<super::kernel::OchiKernel>) {
     // Only start if WhatsApp is configured
     let wa_config = match &kernel.config.channels.whatsapp {
         Some(cfg) => cfg.clone(),
@@ -184,7 +184,7 @@ pub async fn start_whatsapp_gateway(kernel: &Arc<super::kernel::OpenFangKernel>)
                 .current_dir(&gateway_path)
                 .env("WHATSAPP_GATEWAY_PORT", port.to_string())
                 .env("OCHI_URL", &ochi_url)
-                .env("OPENFANG_DEFAULT_AGENT", &default_agent)
+                .env("OCHI_DEFAULT_AGENT", &default_agent)
                 .stdout(std::process::Stdio::inherit())
                 .stderr(std::process::Stdio::inherit())
                 .spawn();

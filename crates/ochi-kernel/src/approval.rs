@@ -2,7 +2,7 @@
 
 use chrono::Utc;
 use dashmap::DashMap;
-use openfang_types::approval::{
+use ochi_types::approval::{
     ApprovalDecision, ApprovalPolicy, ApprovalRequest, ApprovalResponse, RiskLevel,
 };
 use tracing::{debug, info, warn};
@@ -144,7 +144,7 @@ impl ApprovalManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openfang_types::approval::ApprovalPolicy;
+    use ochi_types::approval::ApprovalPolicy;
     use std::sync::Arc;
 
     fn default_manager() -> ApprovalManager {

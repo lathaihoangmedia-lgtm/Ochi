@@ -7,9 +7,9 @@
 use super::event::{self, AppEvent};
 use super::screens::chat::{self, ChatAction, ChatState, Role};
 use super::theme;
-use ochi_kernel::OpenFangKernel;
+use ochi_kernel::OchiKernel;
 use ochi_runtime::llm_driver::StreamEvent;
-use openfang_types::agent::AgentId;
+use ochi_types::agent::AgentId;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
@@ -22,7 +22,7 @@ use std::time::Duration;
 
 enum Backend {
     Daemon { base_url: String },
-    InProcess { kernel: Arc<OpenFangKernel> },
+    InProcess { kernel: Arc<OchiKernel> },
     None,
 }
 
@@ -189,7 +189,7 @@ impl StandaloneChat {
 
     // ── Kernel lifecycle ─────────────────────────────────────────────────────
 
-    fn handle_kernel_ready(&mut self, kernel: Arc<OpenFangKernel>) {
+    fn handle_kernel_ready(&mut self, kernel: Arc<OchiKernel>) {
         self.booting = false;
         self.boot_error = None;
         self.backend = Backend::InProcess { kernel };
@@ -496,7 +496,7 @@ impl StandaloneChat {
 
         match template {
             Some(t) => {
-                let manifest: openfang_types::agent::AgentManifest =
+                let manifest: ochi_types::agent::AgentManifest =
                     match toml::from_str(&t.content) {
                         Ok(m) => m,
                         Err(e) => {

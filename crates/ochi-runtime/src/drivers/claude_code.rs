@@ -7,7 +7,7 @@
 
 use crate::llm_driver::{CompletionRequest, CompletionResponse, LlmDriver, LlmError, StreamEvent};
 use async_trait::async_trait;
-use openfang_types::message::{ContentBlock, Role, StopReason, TokenUsage};
+use ochi_types::message::{ContentBlock, Role, StopReason, TokenUsage};
 use serde::Deserialize;
 use tokio::io::AsyncBufReadExt;
 use tracing::{debug, warn};
@@ -343,7 +343,7 @@ mod tests {
 
     #[test]
     fn test_build_prompt_simple() {
-        use openfang_types::message::{Message, MessageContent};
+        use ochi_types::message::{Message, MessageContent};
 
         let request = CompletionRequest {
             model: "claude-code/sonnet".to_string(),

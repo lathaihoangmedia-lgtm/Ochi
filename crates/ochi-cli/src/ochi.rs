@@ -13,8 +13,8 @@ pub mod ochi_orchestrator;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use ochi_api::server::read_daemon_info;
-use ochi_kernel::OpenFangKernel;
-use openfang_types::agent::{AgentId, AgentManifest};
+use ochi_kernel::OchiKernel;
+use ochi_types::agent::{AgentId, AgentManifest};
 use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
@@ -80,13 +80,13 @@ const AFTER_HELP: &str = "\
   Docs:       https://github.com/lathaihoangmedia-lgtm/Ochi
   Dashboard:  http://127.0.0.1:4200/ (when daemon is running)";
 
-/// OpenFang — the open-source Agent Operating System.
+/// Ochi — the open-source Agent Operating System.
 #[derive(Parser)]
 #[command(
     name = "ochi",
     version,
-    about = "\u{1F40D} OpenFang \u{2014} Open-source Agent Operating System",
-    long_about = "\u{1F40D} OpenFang \u{2014} Open-source Agent Operating System\n\n\
+    about = "\u{1F40D} Ochi \u{2014} Open-source Agent Operating System",
+    long_about = "\u{1F40D} Ochi \u{2014} Open-source Agent Operating System\n\n\
                   Deploy, manage, and orchestrate AI agents from your terminal.\n\
                   40 channels \u{00b7} 60 skills \u{00b7} 50+ models \u{00b7} infinite possibilities.",
     after_help = AFTER_HELP,
@@ -102,13 +102,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize OpenFang (create ~/.ochi/ and default config).
+    /// Initialize Ochi (create ~/.ochi/ and default config).
     Init {
         /// Quick mode: no prompts, just write config + .env (for CI/scripts).
         #[arg(long)]
         quick: bool,
     },
-    /// Start the OpenFang kernel daemon (API server + kernel).
+    /// Start the Ochi kernel daemon (API server + kernel).
     Start,
     /// Stop the running daemon.
     Stop,
@@ -121,7 +121,7 @@ enum Commands {
     /// Manage event triggers (list, create, delete) [*].
     #[command(subcommand)]
     Trigger(TriggerCommands),
-    /// Migrate from another agent framework to OpenFang.
+    /// Migrate from another agent framework to Ochi.
     Migrate(MigrateArgs),
     /// Manage skills (install, list, search, create, remove) [*].
     #[command(subcommand)]
@@ -211,7 +211,7 @@ enum Commands {
         #[arg(long)]
         json: bool,
     },
-    /// Tail the OpenFang log file.
+    /// Tail the Ochi log file.
     Logs {
         /// Number of lines to show.
         #[arg(long, default_value = "50")]
@@ -1165,7 +1165,7 @@ fn launch_desktop_app(_ochi_dir: &std::path::Path) {
 
     match desktop_bin {
         Some(ref path) if path.exists() => {
-            ui::success("Launching OpenFang Desktop...");
+            ui::success("Launching Ochi Desktop...");
             match std::process::Command::new(path)
                 .stdin(std::process::Stdio::null())
                 .stdout(std::process::Stdio::null())
@@ -1253,7 +1253,7 @@ fn write_config_if_missing(
             r#"# Ochi Agent OS configuration
 # See https://github.com/lathaihoangmedia-lgtm/Ochi for documentation
 
-# For Docker, change to "0.0.0.0:4200" or set OPENFANG_LISTEN env var.
+# For Docker, change to "0.0.0.0:4200" or set OCHI_LISTEN env var.
 api_listen = "127.0.0.1:4200"
 
 [default_model]
@@ -1290,7 +1290,7 @@ fn cmd_start(config: Option<PathBuf>) {
 
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(async {
-        let kernel = match OpenFangKernel::boot(config.as_deref()) {
+        let kernel = match OchiKernel::boot(config.as_deref()) {
             Ok(k) => k,
             Err(e) => {
                 boot_kernel_error(&e);
@@ -1334,7 +1334,7 @@ fn cmd_start(config: Option<PathBuf>) {
         }
 
         ui::blank();
-        println!("  OpenFang daemon stopped.");
+        println!("  Ochi daemon stopped.");
     });
 }
 
@@ -1405,7 +1405,7 @@ fn boot_kernel_error(e: &ochi_kernel::error::KernelError) {
     } else if msg.contains("database") || msg.contains("locked") || msg.contains("sqlite") {
         ui::error_with_fix(
             "Database error (file may be locked)",
-            "Check if another OpenFang process is running: ochi status",
+            "Check if another Ochi process is running: ochi status",
         );
     } else if msg.contains("key") || msg.contains("API") || msg.contains("auth") {
         ui::error_with_fix(
@@ -1713,7 +1713,7 @@ fn cmd_status(config: Option<PathBuf>, json: bool) {
             return;
         }
 
-        ui::section("OpenFang Daemon Status");
+        ui::section("Ochi Daemon Status");
         ui::blank();
         ui::kv_ok("Status", body["status"].as_str().unwrap_or("?"));
         ui::kv(
@@ -1766,7 +1766,7 @@ fn cmd_status(config: Option<PathBuf>, json: bool) {
             return;
         }
 
-        ui::section("OpenFang Status (in-process)");
+        ui::section("Ochi Status (in-process)");
         ui::blank();
         ui::kv("Agents", &agent_count.to_string());
         ui::kv("Provider", &kernel.config.default_model.provider);
@@ -1792,7 +1792,7 @@ fn cmd_doctor(json: bool, repair: bool) {
     let mut repaired = false;
 
     if !json {
-        ui::step("OpenFang Doctor");
+        ui::step("Ochi Doctor");
         println!();
     }
 
@@ -1919,7 +1919,7 @@ fn cmd_doctor(json: bool, repair: bool) {
                 let default_config = r#"# Ochi Agent OS configuration
 # See https://github.com/lathaihoangmedia-lgtm/Ochi for documentation
 
-# For Docker, change to "0.0.0.0:4200" or set OPENFANG_LISTEN env var.
+# For Docker, change to "0.0.0.0:4200" or set OCHI_LISTEN env var.
 api_listen = "127.0.0.1:4200"
 
 [default_model]
@@ -2237,7 +2237,7 @@ decay_rate = 0.05
                 println!("\n  Config Validation:");
             }
             let config_content = std::fs::read_to_string(&config_path).unwrap_or_default();
-            match toml::from_str::<openfang_types::config::KernelConfig>(&config_content) {
+            match toml::from_str::<ochi_types::config::KernelConfig>(&config_content) {
                 Ok(cfg) => {
                     if !json {
                         ui::check_ok("Config deserializes into KernelConfig");
@@ -2288,7 +2288,7 @@ decay_rate = 0.05
                         for server in &cfg.mcp_servers {
                             // Validate transport config
                             match &server.transport {
-                                openfang_types::config::McpTransportEntry::Stdio {
+                                ochi_types::config::McpTransportEntry::Stdio {
                                     command,
                                     ..
                                 } => {
@@ -2302,7 +2302,7 @@ decay_rate = 0.05
                                         checks.push(serde_json::json!({"check": "mcp_server_config", "status": "warn", "name": server.name}));
                                     }
                                 }
-                                openfang_types::config::McpTransportEntry::Sse { url } => {
+                                ochi_types::config::McpTransportEntry::Sse { url } => {
                                     if url.is_empty() {
                                         if !json {
                                             ui::check_warn(&format!(
@@ -2980,8 +2980,8 @@ fn require_daemon(command: &str) -> String {
     })
 }
 
-fn boot_kernel(config: Option<PathBuf>) -> OpenFangKernel {
-    match OpenFangKernel::boot(config.as_deref()) {
+fn boot_kernel(config: Option<PathBuf>) -> OchiKernel {
+    match OchiKernel::boot(config.as_deref()) {
         Ok(k) => k,
         Err(e) => {
             boot_kernel_error(&e);
@@ -3250,7 +3250,7 @@ capabilities = []
     let entry_content = match runtime.as_str() {
         "python" => format!(
             r#"#!/usr/bin/env python3
-"""OpenFang skill: {name}"""
+"""Ochi skill: {name}"""
 import json
 import sys
 
@@ -4723,7 +4723,7 @@ fn pick_model() -> String {
     // Group by provider for display
     let mut by_provider: std::collections::BTreeMap<
         String,
-        Vec<&openfang_types::model_catalog::ModelCatalogEntry>,
+        Vec<&ochi_types::model_catalog::ModelCatalogEntry>,
     > = std::collections::BTreeMap::new();
     for m in models {
         by_provider.entry(m.provider.clone()).or_default().push(m);
@@ -5285,7 +5285,7 @@ fn cmd_devices_pair() {
         ui::section("Device Pairing");
         ui::blank();
         // Render a simple text-based QR representation
-        println!("  Scan this QR code with the OpenFang mobile app:");
+        println!("  Scan this QR code with the Ochi mobile app:");
         ui::blank();
         println!("  {qr}");
         ui::blank();
@@ -5561,9 +5561,9 @@ mod tests {
     #[test]
     fn test_doctor_config_deser_default() {
         // Default KernelConfig should serialize/deserialize round-trip
-        let config = openfang_types::config::KernelConfig::default();
+        let config = ochi_types::config::KernelConfig::default();
         let toml_str = toml::to_string_pretty(&config).unwrap();
-        let parsed: openfang_types::config::KernelConfig = toml::from_str(&toml_str).unwrap();
+        let parsed: ochi_types::config::KernelConfig = toml::from_str(&toml_str).unwrap();
         assert_eq!(parsed.api_listen, config.api_listen);
     }
 
@@ -5578,7 +5578,7 @@ provider = "groq"
 model = "llama-3.3-70b-versatile"
 api_key_env = "GROQ_API_KEY"
 "#;
-        let config: openfang_types::config::KernelConfig = toml::from_str(config_toml).unwrap();
+        let config: ochi_types::config::KernelConfig = toml::from_str(config_toml).unwrap();
         assert_eq!(config.include.len(), 2);
         assert_eq!(config.include[0], "providers.toml");
         assert_eq!(config.include[1], "agents.toml");
@@ -5599,10 +5599,10 @@ provider = "groq"
 model = "llama-3.3-70b-versatile"
 api_key_env = "GROQ_API_KEY"
 "#;
-        let config: openfang_types::config::KernelConfig = toml::from_str(config_toml).unwrap();
+        let config: ochi_types::config::KernelConfig = toml::from_str(config_toml).unwrap();
         assert_eq!(
             config.exec_policy.mode,
-            openfang_types::config::ExecSecurityMode::Allowlist
+            ochi_types::config::ExecSecurityMode::Allowlist
         );
         assert_eq!(config.exec_policy.safe_bins.len(), 3);
         assert_eq!(config.exec_policy.timeout_secs, 30);
@@ -5627,11 +5627,11 @@ type = "stdio"
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-github"]
 "#;
-        let config: openfang_types::config::KernelConfig = toml::from_str(config_toml).unwrap();
+        let config: ochi_types::config::KernelConfig = toml::from_str(config_toml).unwrap();
         assert_eq!(config.mcp_servers.len(), 1);
         assert_eq!(config.mcp_servers[0].name, "github");
         match &config.mcp_servers[0].transport {
-            openfang_types::config::McpTransportEntry::Stdio { command, args } => {
+            ochi_types::config::McpTransportEntry::Stdio { command, args } => {
                 assert_eq!(command, "npx");
                 assert_eq!(args.len(), 2);
             }
@@ -5649,7 +5649,7 @@ args = ["-y", "@modelcontextprotocol/server-github"]
     #[test]
     fn test_doctor_hook_event_variants() {
         // Verify all 4 hook event types are constructable
-        use openfang_types::agent::HookEvent;
+        use ochi_types::agent::HookEvent;
         let events = [
             HookEvent::BeforeToolCall,
             HookEvent::AfterToolCall,

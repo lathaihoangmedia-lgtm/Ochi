@@ -2,7 +2,7 @@
 //!
 //! Auto-cascades through available providers based on configured API keys.
 
-use openfang_types::media::{
+use ochi_types::media::{
     MediaAttachment, MediaConfig, MediaSource, MediaType, MediaUnderstanding,
 };
 use std::sync::Arc;
@@ -284,7 +284,7 @@ fn default_audio_model(provider: &str) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openfang_types::media::{MediaSource, MAX_IMAGE_BYTES};
+    use ochi_types::media::{MediaSource, MAX_IMAGE_BYTES};
 
     #[test]
     fn test_engine_creation() {

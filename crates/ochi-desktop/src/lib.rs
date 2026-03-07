@@ -10,7 +10,7 @@ mod shortcuts;
 mod tray;
 mod updater;
 
-use ochi_kernel::OpenFangKernel;
+use ochi_kernel::OchiKernel;
 use ochi_types_legacy::event::{EventPayload, LifecycleEvent, SystemEvent};
 use std::sync::Arc;
 use std::time::Instant;
@@ -23,7 +23,7 @@ pub struct PortState(pub u16);
 
 /// Managed state: the kernel instance and startup time.
 pub struct KernelState {
-    pub kernel: Arc<OpenFangKernel>,
+    pub kernel: Arc<OchiKernel>,
     pub started_at: Instant,
 }
 

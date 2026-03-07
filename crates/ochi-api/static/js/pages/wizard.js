@@ -1,4 +1,4 @@
-// OpenFang Setup Wizard — First-run guided setup (Provider + Agent + Channel)
+// Ochi Setup Wizard — First-run guided setup (Provider + Agent + Channel)
 'use strict';
 
 function wizardPage() {

@@ -4,7 +4,7 @@ setup(
     name="ochi",
     version="0.1.0",
     description="Official Python client for the Ochi Agent OS REST API",
-    py_modules=["ochi_sdk", "ochi_client", "openfang_sdk", "openfang_client"],
+    py_modules=["ochi_sdk", "ochi_client", "ochi_sdk", "ochi_client"],
     python_requires=">=3.8",
     classifiers=[
         "Programming Language :: Python :: 3",

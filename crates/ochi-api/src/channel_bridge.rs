@@ -1,6 +1,6 @@
-//! Channel bridge wiring — connects the OpenFang kernel to channel adapters.
+//! Channel bridge wiring — connects the Ochi kernel to channel adapters.
 //!
-//! Implements `ChannelBridgeHandle` on `OpenFangKernel` and provides the
+//! Implements `ChannelBridgeHandle` on `OchiKernel` and provides the
 //! `start_channel_bridge()` entry point called by the daemon.
 
 use ochi_channels::bridge::{BridgeManager, ChannelBridgeHandle};
@@ -50,15 +50,15 @@ use ochi_channels::linkedin::LinkedInAdapter;
 use ochi_channels::mumble::MumbleAdapter;
 use ochi_channels::ntfy::NtfyAdapter;
 use ochi_channels::webhook::WebhookAdapter;
-use ochi_kernel::OpenFangKernel;
-use openfang_types::agent::AgentId;
+use ochi_kernel::OchiKernel;
+use ochi_types::agent::AgentId;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
-/// Wraps `OpenFangKernel` to implement `ChannelBridgeHandle`.
+/// Wraps `OchiKernel` to implement `ChannelBridgeHandle`.
 pub struct KernelBridgeAdapter {
-    kernel: Arc<OpenFangKernel>,
+    kernel: Arc<OchiKernel>,
     started_at: Instant,
 }
 
@@ -104,7 +104,7 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
         let contents = std::fs::read_to_string(&manifest_path)
             .map_err(|e| format!("Failed to read manifest: {e}"))?;
 
-        let manifest: openfang_types::agent::AgentManifest =
+        let manifest: ochi_types::agent::AgentManifest =
             toml::from_str(&contents).map_err(|e| format!("Invalid manifest TOML: {e}"))?;
 
         let agent_id = self
@@ -123,14 +123,14 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
         let mins = (secs % 3600) / 60;
         if hours > 0 {
             format!(
-                "OpenFang status: {}h {}m uptime, {} agent(s)",
+                "Ochi status: {}h {}m uptime, {} agent(s)",
                 hours,
                 mins,
                 agents.len()
             )
         } else {
             format!(
-                "OpenFang status: {}m uptime, {} agent(s)",
+                "Ochi status: {}m uptime, {} agent(s)",
                 mins,
                 agents.len()
             )
@@ -151,7 +151,7 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
         // Group by provider
         let mut by_provider: std::collections::HashMap<
             &str,
-            Vec<&openfang_types::model_catalog::ModelCatalogEntry>,
+            Vec<&ochi_types::model_catalog::ModelCatalogEntry>,
         > = std::collections::HashMap::new();
         for m in &available {
             by_provider.entry(m.provider.as_str()).or_default().push(m);
@@ -188,9 +188,9 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
         let mut msg = "Providers:\n".to_string();
         for p in catalog.list_providers() {
             let status = match p.auth_status {
-                openfang_types::model_catalog::AuthStatus::Configured => "configured",
-                openfang_types::model_catalog::AuthStatus::Missing => "not configured",
-                openfang_types::model_catalog::AuthStatus::NotRequired => "local (no key needed)",
+                ochi_types::model_catalog::AuthStatus::Configured => "configured",
+                ochi_types::model_catalog::AuthStatus::Missing => "not configured",
+                ochi_types::model_catalog::AuthStatus::NotRequired => "local (no key needed)",
             };
             msg.push_str(&format!(
                 "  {} — {} [{}, {} model(s)]\n",
@@ -430,11 +430,11 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
             let status = if job.enabled { "on" } else { "off" };
             let id_short = &job.id.0.to_string()[..8];
             let sched = match &job.schedule {
-                openfang_types::scheduler::CronSchedule::Cron { expr, .. } => expr.clone(),
-                openfang_types::scheduler::CronSchedule::Every { every_secs } => {
+                ochi_types::scheduler::CronSchedule::Cron { expr, .. } => expr.clone(),
+                ochi_types::scheduler::CronSchedule::Every { every_secs } => {
                     format!("every {every_secs}s")
                 }
-                openfang_types::scheduler::CronSchedule::At { at } => {
+                ochi_types::scheduler::CronSchedule::At { at } => {
                     format!("at {}", at.format("%Y-%m-%d %H:%M"))
                 }
             };
@@ -466,21 +466,21 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
                 let cron_expr = args[1..6].join(" ");
                 let message = args[6..].join(" ");
 
-                let job = openfang_types::scheduler::CronJob {
-                    id: openfang_types::scheduler::CronJobId::new(),
+                let job = ochi_types::scheduler::CronJob {
+                    id: ochi_types::scheduler::CronJobId::new(),
                     agent_id: agent.id,
                     name: format!("chat-{}", &agent.name),
                     enabled: true,
-                    schedule: openfang_types::scheduler::CronSchedule::Cron {
+                    schedule: ochi_types::scheduler::CronSchedule::Cron {
                         expr: cron_expr.clone(),
                         tz: None,
                     },
-                    action: openfang_types::scheduler::CronAction::AgentTurn {
+                    action: ochi_types::scheduler::CronAction::AgentTurn {
                         message: message.clone(),
                         model_override: None,
                         timeout_secs: None,
                     },
-                    delivery: openfang_types::scheduler::CronDelivery::None,
+                    delivery: ochi_types::scheduler::CronDelivery::None,
                     created_at: chrono::Utc::now(),
                     last_run: None,
                     next_run: None,
@@ -533,10 +533,10 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
                     1 => {
                         let j = matched[0];
                         let message = match &j.action {
-                            openfang_types::scheduler::CronAction::AgentTurn {
+                            ochi_types::scheduler::CronAction::AgentTurn {
                                 message, ..
                             } => message.clone(),
-                            openfang_types::scheduler::CronAction::SystemEvent { text } => {
+                            ochi_types::scheduler::CronAction::SystemEvent { text } => {
                                 text.clone()
                             }
                         };
@@ -592,9 +592,9 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
             1 => {
                 let req = matched[0];
                 let decision = if approve {
-                    openfang_types::approval::ApprovalDecision::Approved
+                    ochi_types::approval::ApprovalDecision::Approved
                 } else {
-                    openfang_types::approval::ApprovalDecision::Denied
+                    ochi_types::approval::ApprovalDecision::Denied
                 };
                 match self.kernel.approval_manager.resolve(
                     req.id,
@@ -687,7 +687,7 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
     async fn channel_overrides(
         &self,
         channel_type: &str,
-    ) -> Option<openfang_types::config::ChannelOverrides> {
+    ) -> Option<ochi_types::config::ChannelOverrides> {
         let channels = &self.kernel.config.channels;
         match channel_type {
             "telegram" => channels.telegram.as_ref().map(|c| c.overrides.clone()),
@@ -893,7 +893,7 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
             msg.push_str(&format!("  {} — {}\n", card.name, url));
             let desc = &card.description;
             if !desc.is_empty() {
-                let short = openfang_types::truncate_str(desc, 60);
+                let short = ochi_types::truncate_str(desc, 60);
                 msg.push_str(&format!("    {short}\n"));
             }
         }
@@ -977,7 +977,7 @@ fn read_token(env_var: &str, adapter_name: &str) -> Option<String> {
 ///
 /// Returns `Some(BridgeManager)` if any channels were configured and started,
 /// or `None` if no channels are configured.
-pub async fn start_channel_bridge(kernel: Arc<OpenFangKernel>) -> Option<BridgeManager> {
+pub async fn start_channel_bridge(kernel: Arc<OchiKernel>) -> Option<BridgeManager> {
     let channels = kernel.config.channels.clone();
     let (bridge, _names) = start_channel_bridge_with_config(kernel, &channels).await;
     bridge
@@ -987,8 +987,8 @@ pub async fn start_channel_bridge(kernel: Arc<OpenFangKernel>) -> Option<BridgeM
 ///
 /// Returns `(Option<BridgeManager>, Vec<started_channel_names>)`.
 pub async fn start_channel_bridge_with_config(
-    kernel: Arc<OpenFangKernel>,
-    config: &openfang_types::config::ChannelsConfig,
+    kernel: Arc<OchiKernel>,
+    config: &ochi_types::config::ChannelsConfig,
 ) -> (Option<BridgeManager>, Vec<String>) {
     let has_any = config.telegram.is_some()
         || config.discord.is_some()
@@ -1643,7 +1643,7 @@ pub async fn reload_channels_from_disk(
 mod tests {
     #[tokio::test]
     async fn test_bridge_skips_when_no_config() {
-        let config = openfang_types::config::KernelConfig::default();
+        let config = ochi_types::config::KernelConfig::default();
         assert!(config.channels.telegram.is_none());
         assert!(config.channels.discord.is_none());
         assert!(config.channels.slack.is_none());

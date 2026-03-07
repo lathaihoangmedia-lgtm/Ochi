@@ -7,8 +7,8 @@ use axum::Router;
 use ochi_api::middleware;
 use ochi_api::routes::{self, AppState};
 use ochi_api::server::{read_daemon_info, DaemonInfo};
-use ochi_kernel::OpenFangKernel;
-use openfang_types::config::{DefaultModelConfig, KernelConfig};
+use ochi_kernel::OchiKernel;
+use ochi_types::config::{DefaultModelConfig, KernelConfig};
 use std::sync::Arc;
 use std::time::Instant;
 use tower_http::cors::CorsLayer;
@@ -102,7 +102,7 @@ async fn test_full_daemon_lifecycle() {
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = OchiKernel::boot_with_config(config).expect("Kernel should boot");
     let kernel = Arc::new(kernel);
     kernel.set_self_handle();
 
@@ -226,7 +226,7 @@ async fn test_server_immediate_responsiveness() {
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).unwrap();
+    let kernel = OchiKernel::boot_with_config(config).unwrap();
     let kernel = Arc::new(kernel);
 
     let state = Arc::new(AppState {

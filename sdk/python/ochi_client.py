@@ -4,14 +4,14 @@ Preferred import path:
 
     from ochi_client import Ochi
 
-Legacy import path `openfang_client` and class `OpenFang` remain supported.
+Legacy import path `ochi_client` and class `Ochi` remain supported.
 """
 
-from openfang_client import *  # noqa: F401,F403
+from ochi_client import *  # noqa: F401,F403
 
 
-class Ochi(OpenFang):
-    """Ochi-named alias for backward-compatible OpenFang client implementation."""
+class Ochi(Ochi):
+    """Ochi-named alias for backward-compatible Ochi client implementation."""
 
 
-OchiError = OpenFangError
+OchiError = OchiError

@@ -1,9 +1,9 @@
 //! Agent scheduler — manages agent execution and resource tracking.
 
 use dashmap::DashMap;
-use openfang_types::agent::{AgentId, ResourceQuota};
-use openfang_types::error::{OpenFangError, OpenFangResult};
-use openfang_types::message::TokenUsage;
+use ochi_types::agent::{AgentId, ResourceQuota};
+use ochi_types::error::{OchiError, OchiResult};
+use ochi_types::message::TokenUsage;
 use std::time::Instant;
 use tokio::task::JoinHandle;
 use tracing::debug;
@@ -75,7 +75,7 @@ impl AgentScheduler {
     }
 
     /// Check if an agent has exceeded its quota.
-    pub fn check_quota(&self, agent_id: AgentId) -> OpenFangResult<()> {
+    pub fn check_quota(&self, agent_id: AgentId) -> OchiResult<()> {
         let quota = match self.quotas.get(&agent_id) {
             Some(q) => q.clone(),
             None => return Ok(()), // No quota = no limit
@@ -91,7 +91,7 @@ impl AgentScheduler {
         if quota.max_llm_tokens_per_hour > 0
             && tracker.total_tokens > quota.max_llm_tokens_per_hour
         {
-            return Err(OpenFangError::QuotaExceeded(format!(
+            return Err(OchiError::QuotaExceeded(format!(
                 "Token limit exceeded: {} / {}",
                 tracker.total_tokens, quota.max_llm_tokens_per_hour
             )));

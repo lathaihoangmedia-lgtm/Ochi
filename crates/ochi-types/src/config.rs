@@ -1,4 +1,4 @@
-//! Configuration types for the OpenFang kernel.
+//! Configuration types for the Ochi kernel.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -359,7 +359,7 @@ impl Default for WebhookTriggerConfig {
     fn default() -> Self {
         Self {
             enabled: false,
-            token_env: "OPENFANG_WEBHOOK_TOKEN".to_string(),
+            token_env: "OCHI_WEBHOOK_TOKEN".to_string(),
             max_payload_bytes: 65536,
             rate_limit_per_minute: 30,
         }
@@ -477,7 +477,7 @@ pub struct DockerSandboxConfig {
     pub enabled: bool,
     /// Docker image for exec sandbox. Default: "python:3.12-slim".
     pub image: String,
-    /// Container name prefix. Default: "openfang-sandbox".
+    /// Container name prefix. Default: "ochi-sandbox".
     pub container_prefix: String,
     /// Working directory inside container. Default: "/workspace".
     pub workdir: String,
@@ -532,7 +532,7 @@ impl Default for DockerSandboxConfig {
         Self {
             enabled: false,
             image: "python:3.12-slim".to_string(),
-            container_prefix: "openfang-sandbox".to_string(),
+            container_prefix: "ochi-sandbox".to_string(),
             workdir: "/workspace".to_string(),
             network: "none".to_string(),
             memory_limit: "512m".to_string(),
@@ -923,7 +923,7 @@ impl Default for ThinkingConfig {
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct KernelConfig {
-    /// OpenFang home directory (default: ~/.ochi).
+    /// Ochi home directory (default: ~/.ochi).
     pub home_dir: PathBuf,
     /// Data directory for databases (default: ~/.ochi/data).
     pub data_dir: PathBuf,
@@ -1238,7 +1238,7 @@ fn default_home_dir() -> PathBuf {
         return ochi_dir;
     }
 
-    let ochi_dir = home.join(".openfang");
+    let ochi_dir = home.join(".ochi");
     if ochi_dir.exists() {
         return ochi_dir;
     }
@@ -1707,7 +1707,7 @@ impl Default for SignalConfig {
 pub struct MatrixConfig {
     /// Matrix homeserver URL (e.g., `"https://matrix.org"`).
     pub homeserver_url: String,
-    /// Bot user ID (e.g., "@openfang:matrix.org").
+    /// Bot user ID (e.g., "@ochi:matrix.org").
     pub user_id: String,
     /// Env var name holding the access token.
     pub access_token_env: String,
@@ -1853,7 +1853,7 @@ pub struct IrcConfig {
     pub nick: String,
     /// Env var name holding the server password (optional).
     pub password_env: Option<String>,
-    /// Channels to join (e.g., `["#openfang", "#general"]`).
+    /// Channels to join (e.g., `["#ochi", "#general"]`).
     pub channels: Vec<String>,
     /// Use TLS (requires tokio-native-tls).
     pub use_tls: bool,
@@ -1869,7 +1869,7 @@ impl Default for IrcConfig {
         Self {
             server: "irc.libera.chat".to_string(),
             port: 6667,
-            nick: "openfang".to_string(),
+            nick: "ochi".to_string(),
             password_env: None,
             channels: vec![],
             use_tls: false,
@@ -1930,7 +1930,7 @@ impl Default for TwitchConfig {
         Self {
             oauth_token_env: "TWITCH_OAUTH_TOKEN".to_string(),
             channels: vec![],
-            nick: "openfang".to_string(),
+            nick: "ochi".to_string(),
             default_agent: None,
             overrides: ChannelOverrides::default(),
         }
@@ -2546,7 +2546,7 @@ impl Default for MumbleConfig {
         Self {
             host: String::new(),
             port: 64738,
-            username: "openfang".to_string(),
+            username: "ochi".to_string(),
             password_env: "MUMBLE_PASSWORD".to_string(),
             channel: String::new(),
             default_agent: None,
@@ -3322,7 +3322,7 @@ mod tests {
     fn test_validate_missing_env_vars() {
         let mut config = KernelConfig::default();
         config.channels.discord = Some(DiscordConfig {
-            bot_token_env: "OPENFANG_TEST_NONEXISTENT_VAR_DC".to_string(),
+            bot_token_env: "OCHI_TEST_NONEXISTENT_VAR_DC".to_string(),
             ..Default::default()
         });
         let warnings = config.validate();
@@ -3422,7 +3422,7 @@ mod tests {
         let irc = IrcConfig::default();
         assert_eq!(irc.server, "irc.libera.chat");
         assert_eq!(irc.port, 6667);
-        assert_eq!(irc.nick, "openfang");
+        assert_eq!(irc.nick, "ochi");
         assert!(!irc.use_tls);
     }
 
@@ -3437,7 +3437,7 @@ mod tests {
     fn test_twitch_config_defaults() {
         let tw = TwitchConfig::default();
         assert_eq!(tw.oauth_token_env, "TWITCH_OAUTH_TOKEN");
-        assert_eq!(tw.nick, "openfang");
+        assert_eq!(tw.nick, "ochi");
     }
 
     #[test]

@@ -4,7 +4,7 @@
 //! an agent to do, extracts structured intent, and generates a complete
 //! agent manifest (TOML config) ready to spawn.
 
-use openfang_types::agent::{
+use ochi_types::agent::{
     AgentManifest, ManifestCapabilities, ModelConfig, Priority, ResourceQuota, ScheduleMode,
 };
 use serde::{Deserialize, Serialize};
@@ -132,7 +132,7 @@ impl SetupWizard {
         // safety guidelines, etc. at execution time.
         let tool_hints = Self::tool_hints_for(&caps.tools);
         let system_prompt = format!(
-            "You are {name}, an AI agent running inside the OpenFang Agent OS.\n\
+            "You are {name}, an AI agent running inside the Ochi Agent OS.\n\
              \n\
              YOUR TASK: {task}\n\
              \n\

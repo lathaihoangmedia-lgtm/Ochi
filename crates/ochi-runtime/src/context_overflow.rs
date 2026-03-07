@@ -8,8 +8,8 @@
 //! 3. Truncate historical tool results to 2K chars each
 //! 4. Return error suggesting /reset or /compact
 
-use openfang_types::message::{ContentBlock, Message, MessageContent};
-use openfang_types::tool::ToolDefinition;
+use ochi_types::message::{ContentBlock, Message, MessageContent};
+use ochi_types::tool::ToolDefinition;
 use tracing::{debug, warn};
 
 /// Recovery stage that was applied.
@@ -135,7 +135,7 @@ pub fn recover_from_overflow(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openfang_types::message::{Message, Role};
+    use ochi_types::message::{Message, Role};
 
     fn make_messages(count: usize, size_each: usize) -> Vec<Message> {
         (0..count)

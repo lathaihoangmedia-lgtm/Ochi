@@ -368,10 +368,10 @@ class _ScheduleResource(_Resource):
 
 
 
-# Ochi is the primary class (OpenFang is now an alias below)
+# Ochi is the primary class (Ochi is now an alias below)
     """Ochi-named alias for backward-compatible client usage."""
 
 
 # Backward compatibility aliases (deprecated, will be removed in v1.0)
-OpenFangError = OchiError
-OpenFang = Ochi
+OchiError = OchiError
+Ochi = Ochi

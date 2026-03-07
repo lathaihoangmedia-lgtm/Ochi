@@ -160,8 +160,8 @@ pub async fn run_python_agent(
     cmd.env_clear();
 
     // Re-add ONLY safe, required vars
-    cmd.env("OPENFANG_AGENT_ID", agent_id);
-    cmd.env("OPENFANG_MESSAGE", message);
+    cmd.env("OCHI_AGENT_ID", agent_id);
+    cmd.env("OCHI_MESSAGE", message);
 
     // PATH — needed to find python stdlib / system tools
     if let Ok(path) = std::env::var("PATH") {

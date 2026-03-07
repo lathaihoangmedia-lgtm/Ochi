@@ -1,4 +1,4 @@
-// OpenFang Chat Page — Agent chat with markdown + streaming
+// Ochi Chat Page — Agent chat with markdown + streaming
 'use strict';
 
 function chatPage() {

@@ -1,4 +1,4 @@
-// OpenFang App — Alpine.js init, hash router, global store
+// Ochi App — Alpine.js init, hash router, global store
 'use strict';
 
 // Marked.js configuration
@@ -129,7 +129,7 @@ document.addEventListener('alpine:init', function() {
       } catch(e) {
         this.connected = false;
         this.lastError = e.message || 'Unknown error';
-        console.warn('[OpenFang] Status check failed:', e.message);
+        console.warn('[Ochi] Status check failed:', e.message);
       }
     },
 

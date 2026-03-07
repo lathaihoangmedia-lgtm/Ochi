@@ -1,4 +1,4 @@
-//! Load & performance tests for the OpenFang API.
+//! Load & performance tests for the Ochi API.
 //!
 //! Measures throughput under concurrent access: agent spawning, API endpoint
 //! latency, session management, and memory usage.
@@ -8,8 +8,8 @@
 use axum::Router;
 use ochi_api::middleware;
 use ochi_api::routes::{self, AppState};
-use ochi_kernel::OpenFangKernel;
-use openfang_types::config::{DefaultModelConfig, KernelConfig};
+use ochi_kernel::OchiKernel;
+use ochi_types::config::{DefaultModelConfig, KernelConfig};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tower_http::cors::CorsLayer;
@@ -46,7 +46,7 @@ async fn start_test_server() -> TestServer {
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = OchiKernel::boot_with_config(config).expect("Kernel should boot");
     let kernel = Arc::new(kernel);
     kernel.set_self_handle();
 

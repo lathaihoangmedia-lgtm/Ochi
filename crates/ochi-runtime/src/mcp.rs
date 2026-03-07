@@ -1,12 +1,12 @@
 //! MCP (Model Context Protocol) client — connect to external MCP servers.
 //!
-//! MCP uses JSON-RPC 2.0 over stdio or HTTP+SSE. This module lets OpenFang
+//! MCP uses JSON-RPC 2.0 over stdio or HTTP+SSE. This module lets Ochi
 //! agents use tools from any MCP server (100+ available: GitHub, filesystem,
 //! databases, APIs, etc.).
 //!
 //! All MCP tools are namespaced with `mcp_{server}_{tool}` to prevent collisions.
 
-use openfang_types::tool::ToolDefinition;
+use ochi_types::tool::ToolDefinition;
 use serde::{Deserialize, Serialize};
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};

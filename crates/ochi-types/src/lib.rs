@@ -1,6 +1,6 @@
-//! Core types and traits for the OpenFang Agent Operating System.
+//! Core types and traits for the Ochi Agent Operating System.
 //!
-//! This crate defines all shared data structures used across the OpenFang kernel,
+//! This crate defines all shared data structures used across the Ochi kernel,
 //! runtime, memory substrate, and wire protocol. It contains no business logic.
 
 pub mod agent;

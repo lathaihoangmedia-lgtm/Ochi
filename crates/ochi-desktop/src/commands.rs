@@ -1,7 +1,7 @@
 //! Tauri IPC command handlers.
 
 use crate::{KernelState, PortState};
-use ochi_kernel::config::openfang_home as ochi_home;
+use ochi_kernel::config::ochi_home;
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_dialog::DialogExt;
 use tracing::info;

@@ -476,13 +476,13 @@ class ScheduleResource {
 
 // ── Exports ─────────────────────────────────────────────────────
 
-// Ochi is the primary class (OpenFang is an alias below for backward compat)
+// Ochi is the primary class (Ochi is an alias below for backward compat)
 
 module.exports = {
   Ochi: Ochi,
   OchiError: OchiError,
   Ochi: Ochi,
   OchiError: OchiError,
-  OpenFang: Ochi, // backward compatibility alias
-  OpenFangError: OchiError // backward compatibility alias
+  Ochi: Ochi, // backward compatibility alias
+  OchiError: OchiError // backward compatibility alias
 };

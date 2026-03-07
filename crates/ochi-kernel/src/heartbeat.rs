@@ -7,7 +7,7 @@
 
 use crate::registry::AgentRegistry;
 use chrono::Utc;
-use openfang_types::agent::{AgentId, AgentState};
+use ochi_types::agent::{AgentId, AgentState};
 use tracing::{debug, warn};
 
 /// Default heartbeat check interval (seconds).

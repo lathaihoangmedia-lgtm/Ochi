@@ -1,4 +1,4 @@
-//! MCP (Model Context Protocol) server for OpenFang.
+//! MCP (Model Context Protocol) server for Ochi.
 //!
 //! Exposes running agents as MCP tools over JSON-RPC 2.0 stdio.
 //! Each agent becomes a callable tool named `ochi_agent_{name}`.
@@ -6,7 +6,7 @@
 //! Protocol: Content-Length framing over stdin/stdout.
 //! Connects to running daemon via HTTP, falls back to in-process kernel.
 
-use ochi_kernel::OpenFangKernel;
+use ochi_kernel::OchiKernel;
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
 
@@ -17,7 +17,7 @@ enum McpBackend {
         client: reqwest::blocking::Client,
     },
     InProcess {
-        kernel: Box<OpenFangKernel>,
+        kernel: Box<OchiKernel>,
         rt: tokio::runtime::Runtime,
     },
 }
@@ -80,7 +80,7 @@ impl McpBackend {
                 }
             }
             McpBackend::InProcess { kernel, rt } => {
-                let aid: openfang_types::agent::AgentId =
+                let aid: ochi_types::agent::AgentId =
                     agent_id.parse().map_err(|_| "Invalid agent ID")?;
                 let result = rt
                     .block_on(kernel.send_message(aid, message))
@@ -145,7 +145,7 @@ fn create_backend(config: Option<std::path::PathBuf>) -> McpBackend {
     }
 
     // Fall back to in-process kernel
-    let kernel = match OpenFangKernel::boot(config.as_deref()) {
+    let kernel = match OchiKernel::boot(config.as_deref()) {
         Ok(k) => k,
         Err(e) => {
             eprintln!("Failed to boot kernel for MCP: {e}");
@@ -249,7 +249,7 @@ fn handle_message(backend: &McpBackend, msg: &Value) -> Option<Value> {
                 .map(|(_, name, description)| {
                     let tool_name = format!("ochi_agent_{}", name.replace('-', "_"));
                     let desc = if description.is_empty() {
-                        format!("Send a message to OpenFang agent '{name}'")
+                        format!("Send a message to Ochi agent '{name}'")
                     } else {
                         description.clone()
                     };

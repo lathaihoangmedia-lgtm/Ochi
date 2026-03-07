@@ -3,8 +3,8 @@
 //! Abstracts over multiple LLM providers (Anthropic, OpenAI, Ollama, etc.).
 
 use async_trait::async_trait;
-use openfang_types::message::{ContentBlock, Message, StopReason, TokenUsage};
-use openfang_types::tool::{ToolCall, ToolDefinition};
+use ochi_types::message::{ContentBlock, Message, StopReason, TokenUsage};
+use ochi_types::tool::{ToolCall, ToolDefinition};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -58,7 +58,7 @@ pub struct CompletionRequest {
     /// System prompt (extracted from messages for APIs that need it separately).
     pub system: Option<String>,
     /// Extended thinking configuration (if supported by the model).
-    pub thinking: Option<openfang_types::config::ThinkingConfig>,
+    pub thinking: Option<ochi_types::config::ThinkingConfig>,
 }
 
 /// A response from an LLM completion.

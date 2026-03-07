@@ -7,7 +7,7 @@
 //!
 //! **Restart required**: api_listen, api_key, network, memory, default_model.
 
-use openfang_types::config::{KernelConfig, ReloadMode};
+use ochi_types::config::{KernelConfig, ReloadMode};
 use tracing::{info, warn};
 
 // ---------------------------------------------------------------------------
@@ -321,7 +321,7 @@ pub fn should_apply_hot(mode: ReloadMode, plan: &ReloadPlan) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openfang_types::config::KernelConfig;
+    use ochi_types::config::KernelConfig;
 
     /// Helper: create a default config for diffing.
     fn default_cfg() -> KernelConfig {
@@ -427,7 +427,7 @@ mod tests {
         let a = default_cfg();
         let mut b = default_cfg();
         // Change the channels config by adding a Telegram config
-        b.channels.telegram = Some(openfang_types::config::TelegramConfig {
+        b.channels.telegram = Some(ochi_types::config::TelegramConfig {
             bot_token_env: "TG_TOKEN".to_string(),
             ..Default::default()
         });
@@ -438,7 +438,7 @@ mod tests {
 
     #[test]
     fn test_usage_footer_hot_reload() {
-        use openfang_types::config::UsageFooterMode;
+        use ochi_types::config::UsageFooterMode;
         let a = default_cfg();
         let mut b = default_cfg();
         b.usage_footer = UsageFooterMode::Off;
@@ -484,7 +484,7 @@ mod tests {
 
     #[test]
     fn test_mixed_changes() {
-        use openfang_types::config::UsageFooterMode;
+        use ochi_types::config::UsageFooterMode;
         let a = default_cfg();
         let mut b = default_cfg();
         // Restart-required
@@ -511,7 +511,7 @@ mod tests {
 
     #[test]
     fn test_noop_changes() {
-        use openfang_types::config::KernelMode;
+        use ochi_types::config::KernelMode;
         let a = default_cfg();
         let mut b = default_cfg();
         b.log_level = "debug".to_string();

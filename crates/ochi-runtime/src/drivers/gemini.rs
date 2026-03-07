@@ -11,10 +11,10 @@
 use crate::llm_driver::{CompletionRequest, CompletionResponse, LlmDriver, LlmError, StreamEvent};
 use async_trait::async_trait;
 use futures::StreamExt;
-use openfang_types::message::{
+use ochi_types::message::{
     ContentBlock, Message, MessageContent, Role, StopReason, TokenUsage,
 };
-use openfang_types::tool::ToolCall;
+use ochi_types::tool::ToolCall;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 use zeroize::Zeroizing;
@@ -167,7 +167,7 @@ struct GeminiErrorDetail {
 
 // ── Message conversion ─────────────────────────────────────────────────
 
-/// Convert OpenFang messages into Gemini content entries.
+/// Convert Ochi messages into Gemini content entries.
 fn convert_messages(
     messages: &[Message],
     system: &Option<String>,
@@ -273,7 +273,7 @@ fn convert_tools(request: &CompletionRequest) -> Vec<GeminiToolConfig> {
         .map(|t| {
             // Normalize schema for Gemini (strips $schema, flattens anyOf)
             let normalized =
-                openfang_types::tool::normalize_schema_for_provider(&t.input_schema, "gemini");
+                ochi_types::tool::normalize_schema_for_provider(&t.input_schema, "gemini");
             GeminiFunctionDeclaration {
                 name: t.name.clone(),
                 description: t.description.clone(),
@@ -646,7 +646,7 @@ impl LlmDriver for GeminiDriver {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openfang_types::tool::ToolDefinition;
+    use ochi_types::tool::ToolDefinition;
 
     #[test]
     fn test_gemini_driver_creation() {

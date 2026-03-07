@@ -1,8 +1,8 @@
 //! Agent registry — tracks all agents, their state, and indexes.
 
 use dashmap::DashMap;
-use openfang_types::agent::{AgentEntry, AgentId, AgentMode, AgentState};
-use openfang_types::error::{OpenFangError, OpenFangResult};
+use ochi_types::agent::{AgentEntry, AgentId, AgentMode, AgentState};
+use ochi_types::error::{OchiError, OchiResult};
 
 /// Registry of all agents in the kernel.
 pub struct AgentRegistry {
@@ -25,9 +25,9 @@ impl AgentRegistry {
     }
 
     /// Register a new agent.
-    pub fn register(&self, entry: AgentEntry) -> OpenFangResult<()> {
+    pub fn register(&self, entry: AgentEntry) -> OchiResult<()> {
         if self.name_index.contains_key(&entry.name) {
-            return Err(OpenFangError::AgentAlreadyExists(entry.name.clone()));
+            return Err(OchiError::AgentAlreadyExists(entry.name.clone()));
         }
         let id = entry.id;
         self.name_index.insert(entry.name.clone(), id);
@@ -51,33 +51,33 @@ impl AgentRegistry {
     }
 
     /// Update agent state.
-    pub fn set_state(&self, id: AgentId, state: AgentState) -> OpenFangResult<()> {
+    pub fn set_state(&self, id: AgentId, state: AgentState) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.state = state;
         entry.last_active = chrono::Utc::now();
         Ok(())
     }
 
     /// Update agent operational mode.
-    pub fn set_mode(&self, id: AgentId, mode: AgentMode) -> OpenFangResult<()> {
+    pub fn set_mode(&self, id: AgentId, mode: AgentMode) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.mode = mode;
         entry.last_active = chrono::Utc::now();
         Ok(())
     }
 
     /// Remove an agent from the registry.
-    pub fn remove(&self, id: AgentId) -> OpenFangResult<AgentEntry> {
+    pub fn remove(&self, id: AgentId) -> OchiResult<AgentEntry> {
         let (_, entry) = self
             .agents
             .remove(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         self.name_index.remove(&entry.name);
         for tag in &entry.tags {
             if let Some(mut ids) = self.tag_index.get_mut(tag) {
@@ -108,12 +108,12 @@ impl AgentRegistry {
     pub fn update_session_id(
         &self,
         id: AgentId,
-        new_session_id: openfang_types::agent::SessionId,
-    ) -> OpenFangResult<()> {
+        new_session_id: ochi_types::agent::SessionId,
+    ) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.session_id = new_session_id;
         entry.last_active = chrono::Utc::now();
         Ok(())
@@ -124,11 +124,11 @@ impl AgentRegistry {
         &self,
         id: AgentId,
         workspace: Option<std::path::PathBuf>,
-    ) -> OpenFangResult<()> {
+    ) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.manifest.workspace = workspace;
         entry.last_active = chrono::Utc::now();
         Ok(())
@@ -138,23 +138,23 @@ impl AgentRegistry {
     pub fn update_identity(
         &self,
         id: AgentId,
-        identity: openfang_types::agent::AgentIdentity,
-    ) -> OpenFangResult<()> {
+        identity: ochi_types::agent::AgentIdentity,
+    ) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.identity = identity;
         entry.last_active = chrono::Utc::now();
         Ok(())
     }
 
     /// Update an agent's model configuration.
-    pub fn update_model(&self, id: AgentId, new_model: String) -> OpenFangResult<()> {
+    pub fn update_model(&self, id: AgentId, new_model: String) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.manifest.model.model = new_model;
         entry.last_active = chrono::Utc::now();
         Ok(())
@@ -166,11 +166,11 @@ impl AgentRegistry {
         id: AgentId,
         new_model: String,
         new_provider: String,
-    ) -> OpenFangResult<()> {
+    ) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.manifest.model.model = new_model;
         entry.manifest.model.provider = new_provider;
         entry.last_active = chrono::Utc::now();
@@ -178,47 +178,47 @@ impl AgentRegistry {
     }
 
     /// Update an agent's skill allowlist.
-    pub fn update_skills(&self, id: AgentId, skills: Vec<String>) -> OpenFangResult<()> {
+    pub fn update_skills(&self, id: AgentId, skills: Vec<String>) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.manifest.skills = skills;
         entry.last_active = chrono::Utc::now();
         Ok(())
     }
 
     /// Update an agent's MCP server allowlist.
-    pub fn update_mcp_servers(&self, id: AgentId, servers: Vec<String>) -> OpenFangResult<()> {
+    pub fn update_mcp_servers(&self, id: AgentId, servers: Vec<String>) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.manifest.mcp_servers = servers;
         entry.last_active = chrono::Utc::now();
         Ok(())
     }
 
     /// Update an agent's system prompt (hot-swap, takes effect on next message).
-    pub fn update_system_prompt(&self, id: AgentId, new_prompt: String) -> OpenFangResult<()> {
+    pub fn update_system_prompt(&self, id: AgentId, new_prompt: String) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.manifest.model.system_prompt = new_prompt;
         entry.last_active = chrono::Utc::now();
         Ok(())
     }
 
     /// Update an agent's name (also updates the name index).
-    pub fn update_name(&self, id: AgentId, new_name: String) -> OpenFangResult<()> {
+    pub fn update_name(&self, id: AgentId, new_name: String) -> OchiResult<()> {
         if self.name_index.contains_key(&new_name) {
-            return Err(OpenFangError::AgentAlreadyExists(new_name));
+            return Err(OchiError::AgentAlreadyExists(new_name));
         }
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         let old_name = entry.name.clone();
         entry.name = new_name.clone();
         entry.manifest.name = new_name.clone();
@@ -231,22 +231,22 @@ impl AgentRegistry {
     }
 
     /// Update an agent's description.
-    pub fn update_description(&self, id: AgentId, new_desc: String) -> OpenFangResult<()> {
+    pub fn update_description(&self, id: AgentId, new_desc: String) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.manifest.description = new_desc;
         entry.last_active = chrono::Utc::now();
         Ok(())
     }
 
     /// Mark an agent's onboarding as complete.
-    pub fn mark_onboarding_complete(&self, id: AgentId) -> OpenFangResult<()> {
+    pub fn mark_onboarding_complete(&self, id: AgentId) -> OchiResult<()> {
         let mut entry = self
             .agents
             .get_mut(&id)
-            .ok_or_else(|| OpenFangError::AgentNotFound(id.to_string()))?;
+            .ok_or_else(|| OchiError::AgentNotFound(id.to_string()))?;
         entry.onboarding_completed = true;
         entry.onboarding_completed_at = Some(chrono::Utc::now());
         entry.last_active = chrono::Utc::now();
@@ -264,7 +264,7 @@ impl Default for AgentRegistry {
 mod tests {
     use super::*;
     use chrono::Utc;
-    use openfang_types::agent::*;
+    use ochi_types::agent::*;
     use std::collections::HashMap;
 
     fn test_entry(name: &str) -> AgentEntry {

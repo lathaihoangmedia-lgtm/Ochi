@@ -22,7 +22,7 @@ use futures::{SinkExt, StreamExt};
 use ochi_runtime::kernel_handle::KernelHandle;
 use ochi_runtime::llm_driver::StreamEvent;
 use ochi_runtime::llm_errors;
-use openfang_types::agent::AgentId;
+use ochi_types::agent::AgentId;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, SocketAddr};
