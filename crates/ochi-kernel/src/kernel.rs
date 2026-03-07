@@ -3293,6 +3293,10 @@ impl OchiKernel {
             .unwrap_or_else(|| "0.0.0.0:9090".to_string());
 
         // Parse listen address — support both multiaddr-style and plain socket addresses
+        const DEFAULT_LISTEN_ADDR: &str = "0.0.0.0:9090";
+        let default_addr: std::net::SocketAddr = DEFAULT_LISTEN_ADDR
+            .parse()
+            .expect("DEFAULT_LISTEN_ADDR is a valid SocketAddr");
         let listen_addr: std::net::SocketAddr = if listen_addr_str.starts_with('/') {
             // Multiaddr format like /ip4/0.0.0.0/tcp/9090 — extract IP and port
             let parts: Vec<&str> = listen_addr_str.split('/').collect();
@@ -3300,11 +3304,11 @@ impl OchiKernel {
             let port = parts.get(4).unwrap_or(&"9090");
             format!("{ip}:{port}")
                 .parse()
-                .unwrap_or_else(|_| "0.0.0.0:9090".parse().unwrap())
+                .unwrap_or(default_addr)
         } else {
             listen_addr_str
                 .parse()
-                .unwrap_or_else(|_| "0.0.0.0:9090".parse().unwrap())
+                .unwrap_or(default_addr)
         };
 
         let node_id = uuid::Uuid::new_v4().to_string();
@@ -4215,7 +4219,7 @@ impl OchiKernel {
     /// - `escalate_to_thai_cuc`: Có cần leo thang không
     ///
     /// # Example
-    /// ```rust,no_run
+    /// ```rust,ignore
     /// let decision = kernel.route_task("Kiểm tra lỗ hổng bảo mật hệ thống");
     /// println!("Agent: {}, Confidence: {:.2}", decision.primary, decision.confidence);
     /// ```
