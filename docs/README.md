@@ -10,6 +10,7 @@ Welcome to the Ochi documentation. Ochi is the open-source Agent Operating Syste
 |-------|-------------|
 | [Getting Started](getting-started.md) | Installation, first agent, first chat session |
 | [Configuration](configuration.md) | Complete `config.toml` reference with every field |
+| [Domain Setup / Hướng dẫn lấy domain](domain-setup.md) | Expose Ochi on a custom domain with nginx or Caddy (Vietnamese guide) |
 | [CLI Reference](cli-reference.md) | Every command and subcommand with examples |
 | [Troubleshooting](troubleshooting.md) | Common issues, FAQ, diagnostics |
 
