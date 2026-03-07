@@ -74,7 +74,7 @@ pub struct PeerConfig {
 impl Default for PeerConfig {
     fn default() -> Self {
         Self {
-            listen_addr: "127.0.0.1:0".parse().unwrap(),
+            listen_addr: "127.0.0.1:0".parse().expect("'127.0.0.1:0' is a valid socket address"),
             node_id: uuid::Uuid::new_v4().to_string(),
             node_name: "ochi-node".to_string(),
             shared_secret: String::new(),

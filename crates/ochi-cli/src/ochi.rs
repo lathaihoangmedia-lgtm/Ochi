@@ -775,7 +775,7 @@ fn main() {
             if !std::io::IsTerminal::is_terminal(&std::io::stdout()) {
                 // Piped: fall back to text help
                 use clap::CommandFactory;
-                Cli::command().print_help().unwrap();
+                Cli::command().print_help().expect("print_help writes to stdout");
                 println!();
                 return;
             }
@@ -787,7 +787,7 @@ fn main() {
                 launcher::LauncherChoice::TerminalUI => tui::run(cli.config),
                 launcher::LauncherChoice::ShowHelp => {
                     use clap::CommandFactory;
-                    Cli::command().print_help().unwrap();
+                    Cli::command().print_help().expect("print_help writes to stdout");
                     println!();
                 }
                 launcher::LauncherChoice::Quit => {}
@@ -1288,7 +1288,7 @@ fn cmd_start(config: Option<PathBuf>) {
     println!("  Starting daemon...");
     ui::blank();
 
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().expect("failed to create Tokio runtime");
     rt.block_on(async {
         let kernel = match OchiKernel::boot(config.as_deref()) {
             Ok(k) => k,
@@ -3117,7 +3117,7 @@ fn cmd_skill_install(source: &str) {
     } else {
         // Remote install from FangHub
         println!("Installing {source} from FangHub...");
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().expect("failed to create Tokio runtime");
         let client = ochi_skills::marketplace::MarketplaceClient::new(
             ochi_skills::marketplace::MarketplaceConfig::default(),
         );
@@ -3178,7 +3178,7 @@ fn cmd_skill_remove(name: &str) {
 }
 
 fn cmd_skill_search(query: &str) {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().expect("failed to create Tokio runtime");
     let client = ochi_skills::marketplace::MarketplaceClient::new(
         ochi_skills::marketplace::MarketplaceConfig::default(),
     );
@@ -3244,7 +3244,10 @@ capabilities = []
         tool_name = name.replace('-', "_"),
     );
 
-    std::fs::write(skill_dir.join("skill.toml"), &manifest).unwrap();
+    std::fs::write(skill_dir.join("skill.toml"), &manifest).unwrap_or_else(|e| {
+        eprintln!("Error writing skill.toml: {e}");
+        std::process::exit(1);
+    });
 
     // Create entry point
     let entry_content = match runtime.as_str() {
@@ -3276,7 +3279,10 @@ if __name__ == "__main__":
     } else {
         "src/index.js"
     };
-    std::fs::write(skill_dir.join(entry_path), entry_content).unwrap();
+    std::fs::write(skill_dir.join(entry_path), entry_content).unwrap_or_else(|e| {
+        eprintln!("Error writing entry point: {e}");
+        std::process::exit(1);
+    });
 
     println!("\nSkill created: {}", skill_dir.display());
     println!("\nFiles:");
@@ -4096,7 +4102,7 @@ fn cmd_config_set_key(provider: &str) {
             ui::success(&format!("Saved {env_var} to ~/.ochi/.env"));
             // Test the key
             print!("  Testing key... ");
-            io::stdout().flush().unwrap();
+            io::stdout().flush().expect("stdout flush");
             if test_api_key(provider, &env_var) {
                 println!("{}", "OK".bright_green());
             } else {
@@ -4132,7 +4138,7 @@ fn cmd_config_test_key(provider: &str) {
     }
 
     print!("  Testing {provider} ({env_var})... ");
-    io::stdout().flush().unwrap();
+    io::stdout().flush().expect("stdout flush");
     if test_api_key(provider, &env_var) {
         println!("{}", "OK".bright_green());
     } else {
@@ -4160,14 +4166,17 @@ pub(crate) fn ochi_home() -> PathBuf {
 
 fn prompt_input(prompt: &str) -> String {
     print!("{prompt}");
-    io::stdout().flush().unwrap();
+    io::stdout().flush().expect("stdout flush");
     let mut line = String::new();
     io::stdin().lock().read_line(&mut line).unwrap_or(0);
     line.trim().to_string()
 }
 
 pub(crate) fn copy_dir_recursive(src: &PathBuf, dst: &PathBuf) {
-    std::fs::create_dir_all(dst).unwrap();
+    std::fs::create_dir_all(dst).unwrap_or_else(|e| {
+        eprintln!("Error creating directory {}: {e}", dst.display());
+        std::process::exit(1);
+    });
     if let Ok(entries) = std::fs::read_dir(src) {
         for entry in entries.flatten() {
             let path = entry.path();

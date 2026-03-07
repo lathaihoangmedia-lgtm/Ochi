@@ -229,7 +229,7 @@ impl ChannelAdapter for SlackAdapter {
                                 let ack = serde_json::json!({ "envelope_id": envelope_id });
                                 if let Err(e) = ws_tx
                                     .send(tokio_tungstenite::tungstenite::Message::Text(
-                                        serde_json::to_string(&ack).unwrap(),
+                                        serde_json::to_string(&ack).expect("serde_json::Value serialization is infallible"),
                                     ))
                                     .await
                                 {

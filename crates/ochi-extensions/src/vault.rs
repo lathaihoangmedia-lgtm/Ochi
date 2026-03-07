@@ -434,7 +434,7 @@ fn store_keyring_key(key_b64: &str) -> Result<(), String> {
             .unwrap_or_else(std::env::temp_dir)
             .join("ochi")
             .join(".keyring");
-        std::fs::create_dir_all(keyring_path.parent().unwrap())
+        std::fs::create_dir_all(keyring_path.parent().expect("keyring path always has a parent directory"))
             .map_err(|e| format!("mkdir: {e}"))?;
 
         // Store encrypted with a machine-specific key
