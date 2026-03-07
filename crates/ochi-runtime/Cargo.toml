@@ -6,7 +6,7 @@ license.workspace = true
 description = "Agent runtime and execution environment for Ochi"
 
 [dependencies]
-openfang-types = { package = "ochi-types", path = "../ochi-types" }
+ochi-types = { path = "../ochi-types" }
 ochi-memory = { path = "../ochi-memory" }
 ochi-skills = { path = "../ochi-skills" }
 tokio = { workspace = true }
@@ -29,6 +29,7 @@ hex = { workspace = true }
 zeroize = { workspace = true }
 dashmap = { workspace = true }
 regex-lite = { workspace = true }
+urlencoding = "2.1.3"
 
 [dev-dependencies]
 tokio-test = { workspace = true }

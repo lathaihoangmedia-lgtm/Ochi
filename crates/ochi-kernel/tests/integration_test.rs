@@ -2,9 +2,9 @@
 //!
 //! Run with: GROQ_API_KEY=gsk_... cargo test -p ochi-kernel --test integration_test -- --nocapture
 
-use ochi_kernel::OpenFangKernel;
-use openfang_types::agent::AgentManifest;
-use openfang_types::config::{DefaultModelConfig, KernelConfig};
+use ochi_kernel::OchiKernel;
+use ochi_types::agent::AgentManifest;
+use ochi_types::config::{DefaultModelConfig, KernelConfig};
 
 fn test_config() -> KernelConfig {
     let tmp = std::env::temp_dir().join("ochi-integration-test");
@@ -33,7 +33,7 @@ async fn test_full_pipeline_with_groq() {
 
     // Boot kernel
     let config = test_config();
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = OchiKernel::boot_with_config(config).expect("Kernel should boot");
 
     // Spawn agent
     let manifest: AgentManifest = toml::from_str(
@@ -91,7 +91,7 @@ async fn test_multiple_agents_different_models() {
     }
 
     let config = test_config();
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = OchiKernel::boot_with_config(config).expect("Kernel should boot");
 
     // Spawn agent 1: llama 70b
     let manifest1: AgentManifest = toml::from_str(

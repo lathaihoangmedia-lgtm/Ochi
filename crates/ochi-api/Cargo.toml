@@ -6,7 +6,7 @@ license.workspace = true
 description = "HTTP/WebSocket API server for the Ochi Agent OS daemon"
 
 [dependencies]
-openfang-types = { package = "ochi-types", path = "../ochi-types" }
+ochi-types = { path = "../ochi-types" }
 ochi-kernel = { path = "../ochi-kernel" }
 ochi-runtime = { path = "../ochi-runtime" }
 ochi-memory = { path = "../ochi-memory" }

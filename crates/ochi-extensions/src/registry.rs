@@ -8,7 +8,7 @@ use crate::{
     ExtensionError, ExtensionResult, InstalledIntegration, IntegrationCategory, IntegrationInfo,
     IntegrationStatus, IntegrationTemplate, IntegrationsFile,
 };
-use openfang_types::config::{McpServerConfigEntry, McpTransportEntry};
+use ochi_types::config::{McpServerConfigEntry, McpTransportEntry};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tracing::{debug, info, warn};

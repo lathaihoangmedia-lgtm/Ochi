@@ -12,9 +12,9 @@ use crate::structured::StructuredStore;
 use crate::usage::UsageStore;
 
 use async_trait::async_trait;
-use openfang_types::agent::{AgentEntry, AgentId, SessionId};
-use openfang_types::error::{OpenFangError, OpenFangResult};
-use openfang_types::memory::{
+use ochi_types::agent::{AgentEntry, AgentId, SessionId};
+use ochi_types::error::{OchiError, OchiResult};
+use ochi_types::memory::{
     ConsolidationReport, Entity, ExportFormat, GraphMatch, GraphPattern, ImportReport, Memory,
     MemoryFilter, MemoryFragment, MemoryId, MemorySource, Relation,
 };
@@ -37,11 +37,11 @@ pub struct MemorySubstrate {
 
 impl MemorySubstrate {
     /// Open or create a memory substrate at the given database path.
-    pub fn open(db_path: &Path, decay_rate: f32) -> OpenFangResult<Self> {
-        let conn = Connection::open(db_path).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+    pub fn open(db_path: &Path, decay_rate: f32) -> OchiResult<Self> {
+        let conn = Connection::open(db_path).map_err(|e| OchiError::Memory(e.to_string()))?;
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;")
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
-        run_migrations(&conn).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
+        run_migrations(&conn).map_err(|e| OchiError::Memory(e.to_string()))?;
         let shared = Arc::new(Mutex::new(conn));
 
         Ok(Self {
@@ -56,10 +56,10 @@ impl MemorySubstrate {
     }
 
     /// Create an in-memory substrate (for testing).
-    pub fn open_in_memory(decay_rate: f32) -> OpenFangResult<Self> {
+    pub fn open_in_memory(decay_rate: f32) -> OchiResult<Self> {
         let conn =
-            Connection::open_in_memory().map_err(|e| OpenFangError::Memory(e.to_string()))?;
-        run_migrations(&conn).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            Connection::open_in_memory().map_err(|e| OchiError::Memory(e.to_string()))?;
+        run_migrations(&conn).map_err(|e| OchiError::Memory(e.to_string()))?;
         let shared = Arc::new(Mutex::new(conn));
 
         Ok(Self {
@@ -84,29 +84,29 @@ impl MemorySubstrate {
     }
 
     /// Save an agent entry to persistent storage.
-    pub fn save_agent(&self, entry: &AgentEntry) -> OpenFangResult<()> {
+    pub fn save_agent(&self, entry: &AgentEntry) -> OchiResult<()> {
         self.structured.save_agent(entry)
     }
 
     /// Load an agent entry from persistent storage.
-    pub fn load_agent(&self, agent_id: AgentId) -> OpenFangResult<Option<AgentEntry>> {
+    pub fn load_agent(&self, agent_id: AgentId) -> OchiResult<Option<AgentEntry>> {
         self.structured.load_agent(agent_id)
     }
 
     /// Remove an agent from persistent storage and cascade-delete sessions.
-    pub fn remove_agent(&self, agent_id: AgentId) -> OpenFangResult<()> {
+    pub fn remove_agent(&self, agent_id: AgentId) -> OchiResult<()> {
         // Delete associated sessions first
         let _ = self.sessions.delete_agent_sessions(agent_id);
         self.structured.remove_agent(agent_id)
     }
 
     /// Load all agent entries from persistent storage.
-    pub fn load_all_agents(&self) -> OpenFangResult<Vec<AgentEntry>> {
+    pub fn load_all_agents(&self) -> OchiResult<Vec<AgentEntry>> {
         self.structured.load_all_agents()
     }
 
     /// List all saved agents.
-    pub fn list_agents(&self) -> OpenFangResult<Vec<(String, String, String)>> {
+    pub fn list_agents(&self) -> OchiResult<Vec<(String, String, String)>> {
         self.structured.list_agents()
     }
 
@@ -115,17 +115,17 @@ impl MemorySubstrate {
         &self,
         agent_id: AgentId,
         key: &str,
-    ) -> OpenFangResult<Option<serde_json::Value>> {
+    ) -> OchiResult<Option<serde_json::Value>> {
         self.structured.get(agent_id, key)
     }
 
     /// List all KV pairs for an agent.
-    pub fn list_kv(&self, agent_id: AgentId) -> OpenFangResult<Vec<(String, serde_json::Value)>> {
+    pub fn list_kv(&self, agent_id: AgentId) -> OchiResult<Vec<(String, serde_json::Value)>> {
         self.structured.list_kv(agent_id)
     }
 
     /// Delete a KV entry for an agent.
-    pub fn structured_delete(&self, agent_id: AgentId, key: &str) -> OpenFangResult<()> {
+    pub fn structured_delete(&self, agent_id: AgentId, key: &str) -> OchiResult<()> {
         self.structured.delete(agent_id, key)
     }
 
@@ -135,32 +135,32 @@ impl MemorySubstrate {
         agent_id: AgentId,
         key: &str,
         value: serde_json::Value,
-    ) -> OpenFangResult<()> {
+    ) -> OchiResult<()> {
         self.structured.set(agent_id, key, value)
     }
 
     /// Get a session by ID.
-    pub fn get_session(&self, session_id: SessionId) -> OpenFangResult<Option<Session>> {
+    pub fn get_session(&self, session_id: SessionId) -> OchiResult<Option<Session>> {
         self.sessions.get_session(session_id)
     }
 
     /// Save a session.
-    pub fn save_session(&self, session: &Session) -> OpenFangResult<()> {
+    pub fn save_session(&self, session: &Session) -> OchiResult<()> {
         self.sessions.save_session(session)
     }
 
     /// Create a new empty session for an agent.
-    pub fn create_session(&self, agent_id: AgentId) -> OpenFangResult<Session> {
+    pub fn create_session(&self, agent_id: AgentId) -> OchiResult<Session> {
         self.sessions.create_session(agent_id)
     }
 
     /// List all sessions with metadata.
-    pub fn list_sessions(&self) -> OpenFangResult<Vec<serde_json::Value>> {
+    pub fn list_sessions(&self) -> OchiResult<Vec<serde_json::Value>> {
         self.sessions.list_sessions()
     }
 
     /// Delete a session by ID.
-    pub fn delete_session(&self, session_id: SessionId) -> OpenFangResult<()> {
+    pub fn delete_session(&self, session_id: SessionId) -> OchiResult<()> {
         self.sessions.delete_session(session_id)
     }
 
@@ -169,7 +169,7 @@ impl MemorySubstrate {
         &self,
         session_id: SessionId,
         label: Option<&str>,
-    ) -> OpenFangResult<()> {
+    ) -> OchiResult<()> {
         self.sessions.set_session_label(session_id, label)
     }
 
@@ -178,12 +178,12 @@ impl MemorySubstrate {
         &self,
         agent_id: AgentId,
         label: &str,
-    ) -> OpenFangResult<Option<Session>> {
+    ) -> OchiResult<Option<Session>> {
         self.sessions.find_session_by_label(agent_id, label)
     }
 
     /// List all sessions for a specific agent.
-    pub fn list_agent_sessions(&self, agent_id: AgentId) -> OpenFangResult<Vec<serde_json::Value>> {
+    pub fn list_agent_sessions(&self, agent_id: AgentId) -> OchiResult<Vec<serde_json::Value>> {
         self.sessions.list_agent_sessions(agent_id)
     }
 
@@ -192,7 +192,7 @@ impl MemorySubstrate {
         &self,
         agent_id: AgentId,
         label: Option<&str>,
-    ) -> OpenFangResult<Session> {
+    ) -> OchiResult<Session> {
         self.sessions.create_session_with_label(agent_id, label)
     }
 
@@ -204,7 +204,7 @@ impl MemorySubstrate {
         &self,
         agent_id: AgentId,
         window_size: Option<usize>,
-    ) -> OpenFangResult<(Option<String>, Vec<openfang_types::message::Message>)> {
+    ) -> OchiResult<(Option<String>, Vec<ochi_types::message::Message>)> {
         self.sessions.canonical_context(agent_id, window_size)
     }
 
@@ -216,8 +216,8 @@ impl MemorySubstrate {
         &self,
         agent_id: AgentId,
         summary: &str,
-        kept_messages: Vec<openfang_types::message::Message>,
-    ) -> OpenFangResult<()> {
+        kept_messages: Vec<ochi_types::message::Message>,
+    ) -> OchiResult<()> {
         self.sessions
             .store_llm_summary(agent_id, summary, kept_messages)
     }
@@ -238,9 +238,9 @@ impl MemorySubstrate {
     pub fn append_canonical(
         &self,
         agent_id: AgentId,
-        messages: &[openfang_types::message::Message],
+        messages: &[ochi_types::message::Message],
         compaction_threshold: Option<usize>,
-    ) -> OpenFangResult<()> {
+    ) -> OchiResult<()> {
         self.sessions
             .append_canonical(agent_id, messages, compaction_threshold)?;
         Ok(())
@@ -251,14 +251,14 @@ impl MemorySubstrate {
     // -----------------------------------------------------------------
 
     /// Load all paired devices from the database.
-    pub fn load_paired_devices(&self) -> OpenFangResult<Vec<serde_json::Value>> {
+    pub fn load_paired_devices(&self) -> OchiResult<Vec<serde_json::Value>> {
         let conn = self
             .conn
             .lock()
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
         let mut stmt = conn.prepare(
             "SELECT device_id, display_name, platform, paired_at, last_seen, push_token FROM paired_devices"
-        ).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+        ).map_err(|e| OchiError::Memory(e.to_string()))?;
         let rows = stmt
             .query_map([], |row| {
                 Ok(serde_json::json!({
@@ -270,10 +270,10 @@ impl MemorySubstrate {
                     "push_token": row.get::<_, Option<String>>(5)?,
                 }))
             })
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
         let mut devices = Vec::new();
         for row in rows {
-            devices.push(row.map_err(|e| OpenFangError::Memory(e.to_string()))?);
+            devices.push(row.map_err(|e| OchiError::Memory(e.to_string()))?);
         }
         Ok(devices)
     }
@@ -287,29 +287,29 @@ impl MemorySubstrate {
         paired_at: &str,
         last_seen: &str,
         push_token: Option<&str>,
-    ) -> OpenFangResult<()> {
+    ) -> OchiResult<()> {
         let conn = self
             .conn
             .lock()
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
         conn.execute(
             "INSERT OR REPLACE INTO paired_devices (device_id, display_name, platform, paired_at, last_seen, push_token) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             rusqlite::params![device_id, display_name, platform, paired_at, last_seen, push_token],
-        ).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+        ).map_err(|e| OchiError::Memory(e.to_string()))?;
         Ok(())
     }
 
     /// Remove a paired device from the database.
-    pub fn remove_paired_device(&self, device_id: &str) -> OpenFangResult<()> {
+    pub fn remove_paired_device(&self, device_id: &str) -> OchiResult<()> {
         let conn = self
             .conn
             .lock()
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
         conn.execute(
             "DELETE FROM paired_devices WHERE device_id = ?1",
             rusqlite::params![device_id],
         )
-        .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+        .map_err(|e| OchiError::Memory(e.to_string()))?;
         Ok(())
     }
 
@@ -326,7 +326,7 @@ impl MemorySubstrate {
         scope: &str,
         metadata: HashMap<String, serde_json::Value>,
         embedding: Option<&[f32]>,
-    ) -> OpenFangResult<MemoryId> {
+    ) -> OchiResult<MemoryId> {
         self.semantic
             .remember_with_embedding(agent_id, content, source, scope, metadata, embedding)
     }
@@ -338,13 +338,13 @@ impl MemorySubstrate {
         limit: usize,
         filter: Option<MemoryFilter>,
         query_embedding: Option<&[f32]>,
-    ) -> OpenFangResult<Vec<MemoryFragment>> {
+    ) -> OchiResult<Vec<MemoryFragment>> {
         self.semantic
             .recall_with_embedding(query, limit, filter, query_embedding)
     }
 
     /// Update the embedding for an existing memory.
-    pub fn update_embedding(&self, id: MemoryId, embedding: &[f32]) -> OpenFangResult<()> {
+    pub fn update_embedding(&self, id: MemoryId, embedding: &[f32]) -> OchiResult<()> {
         self.semantic.update_embedding(id, embedding)
     }
 
@@ -355,7 +355,7 @@ impl MemorySubstrate {
         limit: usize,
         filter: Option<MemoryFilter>,
         query_embedding: Option<&[f32]>,
-    ) -> OpenFangResult<Vec<MemoryFragment>> {
+    ) -> OchiResult<Vec<MemoryFragment>> {
         let store = self.semantic.clone();
         let query = query.to_string();
         let embedding_owned = query_embedding.map(|e| e.to_vec());
@@ -363,7 +363,7 @@ impl MemorySubstrate {
             store.recall_with_embedding(&query, limit, filter, embedding_owned.as_deref())
         })
         .await
-        .map_err(|e| OpenFangError::Internal(e.to_string()))?
+        .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     /// Async wrapper for `remember_with_embedding` — runs in a blocking thread.
@@ -375,7 +375,7 @@ impl MemorySubstrate {
         scope: &str,
         metadata: HashMap<String, serde_json::Value>,
         embedding: Option<&[f32]>,
-    ) -> OpenFangResult<MemoryId> {
+    ) -> OchiResult<MemoryId> {
         let store = self.semantic.clone();
         let content = content.to_string();
         let scope = scope.to_string();
@@ -391,7 +391,7 @@ impl MemorySubstrate {
             )
         })
         .await
-        .map_err(|e| OpenFangError::Internal(e.to_string()))?
+        .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     // -----------------------------------------------------------------
@@ -405,7 +405,7 @@ impl MemorySubstrate {
         description: &str,
         assigned_to: Option<&str>,
         created_by: Option<&str>,
-    ) -> OpenFangResult<String> {
+    ) -> OchiResult<String> {
         let conn = Arc::clone(&self.conn);
         let title = title.to_string();
         let description = description.to_string();
@@ -415,26 +415,26 @@ impl MemorySubstrate {
         tokio::task::spawn_blocking(move || {
             let id = uuid::Uuid::new_v4().to_string();
             let now = chrono::Utc::now().to_rfc3339();
-            let db = conn.lock().map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            let db = conn.lock().map_err(|e| OchiError::Internal(e.to_string()))?;
             db.execute(
                 "INSERT INTO task_queue (id, agent_id, task_type, payload, status, priority, created_at, title, description, assigned_to, created_by)
                  VALUES (?1, ?2, ?3, ?4, 'pending', 0, ?5, ?6, ?7, ?8, ?9)",
                 rusqlite::params![id, &created_by, &title, b"", now, title, description, assigned_to, created_by],
             )
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
             Ok(id)
         })
         .await
-        .map_err(|e| OpenFangError::Internal(e.to_string()))?
+        .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     /// Claim the next pending task (optionally for a specific assignee). Returns task JSON or None.
-    pub async fn task_claim(&self, agent_id: &str) -> OpenFangResult<Option<serde_json::Value>> {
+    pub async fn task_claim(&self, agent_id: &str) -> OchiResult<Option<serde_json::Value>> {
         let conn = Arc::clone(&self.conn);
         let agent_id = agent_id.to_string();
 
         tokio::task::spawn_blocking(move || {
-            let db = conn.lock().map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            let db = conn.lock().map_err(|e| OchiError::Internal(e.to_string()))?;
             // Find first pending task assigned to this agent, or any unassigned pending task
             let mut stmt = db.prepare(
                 "SELECT id, title, description, assigned_to, created_by, created_at
@@ -442,7 +442,7 @@ impl MemorySubstrate {
                  WHERE status = 'pending' AND (assigned_to = ?1 OR assigned_to = '')
                  ORDER BY priority DESC, created_at ASC
                  LIMIT 1"
-            ).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            ).map_err(|e| OchiError::Memory(e.to_string()))?;
 
             let result = stmt.query_row(rusqlite::params![agent_id], |row| {
                 Ok((
@@ -461,7 +461,7 @@ impl MemorySubstrate {
                     db.execute(
                         "UPDATE task_queue SET status = 'in_progress', assigned_to = ?2 WHERE id = ?1",
                         rusqlite::params![id, agent_id],
-                    ).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+                    ).map_err(|e| OchiError::Memory(e.to_string()))?;
 
                     Ok(Some(serde_json::json!({
                         "id": id,
@@ -474,42 +474,42 @@ impl MemorySubstrate {
                     })))
                 }
                 Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
-                Err(e) => Err(OpenFangError::Memory(e.to_string())),
+                Err(e) => Err(OchiError::Memory(e.to_string())),
             }
         })
         .await
-        .map_err(|e| OpenFangError::Internal(e.to_string()))?
+        .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     /// Mark a task as completed with a result string.
-    pub async fn task_complete(&self, task_id: &str, result: &str) -> OpenFangResult<()> {
+    pub async fn task_complete(&self, task_id: &str, result: &str) -> OchiResult<()> {
         let conn = Arc::clone(&self.conn);
         let task_id = task_id.to_string();
         let result = result.to_string();
 
         tokio::task::spawn_blocking(move || {
             let now = chrono::Utc::now().to_rfc3339();
-            let db = conn.lock().map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            let db = conn.lock().map_err(|e| OchiError::Internal(e.to_string()))?;
             let rows = db.execute(
                 "UPDATE task_queue SET status = 'completed', result = ?2, completed_at = ?3 WHERE id = ?1",
                 rusqlite::params![task_id, result, now],
-            ).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            ).map_err(|e| OchiError::Memory(e.to_string()))?;
             if rows == 0 {
-                return Err(OpenFangError::Internal(format!("Task not found: {task_id}")));
+                return Err(OchiError::Internal(format!("Task not found: {task_id}")));
             }
             Ok(())
         })
         .await
-        .map_err(|e| OpenFangError::Internal(e.to_string()))?
+        .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     /// List tasks, optionally filtered by status.
-    pub async fn task_list(&self, status: Option<&str>) -> OpenFangResult<Vec<serde_json::Value>> {
+    pub async fn task_list(&self, status: Option<&str>) -> OchiResult<Vec<serde_json::Value>> {
         let conn = Arc::clone(&self.conn);
         let status = status.map(|s| s.to_string());
 
         tokio::task::spawn_blocking(move || {
-            let db = conn.lock().map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            let db = conn.lock().map_err(|e| OchiError::Internal(e.to_string()))?;
             let (sql, params): (&str, Vec<Box<dyn rusqlite::types::ToSql>>) = match &status {
                 Some(s) => (
                     "SELECT id, title, description, status, assigned_to, created_by, created_at, completed_at, result FROM task_queue WHERE status = ?1 ORDER BY created_at DESC",
@@ -521,7 +521,7 @@ impl MemorySubstrate {
                 ),
             };
 
-            let mut stmt = db.prepare(sql).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            let mut stmt = db.prepare(sql).map_err(|e| OchiError::Memory(e.to_string()))?;
             let params_refs: Vec<&dyn rusqlite::types::ToSql> = params.iter().map(|p| p.as_ref()).collect();
             let rows = stmt.query_map(params_refs.as_slice(), |row| {
                 Ok(serde_json::json!({
@@ -535,27 +535,27 @@ impl MemorySubstrate {
                     "completed_at": row.get::<_, Option<String>>(7).unwrap_or(None),
                     "result": row.get::<_, Option<String>>(8).unwrap_or(None),
                 }))
-            }).map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            }).map_err(|e| OchiError::Memory(e.to_string()))?;
 
             let mut tasks = Vec::new();
             for row in rows {
-                tasks.push(row.map_err(|e| OpenFangError::Memory(e.to_string()))?);
+                tasks.push(row.map_err(|e| OchiError::Memory(e.to_string()))?);
             }
             Ok(tasks)
         })
         .await
-        .map_err(|e| OpenFangError::Internal(e.to_string()))?
+        .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 }
 
 #[async_trait]
 impl Memory for MemorySubstrate {
-    async fn get(&self, agent_id: AgentId, key: &str) -> OpenFangResult<Option<serde_json::Value>> {
+    async fn get(&self, agent_id: AgentId, key: &str) -> OchiResult<Option<serde_json::Value>> {
         let store = self.structured.clone();
         let key = key.to_string();
         tokio::task::spawn_blocking(move || store.get(agent_id, &key))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     async fn set(
@@ -563,20 +563,20 @@ impl Memory for MemorySubstrate {
         agent_id: AgentId,
         key: &str,
         value: serde_json::Value,
-    ) -> OpenFangResult<()> {
+    ) -> OchiResult<()> {
         let store = self.structured.clone();
         let key = key.to_string();
         tokio::task::spawn_blocking(move || store.set(agent_id, &key, value))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
-    async fn delete(&self, agent_id: AgentId, key: &str) -> OpenFangResult<()> {
+    async fn delete(&self, agent_id: AgentId, key: &str) -> OchiResult<()> {
         let store = self.structured.clone();
         let key = key.to_string();
         tokio::task::spawn_blocking(move || store.delete(agent_id, &key))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     async fn remember(
@@ -586,7 +586,7 @@ impl Memory for MemorySubstrate {
         source: MemorySource,
         scope: &str,
         metadata: HashMap<String, serde_json::Value>,
-    ) -> OpenFangResult<MemoryId> {
+    ) -> OchiResult<MemoryId> {
         let store = self.semantic.clone();
         let content = content.to_string();
         let scope = scope.to_string();
@@ -594,7 +594,7 @@ impl Memory for MemorySubstrate {
             store.remember(agent_id, &content, source, &scope, metadata)
         })
         .await
-        .map_err(|e| OpenFangError::Internal(e.to_string()))?
+        .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
     async fn recall(
@@ -602,55 +602,55 @@ impl Memory for MemorySubstrate {
         query: &str,
         limit: usize,
         filter: Option<MemoryFilter>,
-    ) -> OpenFangResult<Vec<MemoryFragment>> {
+    ) -> OchiResult<Vec<MemoryFragment>> {
         let store = self.semantic.clone();
         let query = query.to_string();
         tokio::task::spawn_blocking(move || store.recall(&query, limit, filter))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
-    async fn forget(&self, id: MemoryId) -> OpenFangResult<()> {
+    async fn forget(&self, id: MemoryId) -> OchiResult<()> {
         let store = self.semantic.clone();
         tokio::task::spawn_blocking(move || store.forget(id))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
-    async fn add_entity(&self, entity: Entity) -> OpenFangResult<String> {
+    async fn add_entity(&self, entity: Entity) -> OchiResult<String> {
         let store = self.knowledge.clone();
         tokio::task::spawn_blocking(move || store.add_entity(entity))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
-    async fn add_relation(&self, relation: Relation) -> OpenFangResult<String> {
+    async fn add_relation(&self, relation: Relation) -> OchiResult<String> {
         let store = self.knowledge.clone();
         tokio::task::spawn_blocking(move || store.add_relation(relation))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
-    async fn query_graph(&self, pattern: GraphPattern) -> OpenFangResult<Vec<GraphMatch>> {
+    async fn query_graph(&self, pattern: GraphPattern) -> OchiResult<Vec<GraphMatch>> {
         let store = self.knowledge.clone();
         tokio::task::spawn_blocking(move || store.query_graph(pattern))
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
-    async fn consolidate(&self) -> OpenFangResult<ConsolidationReport> {
+    async fn consolidate(&self) -> OchiResult<ConsolidationReport> {
         let engine = self.consolidation.clone();
         tokio::task::spawn_blocking(move || engine.consolidate())
             .await
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?
+            .map_err(|e| OchiError::Internal(e.to_string()))?
     }
 
-    async fn export(&self, format: ExportFormat) -> OpenFangResult<Vec<u8>> {
+    async fn export(&self, format: ExportFormat) -> OchiResult<Vec<u8>> {
         let _ = format;
         Ok(Vec::new())
     }
 
-    async fn import(&self, _data: &[u8], _format: ExportFormat) -> OpenFangResult<ImportReport> {
+    async fn import(&self, _data: &[u8], _format: ExportFormat) -> OchiResult<ImportReport> {
         Ok(ImportReport {
             entities_imported: 0,
             relations_imported: 0,

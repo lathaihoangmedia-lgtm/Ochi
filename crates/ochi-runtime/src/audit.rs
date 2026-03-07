@@ -24,6 +24,7 @@ pub enum AuditAction {
     AuthAttempt,
     WireConnect,
     ConfigChange,
+    TaskExecute,
 }
 
 impl std::fmt::Display for AuditAction {

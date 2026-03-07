@@ -27,4 +27,4 @@ pub mod workflow;
 pub mod orchestration;
 
 pub use kernel::DeliveryTracker;
-pub use kernel::OpenFangKernel;
+pub use kernel::OchiKernel;

@@ -1,4 +1,4 @@
-//! OpenFang Hands — curated autonomous capability packages.
+//! Ochi Hands — curated autonomous capability packages.
 //!
 //! A Hand is a pre-built, domain-complete agent configuration that users activate
 //! from a marketplace. Unlike regular agents (you chat with them), Hands work for
@@ -8,7 +8,7 @@ pub mod bundled;
 pub mod registry;
 
 use chrono::{DateTime, Utc};
-use openfang_types::agent::AgentId;
+use ochi_types::agent::AgentId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;

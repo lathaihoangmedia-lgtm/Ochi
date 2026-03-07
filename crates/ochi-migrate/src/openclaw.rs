@@ -387,21 +387,21 @@ struct LegacyYamlChannelConfig {
 }
 
 // ---------------------------------------------------------------------------
-// OpenFang output types (TOML)
+// Ochi output types (TOML)
 // ---------------------------------------------------------------------------
 
-/// OpenFang config.toml structure for serialization.
+/// Ochi config.toml structure for serialization.
 #[derive(Serialize)]
-struct OpenFangConfig {
-    default_model: OpenFangModelConfig,
-    memory: OpenFangMemorySection,
-    network: OpenFangNetworkSection,
+struct OchiConfig {
+    default_model: OchiModelConfig,
+    memory: OchiMemorySection,
+    network: OchiNetworkSection,
     #[serde(skip_serializing_if = "Option::is_none")]
     channels: Option<toml::Value>,
 }
 
 #[derive(Serialize)]
-struct OpenFangModelConfig {
+struct OchiModelConfig {
     provider: String,
     model: String,
     api_key_env: String,
@@ -410,12 +410,12 @@ struct OpenFangModelConfig {
 }
 
 #[derive(Serialize)]
-struct OpenFangMemorySection {
+struct OchiMemorySection {
     decay_rate: f32,
 }
 
 #[derive(Serialize)]
-struct OpenFangNetworkSection {
+struct OchiNetworkSection {
     listen_addr: String,
 }
 
@@ -463,7 +463,7 @@ fn write_secret_env(path: &Path, key: &str, value: &str) -> Result<(), std::io::
     Ok(())
 }
 
-/// Map OpenClaw DM policy to OpenFang DM policy string.
+/// Map OpenClaw DM policy to Ochi DM policy string.
 fn map_dm_policy(oc: &str) -> &'static str {
     match oc.to_lowercase().as_str() {
         "open" => "respond",
@@ -473,7 +473,7 @@ fn map_dm_policy(oc: &str) -> &'static str {
     }
 }
 
-/// Map OpenClaw group policy to OpenFang group policy string.
+/// Map OpenClaw group policy to Ochi group policy string.
 fn map_group_policy(oc: &str) -> &'static str {
     match oc.to_lowercase().as_str() {
         "open" => "respond",
@@ -615,12 +615,12 @@ fn find_config_file(dir: &Path) -> Option<PathBuf> {
 }
 
 // Tool name mapping and recognition are shared with the skill system.
-use openfang_types::tool_compat::{is_known_ochi_tool, map_tool_name};
+use ochi_types::tool_compat::{is_known_ochi_tool, map_tool_name};
 
-/// Map OpenClaw tool profile to OpenFang capability tool list.
+/// Map OpenClaw tool profile to Ochi capability tool list.
 /// Delegates to `ToolProfile` so the migration and kernel use identical definitions.
 fn tools_for_profile(profile: &str) -> Vec<String> {
-    use openfang_types::agent::ToolProfile;
+    use ochi_types::agent::ToolProfile;
     let p = match profile {
         "minimal" => ToolProfile::Minimal,
         "coding" => ToolProfile::Coding,
@@ -632,7 +632,7 @@ fn tools_for_profile(profile: &str) -> Vec<String> {
     p.tools()
 }
 
-/// Map OpenClaw provider name to OpenFang provider name.
+/// Map OpenClaw provider name to Ochi provider name.
 fn map_provider(openclaw_provider: &str) -> String {
     match openclaw_provider.to_lowercase().as_str() {
         "anthropic" | "claude" => "anthropic".to_string(),
@@ -1162,15 +1162,15 @@ fn migrate_config_from_json(
     // Extract channels (writes secrets.env)
     let channels = migrate_channels_from_json(root, target, dry_run, report);
 
-    let of_config = OpenFangConfig {
-        default_model: OpenFangModelConfig {
+    let of_config = OchiConfig {
+        default_model: OchiModelConfig {
             provider,
             model,
             api_key_env,
             base_url: None,
         },
-        memory: OpenFangMemorySection { decay_rate: 0.05 },
-        network: OpenFangNetworkSection {
+        memory: OchiMemorySection { decay_rate: 0.05 },
+        network: OchiNetworkSection {
             listen_addr: "127.0.0.1:4200".to_string(),
         },
         channels,
@@ -1179,7 +1179,7 @@ fn migrate_config_from_json(
     let toml_str = toml::to_string_pretty(&of_config)?;
 
     let config_content = format!(
-        "# OpenFang Agent OS configuration\n\
+        "# Ochi Agent OS configuration\n\
          # Migrated from OpenClaw on {}\n\n\
          {toml_str}",
         chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),
@@ -1660,12 +1660,12 @@ fn migrate_channels_from_json(
         });
     }
 
-    // --- BlueBubbles (skip — no OpenFang adapter) ---
+    // --- BlueBubbles (skip — no Ochi adapter) ---
     if oc_channels.bluebubbles.is_some() {
         report.skipped.push(SkippedItem {
             kind: ItemKind::Channel,
             name: "bluebubbles".to_string(),
-            reason: "No OpenFang adapter available — consider using the iMessage channel instead"
+            reason: "No Ochi adapter available — consider using the iMessage channel instead"
                 .to_string(),
         });
     }
@@ -1675,7 +1675,7 @@ fn migrate_channels_from_json(
         report.skipped.push(SkippedItem {
             kind: ItemKind::Channel,
             name: key.clone(),
-            reason: format!("Unknown channel '{key}' — not mapped to any OpenFang adapter"),
+            reason: format!("Unknown channel '{key}' — not mapped to any Ochi adapter"),
         });
     }
 
@@ -1732,7 +1732,7 @@ fn migrate_agents_from_json(
 
                 for tool in &unmapped_tools {
                     report.warnings.push(format!(
-                        "Agent '{id}': tool '{tool}' has no OpenFang equivalent and was skipped"
+                        "Agent '{id}': tool '{tool}' has no Ochi equivalent and was skipped"
                     ));
                 }
 
@@ -1822,14 +1822,14 @@ fn convert_agent_from_json(
         .or_else(|| defaults.and_then(|d| d.identity.clone()))
         .unwrap_or_else(|| {
             format!(
-                "You are {display_name}, an AI agent running on the OpenFang Agent OS. You are helpful, concise, and accurate."
+                "You are {display_name}, an AI agent running on the Ochi Agent OS. You are helpful, concise, and accurate."
             )
         });
 
     // Build agent TOML
     let mut toml_str = String::new();
     toml_str.push_str(&format!(
-        "# OpenFang agent manifest\n# Migrated from OpenClaw agent '{id}'\n\n"
+        "# Ochi agent manifest\n# Migrated from OpenClaw agent '{id}'\n\n"
     ));
     toml_str.push_str(&format!(
         "name = \"{}\"\n",
@@ -2220,7 +2220,7 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
         report.skipped.push(SkippedItem {
             kind: ItemKind::Config,
             name: "cron".to_string(),
-            reason: "Cron job scheduling not yet supported — use OpenFang's ScheduleMode::Periodic instead".to_string(),
+            reason: "Cron job scheduling not yet supported — use Ochi's ScheduleMode::Periodic instead".to_string(),
         });
     }
 
@@ -2229,7 +2229,7 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
         report.skipped.push(SkippedItem {
             kind: ItemKind::Config,
             name: "hooks".to_string(),
-            reason: "Webhook hooks not supported — use OpenFang's event system instead".to_string(),
+            reason: "Webhook hooks not supported — use Ochi's event system instead".to_string(),
         });
     }
 
@@ -2271,7 +2271,7 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
         report.skipped.push(SkippedItem {
             kind: ItemKind::Memory,
             name: "memory-search/index.db".to_string(),
-            reason: "SQLite vector index not portable — OpenFang will rebuild embeddings"
+            reason: "SQLite vector index not portable — Ochi will rebuild embeddings"
                 .to_string(),
         });
     }
@@ -2291,7 +2291,7 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
         report.skipped.push(SkippedItem {
             kind: ItemKind::Config,
             name: "session".to_string(),
-            reason: "Session scope config differs — OpenFang uses per-agent sessions by default"
+            reason: "Session scope config differs — Ochi uses per-agent sessions by default"
                 .to_string(),
         });
     }
@@ -2302,7 +2302,7 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
             kind: ItemKind::Config,
             name: "memory".to_string(),
             reason:
-                "Memory backend config not migrated — OpenFang uses SQLite with vector embeddings"
+                "Memory backend config not migrated — Ochi uses SQLite with vector embeddings"
                     .to_string(),
         });
     }
@@ -2364,21 +2364,21 @@ fn migrate_legacy_config(
         .api_key_env
         .unwrap_or_else(|| default_api_key_env(&provider));
 
-    let of_config = OpenFangConfig {
-        default_model: OpenFangModelConfig {
+    let of_config = OchiConfig {
+        default_model: OchiModelConfig {
             provider,
             model: oc_config.model,
             api_key_env,
             base_url: oc_config.base_url,
         },
-        memory: OpenFangMemorySection {
+        memory: OchiMemorySection {
             decay_rate: oc_config
                 .memory
                 .as_ref()
                 .and_then(|m| m.decay_rate)
                 .unwrap_or(0.05),
         },
-        network: OpenFangNetworkSection {
+        network: OchiNetworkSection {
             listen_addr: "127.0.0.1:4200".to_string(),
         },
         channels,
@@ -2387,7 +2387,7 @@ fn migrate_legacy_config(
     let toml_str = toml::to_string_pretty(&of_config)?;
 
     let config_content = format!(
-        "# OpenFang Agent OS configuration\n\
+        "# Ochi Agent OS configuration\n\
          # Migrated from OpenClaw on {}\n\n\
          {toml_str}",
         chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),
@@ -2655,7 +2655,7 @@ fn parse_legacy_channels(
                 report.skipped.push(SkippedItem {
                     kind: ItemKind::Channel,
                     name: "bluebubbles".to_string(),
-                    reason: "No OpenFang adapter available — consider using the iMessage channel instead".to_string(),
+                    reason: "No Ochi adapter available — consider using the iMessage channel instead".to_string(),
                 });
             }
             _ => {}
@@ -2719,7 +2719,7 @@ fn migrate_legacy_agents(
 
                 for tool in &unmapped_tools {
                     report.warnings.push(format!(
-                        "Agent '{agent_name}': tool '{tool}' has no OpenFang equivalent and was skipped"
+                        "Agent '{agent_name}': tool '{tool}' has no Ochi equivalent and was skipped"
                     ));
                 }
 
@@ -2780,7 +2780,7 @@ fn convert_legacy_agent(
 
     let system_prompt = oc.system_prompt.unwrap_or_else(|| {
         format!(
-            "You are {}, an AI agent running on the OpenFang Agent OS. {}",
+            "You are {}, an AI agent running on the Ochi Agent OS. {}",
             oc.name,
             if oc.description.is_empty() {
                 "You are helpful, concise, and accurate.".to_string()
@@ -2801,7 +2801,7 @@ fn convert_legacy_agent(
 
     let mut toml_str = String::new();
     toml_str.push_str(&format!(
-        "# OpenFang agent manifest\n# Migrated from OpenClaw agent '{}'\n\n",
+        "# Ochi agent manifest\n# Migrated from OpenClaw agent '{}'\n\n",
         oc.name
     ));
     toml_str.push_str(&format!("name = \"{}\"\n", oc.name));

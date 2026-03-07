@@ -89,7 +89,7 @@ impl LlmDriver for FallbackDriver {
 mod tests {
     use super::*;
     use crate::llm_driver::CompletionResponse;
-    use openfang_types::message::{ContentBlock, StopReason, TokenUsage};
+    use ochi_types::message::{ContentBlock, StopReason, TokenUsage};
 
     struct FailDriver;
 

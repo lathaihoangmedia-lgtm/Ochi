@@ -10,7 +10,7 @@
 //! - Session limits: max concurrent, idle timeout, 1 per agent
 
 use dashmap::DashMap;
-use openfang_types::config::BrowserConfig;
+use ochi_types::config::BrowserConfig;
 use serde::{Deserialize, Serialize};
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;

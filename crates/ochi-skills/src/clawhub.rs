@@ -215,7 +215,7 @@ pub struct ClawHubInstallResult {
     pub slug: String,
     /// Security warnings from the scan pipeline.
     pub warnings: Vec<SkillWarning>,
-    /// Tool name translations applied (OpenClaw → OpenFang).
+    /// Tool name translations applied (OpenClaw → Ochi).
     pub tool_translations: Vec<(String, String)>,
     /// Whether this is a prompt-only skill.
     pub is_prompt_only: bool,
@@ -270,7 +270,7 @@ impl ClawHubClient {
         let response = self
             .client
             .get(&url)
-            .header("User-Agent", "OpenFang/0.1")
+            .header("User-Agent", "Ochi/0.1")
             .send()
             .await
             .map_err(|e| SkillError::Network(format!("ClawHub search failed: {e}")))?;
@@ -313,7 +313,7 @@ impl ClawHubClient {
         let response = self
             .client
             .get(&url)
-            .header("User-Agent", "OpenFang/0.1")
+            .header("User-Agent", "Ochi/0.1")
             .send()
             .await
             .map_err(|e| SkillError::Network(format!("ClawHub browse failed: {e}")))?;
@@ -343,7 +343,7 @@ impl ClawHubClient {
         let response = self
             .client
             .get(&url)
-            .header("User-Agent", "OpenFang/0.1")
+            .header("User-Agent", "Ochi/0.1")
             .send()
             .await
             .map_err(|e| SkillError::Network(format!("ClawHub detail failed: {e}")))?;
@@ -387,7 +387,7 @@ impl ClawHubClient {
         let response = self
             .client
             .get(&url)
-            .header("User-Agent", "OpenFang/0.1")
+            .header("User-Agent", "Ochi/0.1")
             .send()
             .await
             .map_err(|e| SkillError::Network(format!("ClawHub file fetch failed: {e}")))?;
@@ -412,7 +412,7 @@ impl ClawHubClient {
     /// Security pipeline:
     /// 1. Download skill zip and compute SHA256
     /// 2. Detect format (SKILL.md vs package.json)
-    /// 3. Convert to OpenFang manifest
+    /// 3. Convert to Ochi manifest
     /// 4. Run manifest security scan
     /// 5. If prompt-only: run prompt injection scan
     /// 6. Check binary dependencies
@@ -430,7 +430,7 @@ impl ClawHubClient {
         let response = self
             .client
             .get(&url)
-            .header("User-Agent", "OpenFang/0.1")
+            .header("User-Agent", "Ochi/0.1")
             .send()
             .await
             .map_err(|e| SkillError::Network(format!("ClawHub download failed: {e}")))?;

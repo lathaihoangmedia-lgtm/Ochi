@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::debug;
+use tracing::{debug, warn};
 
 /// Error type for Wit.ai operations.
 #[derive(Error, Debug)]

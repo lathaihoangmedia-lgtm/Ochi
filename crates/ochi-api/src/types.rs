@@ -1,4 +1,4 @@
-//! Request/response types for the OpenFang API.
+//! Request/response types for the Ochi API.
 
 use serde::{Deserialize, Serialize};
 
@@ -71,7 +71,7 @@ pub struct AgentUpdateRequest {
 /// Request to change an agent's operational mode.
 #[derive(Debug, Deserialize)]
 pub struct SetModeRequest {
-    pub mode: openfang_types::agent::AgentMode,
+    pub mode: ochi_types::agent::AgentMode,
 }
 
 /// Request to run a migration.

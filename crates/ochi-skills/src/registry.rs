@@ -154,7 +154,7 @@ impl SkillRegistry {
 
                             info!(
                                 skill = %converted.manifest.skill.name,
-                                "Auto-converting SKILL.md to OpenFang format"
+                                "Auto-converting SKILL.md to Ochi format"
                             );
                             if let Err(e) =
                                 openclaw_compat::write_ochi_manifest(&path, &converted.manifest)

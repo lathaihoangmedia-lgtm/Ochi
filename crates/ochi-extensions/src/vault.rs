@@ -2,7 +2,7 @@
 //!
 //! Stores secrets in `~/.ochi/vault.enc`, with the master key sourced from
 //! the OS keyring (Windows Credential Manager / macOS Keychain / Linux Secret Service)
-//! or the `OPENFANG_VAULT_KEY` env var for headless/CI environments.
+//! or the `OCHI_VAULT_KEY` env var for headless/CI environments.
 
 use crate::{ExtensionError, ExtensionResult};
 use aes_gcm::aead::{Aead, KeyInit, OsRng};
@@ -25,7 +25,7 @@ const KEYRING_SERVICE: &str = "ochi-vault";
 #[allow(dead_code)]
 const KEYRING_USER: &str = "master-key";
 /// Env var fallback for vault key.
-const VAULT_KEY_ENV: &str = "OPENFANG_VAULT_KEY";
+const VAULT_KEY_ENV: &str = "OCHI_VAULT_KEY";
 /// Salt length for Argon2.
 const SALT_LEN: usize = 16;
 /// Nonce length for AES-256-GCM.

@@ -4,13 +4,13 @@
 //! 1. **Node.js/TypeScript modules** — `package.json` + `index.js` (code skills)
 //! 2. **SKILL.md Markdown files** — YAML frontmatter + Markdown body (prompt-only skills)
 //!
-//! This module detects both formats and converts them to OpenFang `SkillManifest`.
+//! This module detects both formats and converts them to Ochi `SkillManifest`.
 
 use crate::{
     SkillError, SkillManifest, SkillMeta, SkillRequirements, SkillRuntime, SkillRuntimeConfig,
     SkillSource, SkillToolDef, SkillTools,
 };
-use openfang_types::tool_compat;
+use ochi_types::tool_compat;
 use serde::Deserialize;
 use std::path::Path;
 use tracing::info;
@@ -83,7 +83,7 @@ pub struct OpenClawDispatch {
     pub disable_model_invocation: bool,
 }
 
-/// Result of converting a SKILL.md into OpenFang format.
+/// Result of converting a SKILL.md into Ochi format.
 #[derive(Debug, Clone)]
 pub struct ConvertedSkillMd {
     /// The generated skill manifest.
@@ -157,7 +157,7 @@ pub fn parse_skillmd_str(content: &str) -> Result<(SkillMdFrontmatter, String), 
     Ok((frontmatter, body))
 }
 
-/// Full conversion of a SKILL.md directory to OpenFang format.
+/// Full conversion of a SKILL.md directory to Ochi format.
 ///
 /// Most SKILL.md skills are prompt-only (no executable code). The Markdown body
 /// is stored as `prompt_context` and injected into the LLM's system prompt.
@@ -187,7 +187,7 @@ pub fn convert_skillmd(dir: &Path) -> Result<ConvertedSkillMd, SkillError> {
             required_env = requires.env.clone();
         }
 
-        // Convert commands to OpenFang tool definitions
+        // Convert commands to Ochi tool definitions
         for cmd in &meta.commands {
             if cmd.name.is_empty() {
                 continue;
@@ -265,7 +265,7 @@ pub fn convert_skillmd(dir: &Path) -> Result<ConvertedSkillMd, SkillError> {
     })
 }
 
-/// Convert an in-memory SKILL.md string into OpenFang format.
+/// Convert an in-memory SKILL.md string into Ochi format.
 ///
 /// Same as `convert_skillmd()` but works from a string rather than a directory.
 /// Used by the bundled skills system for compile-time embedded content.
@@ -327,7 +327,7 @@ pub fn convert_skillmd_str(name_hint: &str, content: &str) -> Result<ConvertedSk
             name: skill_name,
             version: "0.1.0".to_string(),
             description: frontmatter.description.clone(),
-            author: "OpenFang".to_string(),
+            author: "Ochi".to_string(),
             license: "Apache-2.0".to_string(),
             tags: vec!["bundled".to_string(), "prompt-only".to_string()],
         },
@@ -362,7 +362,7 @@ pub fn detect_openclaw_skill(dir: &Path) -> bool {
             || dir.join("dist").join("index.js").exists())
 }
 
-/// Convert an OpenClaw Node.js skill directory into an OpenFang SkillManifest.
+/// Convert an OpenClaw Node.js skill directory into an Ochi SkillManifest.
 ///
 /// Reads package.json to extract name, version, description, and infers tool definitions.
 pub fn convert_openclaw_skill(dir: &Path) -> Result<SkillManifest, SkillError> {
@@ -458,7 +458,7 @@ fn extract_tools_from_openclaw_meta(meta: &serde_json::Value) -> Vec<SkillToolDe
     tools
 }
 
-/// Write an OpenFang skill.toml manifest for an OpenClaw skill.
+/// Write an Ochi skill.toml manifest for an OpenClaw skill.
 pub fn write_ochi_manifest(dir: &Path, manifest: &SkillManifest) -> Result<(), SkillError> {
     let toml_str = toml::to_string_pretty(manifest)
         .map_err(|e| SkillError::InvalidManifest(format!("TOML serialize: {e}")))?;

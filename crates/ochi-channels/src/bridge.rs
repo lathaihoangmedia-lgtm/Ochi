@@ -1,4 +1,4 @@
-//! Channel bridge — connects channel adapters to the OpenFang kernel.
+//! Channel bridge — connects channel adapters to the Ochi kernel.
 //!
 //! Defines `ChannelBridgeHandle` (implemented by ochi-api on the kernel) and
 //! `BridgeManager` which owns running adapters and dispatches messages.
@@ -9,8 +9,8 @@ use crate::types::{ChannelAdapter, ChannelContent, ChannelMessage, ChannelUser};
 use async_trait::async_trait;
 use dashmap::DashMap;
 use futures::StreamExt;
-use openfang_types::agent::AgentId;
-use openfang_types::config::{ChannelOverrides, DmPolicy, GroupPolicy, OutputFormat};
+use ochi_types::agent::AgentId;
+use ochi_types::config::{ChannelOverrides, DmPolicy, GroupPolicy, OutputFormat};
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::watch;
@@ -526,7 +526,7 @@ async fn dispatch_message(
             let mut responses = Vec::new();
 
             match strategy {
-                openfang_types::config::BroadcastStrategy::Parallel => {
+                ochi_types::config::BroadcastStrategy::Parallel => {
                     let mut handles_vec = Vec::new();
                     for (name, maybe_id) in &targets {
                         if let Some(aid) = maybe_id {
@@ -549,7 +549,7 @@ async fn dispatch_message(
                         }
                     }
                 }
-                openfang_types::config::BroadcastStrategy::Sequential => {
+                ochi_types::config::BroadcastStrategy::Sequential => {
                     for (name, maybe_id) in &targets {
                         if let Some(aid) = maybe_id {
                             match handle.send_message(*aid, &text).await {
@@ -660,7 +660,7 @@ async fn handle_command(
     match name {
         "start" => {
             let agents = handle.list_agents().await.unwrap_or_default();
-            let mut msg = "Welcome to OpenFang! I connect you to AI agents.\n\nAvailable agents:\n"
+            let mut msg = "Welcome to Ochi! I connect you to AI agents.\n\nAvailable agents:\n"
                 .to_string();
             if agents.is_empty() {
                 msg.push_str("  (none running)\n");
@@ -672,7 +672,7 @@ async fn handle_command(
             msg.push_str("\nCommands:\n/agents - list agents\n/agent <name> - select an agent\n/help - show this help");
             msg
         }
-        "help" => "OpenFang Bot Commands:\n\
+        "help" => "Ochi Bot Commands:\n\
              \n\
              Session:\n\
              /agents - list running agents\n\

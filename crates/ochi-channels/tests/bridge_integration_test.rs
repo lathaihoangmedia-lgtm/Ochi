@@ -14,7 +14,7 @@ use ochi_channels::router::AgentRouter;
 use ochi_channels::types::{
     ChannelAdapter, ChannelContent, ChannelMessage, ChannelType, ChannelUser,
 };
-use openfang_types::agent::AgentId;
+use ochi_types::agent::AgentId;
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};

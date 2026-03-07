@@ -24,7 +24,7 @@ const LOGO_PNG: &[u8] = include_bytes!("../static/logo.png");
 /// Embedded favicon ICO for browser tabs.
 const FAVICON_ICO: &[u8] = include_bytes!("../static/favicon.ico");
 
-/// GET /logo.png — Serve the OpenFang logo.
+/// GET /logo.png — Serve the Ochi logo.
 pub async fn logo_png() -> impl IntoResponse {
     (
         [
@@ -35,7 +35,7 @@ pub async fn logo_png() -> impl IntoResponse {
     )
 }
 
-/// GET /favicon.ico — Serve the OpenFang favicon.
+/// GET /favicon.ico — Serve the Ochi favicon.
 pub async fn favicon_ico() -> impl IntoResponse {
     (
         [
@@ -46,7 +46,7 @@ pub async fn favicon_ico() -> impl IntoResponse {
     )
 }
 
-/// GET / — Serve the OpenFang Dashboard single-page application.
+/// GET / — Serve the Ochi Dashboard single-page application.
 ///
 /// Returns the full SPA with ETag header based on package version for caching.
 pub async fn webchat_page() -> impl IntoResponse {
@@ -63,7 +63,7 @@ pub async fn webchat_page() -> impl IntoResponse {
     )
 }
 
-/// The embedded HTML/CSS/JS for the OpenFang Dashboard.
+/// The embedded HTML/CSS/JS for the Ochi Dashboard.
 ///
 /// Assembled at compile time from organized static files.
 /// All vendor libraries (Alpine.js, marked.js, highlight.js) are bundled

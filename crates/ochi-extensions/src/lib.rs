@@ -1,4 +1,4 @@
-//! OpenFang Extensions — one-click integration system.
+//! Ochi Extensions — one-click integration system.
 //!
 //! This crate provides:
 //! - **Integration Registry**: 25 bundled MCP server templates (GitHub, Slack, etc.)
@@ -33,7 +33,7 @@ pub enum ExtensionError {
     CredentialNotFound(String),
     #[error("Vault error: {0}")]
     Vault(String),
-    #[error("Vault locked — unlock with vault key or OPENFANG_VAULT_KEY env var")]
+    #[error("Vault locked — unlock with vault key or OCHI_VAULT_KEY env var")]
     VaultLocked,
     #[error("OAuth error: {0}")]
     OAuth(String),

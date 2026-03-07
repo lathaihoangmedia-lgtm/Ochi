@@ -1,4 +1,4 @@
-//! Route handlers for the OpenFang API.
+//! Route handlers for the Ochi API.
 
 use crate::types::*;
 use axum::extract::{Path, Query, State};
@@ -10,10 +10,10 @@ use ochi_kernel::triggers::{TriggerId, TriggerPattern};
 use ochi_kernel::workflow::{
     ErrorMode, StepAgent, StepMode, Workflow, WorkflowId, WorkflowStep,
 };
-use ochi_kernel::OpenFangKernel;
+use ochi_kernel::OchiKernel;
 use ochi_runtime::kernel_handle::KernelHandle;
 use ochi_runtime::tool_runner::builtin_tool_definitions;
-use openfang_types::agent::{AgentId, AgentIdentity, AgentManifest};
+use ochi_types::agent::{AgentId, AgentIdentity, AgentManifest};
 use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 use std::time::Instant;
@@ -23,14 +23,14 @@ use std::time::Instant;
 /// The kernel is wrapped in Arc so it can serve as both the main kernel
 /// and the KernelHandle for inter-agent tool access.
 pub struct AppState {
-    pub kernel: Arc<OpenFangKernel>,
+    pub kernel: Arc<OchiKernel>,
     pub started_at: Instant,
     /// Optional peer registry for OFP mesh networking status.
     pub peer_registry: Option<Arc<ochi_wire::registry::PeerRegistry>>,
     /// Channel bridge manager — held behind a Mutex so it can be swapped on hot-reload.
     pub bridge_manager: tokio::sync::Mutex<Option<ochi_channels::bridge::BridgeManager>>,
     /// Live channel config — updated on every hot-reload so list_channels() reflects reality.
-    pub channels_config: tokio::sync::RwLock<openfang_types::config::ChannelsConfig>,
+    pub channels_config: tokio::sync::RwLock<ochi_types::config::ChannelsConfig>,
     /// Notify handle to trigger graceful HTTP server shutdown from the API.
     pub shutdown_notify: Arc<tokio::sync::Notify>,
 }
@@ -145,7 +145,7 @@ pub async fn list_agents(State(state): State<Arc<AppState>>) -> impl IntoRespons
 /// returns image content blocks ready to insert into a session message.
 pub fn resolve_attachments(
     attachments: &[AttachmentRef],
-) -> Vec<openfang_types::message::ContentBlock> {
+) -> Vec<ochi_types::message::ContentBlock> {
     use base64::Engine;
 
     let upload_dir = std::env::temp_dir().join("ochi_uploads");
@@ -176,7 +176,7 @@ pub fn resolve_attachments(
         match std::fs::read(&file_path) {
             Ok(data) => {
                 let b64 = base64::engine::general_purpose::STANDARD.encode(&data);
-                blocks.push(openfang_types::message::ContentBlock::Image {
+                blocks.push(ochi_types::message::ContentBlock::Image {
                     media_type: content_type,
                     data: b64,
                 });
@@ -195,11 +195,11 @@ pub fn resolve_attachments(
 /// This injects image content blocks into the session BEFORE the kernel
 /// adds the text user message, so the LLM receives: [..., User(images), User(text)].
 pub fn inject_attachments_into_session(
-    kernel: &OpenFangKernel,
+    kernel: &OchiKernel,
     agent_id: AgentId,
-    image_blocks: Vec<openfang_types::message::ContentBlock>,
+    image_blocks: Vec<ochi_types::message::ContentBlock>,
 ) {
-    use openfang_types::message::{Message, MessageContent, Role};
+    use ochi_types::message::{Message, MessageContent, Role};
 
     let entry = match kernel.registry.get(agent_id) {
         Some(e) => e,
@@ -332,19 +332,19 @@ pub async fn get_agent_session(
                 .filter_map(|m| {
                     let mut tools: Vec<serde_json::Value> = Vec::new();
                     let content = match &m.content {
-                        openfang_types::message::MessageContent::Text(t) => t.clone(),
-                        openfang_types::message::MessageContent::Blocks(blocks) => {
+                        ochi_types::message::MessageContent::Text(t) => t.clone(),
+                        ochi_types::message::MessageContent::Blocks(blocks) => {
                             // Extract human-readable text and tool info from blocks
                             let mut texts = Vec::new();
                             for b in blocks {
                                 match b {
-                                    openfang_types::message::ContentBlock::Text { text } => {
+                                    ochi_types::message::ContentBlock::Text { text } => {
                                         texts.push(text.clone());
                                     }
-                                    openfang_types::message::ContentBlock::Image { .. } => {
+                                    ochi_types::message::ContentBlock::Image { .. } => {
                                         texts.push("[Image]".to_string());
                                     }
-                                    openfang_types::message::ContentBlock::ToolUse {
+                                    ochi_types::message::ContentBlock::ToolUse {
                                         name, ..
                                     } => {
                                         tools.push(serde_json::json!({
@@ -353,7 +353,7 @@ pub async fn get_agent_session(
                                             "expanded": false,
                                         }));
                                     }
-                                    openfang_types::message::ContentBlock::ToolResult {
+                                    ochi_types::message::ContentBlock::ToolResult {
                                         content: result,
                                         is_error,
                                         ..
@@ -803,7 +803,7 @@ pub async fn delete_trigger(
 
 /// GET /api/profiles — List all tool profiles and their tool lists.
 pub async fn list_profiles() -> impl IntoResponse {
-    use openfang_types::agent::ToolProfile;
+    use ochi_types::agent::ToolProfile;
 
     let profiles = [
         ("minimal", ToolProfile::Minimal),
@@ -1709,7 +1709,7 @@ const CHANNEL_REGISTRY: &[ChannelMeta] = &[
 ];
 
 /// Check if a channel is configured (has a `[channels.xxx]` section in config).
-fn is_channel_configured(config: &openfang_types::config::ChannelsConfig, name: &str) -> bool {
+fn is_channel_configured(config: &ochi_types::config::ChannelsConfig, name: &str) -> bool {
     match name {
         "telegram" => config.telegram.is_some(),
         "discord" => config.discord.is_some(),
@@ -2489,7 +2489,7 @@ pub async fn delete_agent_kv_key(
 /// Use GET /api/health/detail for full diagnostics (requires auth).
 pub async fn health(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     // Check database connectivity
-    let shared_id = openfang_types::agent::AgentId(uuid::Uuid::from_bytes([
+    let shared_id = ochi_types::agent::AgentId(uuid::Uuid::from_bytes([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     ]));
     let db_ok = state
@@ -2510,7 +2510,7 @@ pub async fn health(State(state): State<Arc<AppState>>) -> impl IntoResponse {
 pub async fn health_detail(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let health = state.kernel.supervisor.health();
 
-    let shared_id = openfang_types::agent::AgentId(uuid::Uuid::from_bytes([
+    let shared_id = ochi_types::agent::AgentId(uuid::Uuid::from_bytes([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     ]));
     let db_ok = state
@@ -2540,7 +2540,7 @@ pub async fn health_detail(State(state): State<Arc<AppState>>) -> impl IntoRespo
 
 /// GET /api/metrics — Prometheus text-format metrics.
 ///
-/// Returns counters and gauges for monitoring OpenFang in production:
+/// Returns counters and gauges for monitoring Ochi in production:
 /// - `ochi_agents_active` — number of active agents
 /// - `ochi_uptime_seconds` — seconds since daemon started
 /// - `ochi_tokens_total` — total tokens consumed (per agent)
@@ -2560,7 +2560,7 @@ pub async fn prometheus_metrics(State(state): State<Arc<AppState>>) -> impl Into
     let agents = state.kernel.registry.list();
     let active = agents
         .iter()
-        .filter(|a| matches!(a.state, openfang_types::agent::AgentState::Running))
+        .filter(|a| matches!(a.state, ochi_types::agent::AgentState::Running))
         .count();
     out.push_str("# HELP ochi_agents_active Number of active agents.\n");
     out.push_str("# TYPE ochi_agents_active gauge\n");
@@ -2602,7 +2602,7 @@ pub async fn prometheus_metrics(State(state): State<Arc<AppState>>) -> impl Into
     ));
 
     // Version info
-    out.push_str("# HELP ochi_info OpenFang version and build info.\n");
+    out.push_str("# HELP ochi_info Ochi version and build info.\n");
     out.push_str("# TYPE ochi_info gauge\n");
     out.push_str(&format!(
         "ochi_info{{version=\"{}\"}} 1\n",
@@ -3642,7 +3642,7 @@ pub async fn hand_instance_browser(
                 content = data["content"].as_str().unwrap_or("").to_string();
                 // Truncate content to avoid huge payloads (UTF-8 safe)
                 if content.len() > 2000 {
-                    content = format!("{}... (truncated)", openfang_types::truncate_str(&content, 2000));
+                    content = format!("{}... (truncated)", ochi_types::truncate_str(&content, 2000));
                 }
             }
         }
@@ -3698,14 +3698,14 @@ pub async fn list_mcp_servers(State(state): State<Arc<AppState>>) -> impl IntoRe
         .iter()
         .map(|s| {
             let transport = match &s.transport {
-                openfang_types::config::McpTransportEntry::Stdio { command, args } => {
+                ochi_types::config::McpTransportEntry::Stdio { command, args } => {
                     serde_json::json!({
                         "type": "stdio",
                         "command": command,
                         "args": args,
                     })
                 }
-                openfang_types::config::McpTransportEntry::Sse { url } => {
+                ochi_types::config::McpTransportEntry::Sse { url } => {
                     serde_json::json!({
                         "type": "sse",
                         "url": url,
@@ -4166,8 +4166,8 @@ pub async fn update_budget(
 ) -> impl IntoResponse {
     // SAFETY: Budget config is updated in-place. Since KernelConfig is behind
     // an Arc and we only have &self, we use ptr mutation (same pattern as OFP).
-    let config_ptr = &state.kernel.config as *const openfang_types::config::KernelConfig
-        as *mut openfang_types::config::KernelConfig;
+    let config_ptr = &state.kernel.config as *const ochi_types::config::KernelConfig
+        as *mut ochi_types::config::KernelConfig;
 
     // Apply updates
     unsafe {
@@ -4293,7 +4293,7 @@ pub async fn delete_session(
     Path(id): Path<String>,
 ) -> impl IntoResponse {
     let session_id = match id.parse::<uuid::Uuid>() {
-        Ok(u) => openfang_types::agent::SessionId(u),
+        Ok(u) => ochi_types::agent::SessionId(u),
         Err(_) => {
             return (
                 StatusCode::BAD_REQUEST,
@@ -4321,7 +4321,7 @@ pub async fn set_session_label(
     Json(req): Json<serde_json::Value>,
 ) -> impl IntoResponse {
     let session_id = match id.parse::<uuid::Uuid>() {
-        Ok(u) => openfang_types::agent::SessionId(u),
+        Ok(u) => ochi_types::agent::SessionId(u),
         Err(_) => {
             return (
                 StatusCode::BAD_REQUEST,
@@ -4334,7 +4334,7 @@ pub async fn set_session_label(
 
     // Validate label if present
     if let Some(lbl) = label {
-        if let Err(e) = openfang_types::agent::SessionLabel::new(lbl) {
+        if let Err(e) = ochi_types::agent::SessionLabel::new(lbl) {
             return (
                 StatusCode::BAD_REQUEST,
                 Json(serde_json::json!({"error": e.to_string()})),
@@ -4364,7 +4364,7 @@ pub async fn find_session_by_label(
     Path((agent_id_str, label)): Path<(String, String)>,
 ) -> impl IntoResponse {
     let agent_id = match agent_id_str.parse::<uuid::Uuid>() {
-        Ok(u) => openfang_types::agent::AgentId(u),
+        Ok(u) => ochi_types::agent::AgentId(u),
         Err(_) => {
             // Try name lookup
             match state.kernel.registry.find_by_name(&agent_id_str) {
@@ -4718,7 +4718,7 @@ pub async fn list_models(
             if available_only {
                 let provider = catalog.get_provider(&m.provider);
                 if let Some(p) = provider {
-                    if p.auth_status == openfang_types::model_catalog::AuthStatus::Missing {
+                    if p.auth_status == ochi_types::model_catalog::AuthStatus::Missing {
                         return false;
                     }
                 }
@@ -4728,7 +4728,7 @@ pub async fn list_models(
         .map(|m| {
             let available = catalog
                 .get_provider(&m.provider)
-                .map(|p| p.auth_status != openfang_types::model_catalog::AuthStatus::Missing)
+                .map(|p| p.auth_status != ochi_types::model_catalog::AuthStatus::Missing)
                 .unwrap_or(false);
             serde_json::json!({
                 "id": m.id,
@@ -4802,7 +4802,7 @@ pub async fn get_model(
         Some(m) => {
             let available = catalog
                 .get_provider(&m.provider)
-                .map(|p| p.auth_status != openfang_types::model_catalog::AuthStatus::Missing)
+                .map(|p| p.auth_status != ochi_types::model_catalog::AuthStatus::Missing)
                 .unwrap_or(false);
             (
                 StatusCode::OK,
@@ -4835,7 +4835,7 @@ pub async fn get_model(
 /// For local providers (ollama, vllm, lmstudio), also probes reachability and
 /// discovers available models via their health endpoints.
 pub async fn list_providers(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    let provider_list: Vec<openfang_types::model_catalog::ProviderInfo> = {
+    let provider_list: Vec<ochi_types::model_catalog::ProviderInfo> = {
         let catalog = state
             .kernel
             .model_catalog
@@ -4924,11 +4924,11 @@ pub async fn add_custom_model(
         .unwrap_or(&id)
         .to_string();
 
-    let entry = openfang_types::model_catalog::ModelCatalogEntry {
+    let entry = ochi_types::model_catalog::ModelCatalogEntry {
         id: id.clone(),
         display_name: display,
         provider: provider.clone(),
-        tier: openfang_types::model_catalog::ModelTier::Custom,
+        tier: ochi_types::model_catalog::ModelTier::Custom,
         context_window,
         max_output_tokens: max_output,
         input_cost_per_m: body
@@ -5028,7 +5028,7 @@ pub async fn a2a_agent_card(State(state): State<Arc<AppState>>) -> impl IntoResp
     } else {
         let card = serde_json::json!({
             "name": "ochi",
-            "description": "OpenFang Agent OS — no agents spawned yet",
+            "description": "Ochi Agent OS — no agents spawned yet",
             "url": format!("{base_url}/a2a"),
             "version": "0.1.0",
             "capabilities": { "streaming": true },
@@ -5355,7 +5355,7 @@ pub async fn mcp_http(
             .read()
             .unwrap_or_else(|e| e.into_inner());
         for skill_tool in registry.all_tool_definitions() {
-            tools.push(openfang_types::tool::ToolDefinition {
+            tools.push(ochi_types::tool::ToolDefinition {
                 name: skill_tool.name.clone(),
                 description: skill_tool.description.clone(),
                 input_schema: skill_tool.input_schema.clone(),
@@ -5507,7 +5507,7 @@ pub async fn switch_agent_session(
         }
     };
     let session_id = match session_id_str.parse::<uuid::Uuid>() {
-        Ok(uuid) => openfang_types::agent::SessionId(uuid),
+        Ok(uuid) => ochi_types::agent::SessionId(uuid),
         Err(_) => {
             return (
                 StatusCode::BAD_REQUEST,
@@ -6000,7 +6000,7 @@ pub async fn test_provider(
             // Send a minimal completion request to test connectivity
             let test_req = ochi_runtime::llm_driver::CompletionRequest {
                 model: String::new(), // Driver will use default
-                messages: vec![openfang_types::message::Message::user("Hi")],
+                messages: vec![ochi_types::message::Message::user("Hi")],
                 tools: vec![],
                 max_tokens: 1,
                 temperature: 0.0,
@@ -7721,10 +7721,10 @@ pub async fn upload_file(
 
     // Auto-transcribe audio uploads using the media engine
     let transcription = if content_type.starts_with("audio/") {
-        let attachment = openfang_types::media::MediaAttachment {
-            media_type: openfang_types::media::MediaType::Audio,
+        let attachment = ochi_types::media::MediaAttachment {
+            media_type: ochi_types::media::MediaType::Audio,
             mime_type: content_type.clone(),
-            source: openfang_types::media::MediaSource::FilePath {
+            source: ochi_types::media::MediaSource::FilePath {
                 path: file_path.to_string_lossy().to_string(),
             },
             size_bytes: size as u64,
@@ -7875,7 +7875,7 @@ pub async fn create_approval(
     State(state): State<Arc<AppState>>,
     Json(req): Json<CreateApprovalRequest>,
 ) -> impl IntoResponse {
-    use openfang_types::approval::{ApprovalRequest, RiskLevel};
+    use ochi_types::approval::{ApprovalRequest, RiskLevel};
 
     let policy = state.kernel.approval_manager.policy();
     let id = uuid::Uuid::new_v4();
@@ -7927,7 +7927,7 @@ pub async fn approve_request(
 
     match state.kernel.approval_manager.resolve(
         uuid,
-        openfang_types::approval::ApprovalDecision::Approved,
+        ochi_types::approval::ApprovalDecision::Approved,
         Some("api".to_string()),
     ) {
         Ok(resp) => (
@@ -7957,7 +7957,7 @@ pub async fn reject_request(
 
     match state.kernel.approval_manager.resolve(
         uuid,
-        openfang_types::approval::ApprovalDecision::Denied,
+        ochi_types::approval::ApprovalDecision::Denied,
         Some("api".to_string()),
     ) {
         Ok(resp) => (
@@ -8345,7 +8345,7 @@ pub async fn delete_cron_job(
 ) -> impl IntoResponse {
     match uuid::Uuid::parse_str(&id) {
         Ok(uuid) => {
-            let job_id = openfang_types::scheduler::CronJobId(uuid);
+            let job_id = ochi_types::scheduler::CronJobId(uuid);
             match state.kernel.cron_scheduler.remove_job(job_id) {
                 Ok(_) => {
                     let _ = state.kernel.cron_scheduler.persist();
@@ -8376,7 +8376,7 @@ pub async fn toggle_cron_job(
     let enabled = body["enabled"].as_bool().unwrap_or(true);
     match uuid::Uuid::parse_str(&id) {
         Ok(uuid) => {
-            let job_id = openfang_types::scheduler::CronJobId(uuid);
+            let job_id = ochi_types::scheduler::CronJobId(uuid);
             match state.kernel.cron_scheduler.set_enabled(job_id, enabled) {
                 Ok(()) => {
                     let _ = state.kernel.cron_scheduler.persist();
@@ -8405,7 +8405,7 @@ pub async fn cron_job_status(
 ) -> impl IntoResponse {
     match uuid::Uuid::parse_str(&id) {
         Ok(uuid) => {
-            let job_id = openfang_types::scheduler::CronJobId(uuid);
+            let job_id = ochi_types::scheduler::CronJobId(uuid);
             match state.kernel.cron_scheduler.get_meta(job_id) {
                 Some(meta) => (
                     StatusCode::OK,
@@ -8479,7 +8479,7 @@ pub async fn manus_webhook(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<ManusWebhookPayload>,
 ) -> impl IntoResponse {
-    info!(
+    tracing::info!(
         event_id = %payload.event_id,
         event_type = %payload.event_type,
         "Received Manus webhook"
@@ -8487,21 +8487,21 @@ pub async fn manus_webhook(
 
     match payload.detail {
         ManusWebhookDetail::Created { task_detail } => {
-            info!(
+            tracing::info!(
                 task_id = %task_detail.task_id,
                 title = %task_detail.task_title,
                 "Manus task created"
             );
         }
         ManusWebhookDetail::Progress { progress_detail } => {
-            debug!(
+            tracing::debug!(
                 task_id = %progress_detail.task_id,
                 msg = %progress_detail.message,
                 "Manus task progress"
             );
         }
         ManusWebhookDetail::Stopped { task_detail } => {
-            info!(
+            tracing::info!(
                 task_id = %task_detail.task_id,
                 reason = %task_detail.stop_reason,
                 "Manus task stopped"
@@ -8533,7 +8533,7 @@ pub async fn manus_webhook(
 pub async fn webhook_wake(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
-    Json(body): Json<openfang_types::webhook::WakePayload>,
+    Json(body): Json<ochi_types::webhook::WakePayload>,
 ) -> impl IntoResponse {
     // Check if webhook triggers are enabled
     let wh_config = match &state.kernel.config.webhook_triggers {
@@ -8592,7 +8592,7 @@ pub async fn webhook_wake(
 pub async fn webhook_agent(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
-    Json(body): Json<openfang_types::webhook::AgentHookPayload>,
+    Json(body): Json<ochi_types::webhook::AgentHookPayload>,
 ) -> impl IntoResponse {
     // Check if webhook triggers are enabled
     let wh_config = match &state.kernel.config.webhook_triggers {
@@ -8689,7 +8689,7 @@ pub async fn list_bindings(State(state): State<Arc<AppState>>) -> impl IntoRespo
 /// POST /api/bindings — Add a new agent binding.
 pub async fn add_binding(
     State(state): State<Arc<AppState>>,
-    Json(binding): Json<openfang_types::config::AgentBinding>,
+    Json(binding): Json<ochi_types::config::AgentBinding>,
 ) -> impl IntoResponse {
     // Validate agent exists
     let agents = state.kernel.registry.list();
@@ -8861,7 +8861,7 @@ pub async fn pairing_notify(
     let title = body
         .get("title")
         .and_then(|v| v.as_str())
-        .unwrap_or("OpenFang");
+        .unwrap_or("Ochi");
     let message = body.get("message").and_then(|v| v.as_str()).unwrap_or("");
     if message.is_empty() {
         return (

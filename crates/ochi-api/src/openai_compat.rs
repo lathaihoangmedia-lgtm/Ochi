@@ -1,6 +1,6 @@
 //! OpenAI-compatible `/v1/chat/completions` API endpoint.
 //!
-//! Allows any OpenAI-compatible client library to talk to OpenFang agents.
+//! Allows any OpenAI-compatible client library to talk to Ochi agents.
 //! The `model` field resolves to an agent (by name, UUID, or `ochi:<name>`),
 //! and the messages are forwarded to the agent's LLM loop.
 //!
@@ -14,8 +14,8 @@ use axum::response::IntoResponse;
 use axum::Json;
 use ochi_runtime::kernel_handle::KernelHandle;
 use ochi_runtime::llm_driver::StreamEvent;
-use openfang_types::agent::AgentId;
-use openfang_types::message::{ContentBlock, Message, MessageContent, Role, StopReason};
+use ochi_types::agent::AgentId;
+use ochi_types::message::{ContentBlock, Message, MessageContent, Role, StopReason};
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
 use std::sync::Arc;

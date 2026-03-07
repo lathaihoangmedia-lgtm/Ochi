@@ -6,7 +6,7 @@ license.workspace = true
 description = "Skill system for Ochi — registry, loader, marketplace, and OpenClaw compatibility"
 
 [dependencies]
-openfang-types = { package = "ochi-types", path = "../ochi-types" }
+ochi-types = { path = "../ochi-types" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 toml = { workspace = true }

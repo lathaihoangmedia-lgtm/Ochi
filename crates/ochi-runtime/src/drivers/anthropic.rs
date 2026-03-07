@@ -6,10 +6,10 @@
 use crate::llm_driver::{CompletionRequest, CompletionResponse, LlmDriver, LlmError, StreamEvent};
 use async_trait::async_trait;
 use futures::StreamExt;
-use openfang_types::message::{
+use ochi_types::message::{
     ContentBlock, Message, MessageContent, Role, StopReason, TokenUsage,
 };
-use openfang_types::tool::ToolCall;
+use ochi_types::tool::ToolCall;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 use zeroize::Zeroizing;
@@ -543,7 +543,7 @@ impl LlmDriver for AnthropicDriver {
     }
 }
 
-/// Convert an OpenFang Message to an Anthropic API message.
+/// Convert an Ochi Message to an Anthropic API message.
 fn convert_message(msg: &Message) -> ApiMessage {
     let role = match msg.role {
         Role::User => "user",

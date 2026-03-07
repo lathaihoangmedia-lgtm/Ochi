@@ -9,7 +9,7 @@
 
 use crate::web_cache::WebCache;
 use crate::web_content::wrap_external_content;
-use openfang_types::config::{SearchProvider, WebConfig};
+use ochi_types::config::{SearchProvider, WebConfig};
 use std::sync::Arc;
 use tracing::{debug, warn};
 use zeroize::Zeroizing;
@@ -284,7 +284,7 @@ impl WebSearchEngine {
             .client
             .get("https://html.duckduckgo.com/html/")
             .query(&[("q", query)])
-            .header("User-Agent", "Mozilla/5.0 (compatible; OpenFangAgent/0.1)")
+            .header("User-Agent", "Mozilla/5.0 (compatible; OchiAgent/0.1)")
             .send()
             .await
             .map_err(|e| format!("DuckDuckGo request failed: {e}"))?;

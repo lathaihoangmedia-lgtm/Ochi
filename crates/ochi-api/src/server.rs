@@ -1,4 +1,4 @@
-//! OpenFang daemon server — boots the kernel and serves the HTTP API.
+//! Ochi daemon server — boots the kernel and serves the HTTP API.
 
 use crate::channel_bridge;
 use crate::middleware;
@@ -7,7 +7,7 @@ use crate::routes::{self, AppState};
 use crate::webchat;
 use crate::ws;
 use axum::Router;
-use ochi_kernel::OpenFangKernel;
+use ochi_kernel::OchiKernel;
 use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
@@ -35,7 +35,7 @@ pub struct DaemonInfo {
 /// Returns `(router, shared_state)`. The caller can use `state.bridge_manager`
 /// to shut down the bridge on exit.
 pub async fn build_router(
-    kernel: Arc<OpenFangKernel>,
+    kernel: Arc<OchiKernel>,
     listen_addr: SocketAddr,
 ) -> (Router<()>, Arc<AppState>) {
     // Start channel bridges (Telegram, etc.)
@@ -653,11 +653,11 @@ pub async fn build_router(
     (app, state)
 }
 
-/// Start the OpenFang daemon: boot kernel + HTTP API server.
+/// Start the Ochi daemon: boot kernel + HTTP API server.
 ///
 /// This function blocks until Ctrl+C or a shutdown request.
 pub async fn run_daemon(
-    kernel: OpenFangKernel,
+    kernel: OchiKernel,
     listen_addr: &str,
     daemon_info_path: Option<&Path>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -733,7 +733,7 @@ pub async fn run_daemon(
         }
     }
 
-    info!("OpenFang API server listening on http://{addr}");
+    info!("Ochi API server listening on http://{addr}");
     info!("WebChat UI available at http://{addr}/",);
     info!("WebSocket endpoint: ws://{addr}/api/agents/{{id}}/ws",);
 
@@ -763,7 +763,7 @@ pub async fn run_daemon(
     // Shutdown kernel
     kernel.shutdown();
 
-    info!("OpenFang daemon stopped");
+    info!("Ochi daemon stopped");
     Ok(())
 }
 

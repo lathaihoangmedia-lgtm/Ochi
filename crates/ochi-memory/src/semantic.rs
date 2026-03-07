@@ -8,9 +8,9 @@
 //! When no embeddings are available, falls back to LIKE matching.
 
 use chrono::Utc;
-use openfang_types::agent::AgentId;
-use openfang_types::error::{OpenFangError, OpenFangResult};
-use openfang_types::memory::{MemoryFilter, MemoryFragment, MemoryId, MemorySource};
+use ochi_types::agent::AgentId;
+use ochi_types::error::{OchiError, OchiResult};
+use ochi_types::memory::{MemoryFilter, MemoryFragment, MemoryId, MemorySource};
 use rusqlite::Connection;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -36,7 +36,7 @@ impl SemanticStore {
         source: MemorySource,
         scope: &str,
         metadata: HashMap<String, serde_json::Value>,
-    ) -> OpenFangResult<MemoryId> {
+    ) -> OchiResult<MemoryId> {
         self.remember_with_embedding(agent_id, content, source, scope, metadata, None)
     }
 
@@ -49,17 +49,17 @@ impl SemanticStore {
         scope: &str,
         metadata: HashMap<String, serde_json::Value>,
         embedding: Option<&[f32]>,
-    ) -> OpenFangResult<MemoryId> {
+    ) -> OchiResult<MemoryId> {
         let conn = self
             .conn
             .lock()
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            .map_err(|e| OchiError::Internal(e.to_string()))?;
         let id = MemoryId::new();
         let now = Utc::now().to_rfc3339();
         let source_str = serde_json::to_string(&source)
-            .map_err(|e| OpenFangError::Serialization(e.to_string()))?;
+            .map_err(|e| OchiError::Serialization(e.to_string()))?;
         let meta_str = serde_json::to_string(&metadata)
-            .map_err(|e| OpenFangError::Serialization(e.to_string()))?;
+            .map_err(|e| OchiError::Serialization(e.to_string()))?;
         let embedding_bytes: Option<Vec<u8>> = embedding.map(embedding_to_bytes);
 
         conn.execute(
@@ -76,7 +76,7 @@ impl SemanticStore {
                 embedding_bytes,
             ],
         )
-        .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+        .map_err(|e| OchiError::Memory(e.to_string()))?;
         Ok(id)
     }
 
@@ -86,7 +86,7 @@ impl SemanticStore {
         query: &str,
         limit: usize,
         filter: Option<MemoryFilter>,
-    ) -> OpenFangResult<Vec<MemoryFragment>> {
+    ) -> OchiResult<Vec<MemoryFragment>> {
         self.recall_with_embedding(query, limit, filter, None)
     }
 
@@ -98,11 +98,11 @@ impl SemanticStore {
         limit: usize,
         filter: Option<MemoryFilter>,
         query_embedding: Option<&[f32]>,
-    ) -> OpenFangResult<Vec<MemoryFragment>> {
+    ) -> OchiResult<Vec<MemoryFragment>> {
         let conn = self
             .conn
             .lock()
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            .map_err(|e| OchiError::Internal(e.to_string()))?;
 
         // Build SQL: fetch candidates (broader than limit for vector re-ranking)
         let fetch_limit = if query_embedding.is_some() {
@@ -145,7 +145,7 @@ impl SemanticStore {
             }
             if let Some(ref source) = f.source {
                 let source_str = serde_json::to_string(source)
-                    .map_err(|e| OpenFangError::Serialization(e.to_string()))?;
+                    .map_err(|e| OchiError::Serialization(e.to_string()))?;
                 sql.push_str(&format!(" AND source = ?{param_idx}"));
                 params.push(Box::new(source_str));
                 let _ = param_idx;
@@ -157,7 +157,7 @@ impl SemanticStore {
 
         let mut stmt = conn
             .prepare(&sql)
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
 
         let param_refs: Vec<&dyn rusqlite::types::ToSql> =
             params.iter().map(|p| p.as_ref()).collect();
@@ -188,7 +188,7 @@ impl SemanticStore {
                     embedding_bytes,
                 ))
             })
-            .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            .map_err(|e| OchiError::Memory(e.to_string()))?;
 
         let mut fragments = Vec::new();
         for row_result in rows {
@@ -204,14 +204,14 @@ impl SemanticStore {
                 accessed_str,
                 access_count,
                 embedding_bytes,
-            ) = row_result.map_err(|e| OpenFangError::Memory(e.to_string()))?;
+            ) = row_result.map_err(|e| OchiError::Memory(e.to_string()))?;
 
             let id = uuid::Uuid::parse_str(&id_str)
                 .map(MemoryId)
-                .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+                .map_err(|e| OchiError::Memory(e.to_string()))?;
             let agent_id = uuid::Uuid::parse_str(&agent_str)
-                .map(openfang_types::agent::AgentId)
-                .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+                .map(ochi_types::agent::AgentId)
+                .map_err(|e| OchiError::Memory(e.to_string()))?;
             let source: MemorySource =
                 serde_json::from_str(&source_str).unwrap_or(MemorySource::System);
             let metadata: HashMap<String, serde_json::Value> =
@@ -277,31 +277,31 @@ impl SemanticStore {
     }
 
     /// Soft-delete a memory fragment.
-    pub fn forget(&self, id: MemoryId) -> OpenFangResult<()> {
+    pub fn forget(&self, id: MemoryId) -> OchiResult<()> {
         let conn = self
             .conn
             .lock()
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            .map_err(|e| OchiError::Internal(e.to_string()))?;
         conn.execute(
             "UPDATE memories SET deleted = 1 WHERE id = ?1",
             rusqlite::params![id.0.to_string()],
         )
-        .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+        .map_err(|e| OchiError::Memory(e.to_string()))?;
         Ok(())
     }
 
     /// Update the embedding for an existing memory.
-    pub fn update_embedding(&self, id: MemoryId, embedding: &[f32]) -> OpenFangResult<()> {
+    pub fn update_embedding(&self, id: MemoryId, embedding: &[f32]) -> OchiResult<()> {
         let conn = self
             .conn
             .lock()
-            .map_err(|e| OpenFangError::Internal(e.to_string()))?;
+            .map_err(|e| OchiError::Internal(e.to_string()))?;
         let bytes = embedding_to_bytes(embedding);
         conn.execute(
             "UPDATE memories SET embedding = ?1 WHERE id = ?2",
             rusqlite::params![bytes, id.0.to_string()],
         )
-        .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+        .map_err(|e| OchiError::Memory(e.to_string()))?;
         Ok(())
     }
 }

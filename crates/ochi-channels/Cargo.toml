@@ -6,7 +6,7 @@ license.workspace = true
 description = "Channel Bridge Layer — pluggable messaging integrations for Ochi"
 
 [dependencies]
-openfang-types = { package = "ochi-types", path = "../ochi-types" }
+ochi-types = { path = "../ochi-types" }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

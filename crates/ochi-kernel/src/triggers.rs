@@ -6,8 +6,8 @@
 
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
-use openfang_types::agent::AgentId;
-use openfang_types::event::{Event, EventPayload, LifecycleEvent, SystemEvent};
+use ochi_types::agent::AgentId;
+use ochi_types::event::{Event, EventPayload, LifecycleEvent, SystemEvent};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 use uuid::Uuid;
@@ -360,7 +360,7 @@ fn describe_event(event: &Event) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openfang_types::event::*;
+    use ochi_types::event::*;
 
     #[test]
     fn test_register_trigger() {

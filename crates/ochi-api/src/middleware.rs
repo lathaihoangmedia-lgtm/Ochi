@@ -1,4 +1,4 @@
-//! Production middleware for the OpenFang API server.
+//! Production middleware for the Ochi API server.
 //!
 //! Provides:
 //! - Request ID generation and propagation

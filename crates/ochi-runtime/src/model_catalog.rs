@@ -3,7 +3,7 @@
 //! Provides a comprehensive catalog of 130+ builtin models across 27 providers,
 //! with alias resolution, auth status detection, and pricing lookups.
 
-use openfang_types::model_catalog::{
+use ochi_types::model_catalog::{
     AuthStatus, ModelCatalogEntry, ModelTier, ProviderInfo, AI21_BASE_URL, ANTHROPIC_BASE_URL,
     BEDROCK_BASE_URL, CEREBRAS_BASE_URL, COHERE_BASE_URL, DEEPSEEK_BASE_URL, FIREWORKS_BASE_URL,
     GEMINI_BASE_URL, GITHUB_COPILOT_BASE_URL, GROQ_BASE_URL, HUGGINGFACE_BASE_URL,

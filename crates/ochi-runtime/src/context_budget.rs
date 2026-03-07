@@ -5,8 +5,8 @@
 //! - Layer 2: Context guard that scans all tool results before LLM calls
 //!   and compacts oldest results when total exceeds 75% headroom.
 
-use openfang_types::message::{ContentBlock, Message, MessageContent};
-use openfang_types::tool::ToolDefinition;
+use ochi_types::message::{ContentBlock, Message, MessageContent};
+use ochi_types::tool::ToolDefinition;
 use tracing::debug;
 
 /// Budget parameters derived from the model's context window.
@@ -245,7 +245,7 @@ mod tests {
         let big_result = "x".repeat(500);
         let mut messages = vec![
             Message {
-                role: openfang_types::message::Role::User,
+                role: ochi_types::message::Role::User,
                 content: MessageContent::Blocks(vec![ContentBlock::ToolResult {
                     tool_use_id: "t1".to_string(),
                     content: big_result.clone(),
@@ -253,7 +253,7 @@ mod tests {
                 }]),
             },
             Message {
-                role: openfang_types::message::Role::User,
+                role: ochi_types::message::Role::User,
                 content: MessageContent::Blocks(vec![ContentBlock::ToolResult {
                     tool_use_id: "t2".to_string(),
                     content: big_result,

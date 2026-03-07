@@ -6,7 +6,7 @@
 
 use crate::web_cache::WebCache;
 use crate::web_content::{html_to_markdown, wrap_external_content};
-use openfang_types::config::WebFetchConfig;
+use ochi_types::config::WebFetchConfig;
 use std::net::{IpAddr, ToSocketAddrs};
 use std::sync::Arc;
 use tracing::debug;
@@ -48,7 +48,7 @@ impl WebFetchEngine {
         let resp = self
             .client
             .get(url)
-            .header("User-Agent", "Mozilla/5.0 (compatible; OpenFangAgent/0.1)")
+            .header("User-Agent", "Mozilla/5.0 (compatible; OchiAgent/0.1)")
             .send()
             .await
             .map_err(|e| format!("HTTP request failed: {e}"))?;

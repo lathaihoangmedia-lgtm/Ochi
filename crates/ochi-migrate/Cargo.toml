@@ -6,7 +6,7 @@ license.workspace = true
 description = "Migration engine for importing from other agent frameworks into Ochi"
 
 [dependencies]
-openfang-types = { package = "ochi-types", path = "../ochi-types" }
+ochi-types = { path = "../ochi-types" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }

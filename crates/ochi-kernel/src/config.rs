@@ -3,7 +3,7 @@
 //! Supports config includes: the `include` field specifies additional TOML files
 //! to load and deep-merge before the root config (root overrides includes).
 
-use openfang_types::config::KernelConfig;
+use ochi_types::config::KernelConfig;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use tracing::info;

@@ -6,7 +6,7 @@ license.workspace = true
 description = "Core kernel for the Ochi Agent OS"
 
 [dependencies]
-openfang-types = { package = "ochi-types", path = "../ochi-types" }
+ochi-types = { path = "../ochi-types" }
 ochi-memory = { path = "../ochi-memory" }
 ochi-runtime = { path = "../ochi-runtime" }
 ochi-skills = { path = "../ochi-skills" }
