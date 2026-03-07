@@ -1,6 +1,6 @@
 //! System tray setup for the Ochi desktop app.
 
-use ochi_kernel::config::openfang_home as ochi_home;
+use ochi_kernel::config::ochi_home;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},

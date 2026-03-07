@@ -9170,7 +9170,7 @@ pub async fn orchestrate_task(
 pub async fn list_grand_agents(
     State(_state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
-    use ochi_kernel::orchestration::{GrandAgent, Orchestrator};
+    use ochi_kernel::orchestration::Orchestrator;
 
     let agents: Vec<serde_json::Value> = Orchestrator::all_grand_agents()
         .iter()

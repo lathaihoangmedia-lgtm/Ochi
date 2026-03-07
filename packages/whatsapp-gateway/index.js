@@ -8,8 +8,8 @@ const { randomUUID } = require('node:crypto');
 // Config from environment
 // ---------------------------------------------------------------------------
 const PORT = parseInt(process.env.WHATSAPP_GATEWAY_PORT || '3009', 10);
-const OCHI_URL = (process.env.OCHI_URL || process.env.OPENFANG_URL || 'http://127.0.0.1:4200').replace(/\/+$/, '');
-const DEFAULT_AGENT = process.env.OCHI_DEFAULT_AGENT || process.env.OPENFANG_DEFAULT_AGENT || 'assistant';
+const OCHI_URL = (process.env.OCHI_URL || process.env.OCHI_URL || 'http://127.0.0.1:4200').replace(/\/+$/, '');
+const DEFAULT_AGENT = process.env.OCHI_DEFAULT_AGENT || process.env.OCHI_DEFAULT_AGENT || 'assistant';
 
 // ---------------------------------------------------------------------------
 // State

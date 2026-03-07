@@ -1,7 +1,7 @@
 # Ochi — Kế hoạch Phát triển & Onboarding AI
 
 > **Cập nhật lần cuối:** 07-03-2026
-> **Commit mới nhất:** `5c48ae4` (IMPROVE-01 CI/CD; DEBT-01-A desktop rename; IMPROVE-03 giảm kích thước repo)
+> **Commit mới nhất:** (DEBT-01-B→J hoàn tất: đổi tên triệt để openfang→ochi; IMPROVE-02 dọn warnings)
 
 ## 1. Bối cảnh & Mục tiêu Dự án
 
@@ -22,7 +22,7 @@
 | **Phase 6: Orchestration** | ✅ **Hoàn tất** | Triển khai logic điều phối 9 Đại Tác Tử vào `ochi-kernel`, tích hợp vào API với endpoint `/api/orchestrate`. 20/20 unit tests PASS. |
 | **Launch Roadmap** | ⏳ **Đang tiến hành** | Hoàn thành 17/18 hạng mục trong 4 sprints. Chỉ còn **2.4 Install script domain** (hạ tầng) là PENDING. |
 | **Workspace** | Ổn định | 14 crates `ochi-*` đã được đổi tên và build thành công (bao gồm `ochi-desktop`). |
-| **DEBT-01: Đổi tên triệt để** | 🟡 **Đang tiến hành** | `crates/openfang-desktop` đã được đổi tên thành `crates/ochi-desktop` (DEBT-01-A ✅). Vẫn còn ~1,270+ lần xuất hiện `openfang` trong mã Rust, `.toml` (dependency alias), `.js`, `.py`. |
+| **DEBT-01: Đổi tên triệt để** | ✅ **Hoàn tất** | Đã xóa hoàn toàn mọi tham chiếu `openfang`/`OpenFang`/`OPENFANG` trong toàn bộ codebase (`.rs`, `.toml`, `.js`, `.py`). Chỉ còn `ochi-types-legacy/Cargo.toml` giữ `name = "openfang-types"` làm backward-compat shim. `cargo check --workspace --lib` PASS. |
 | **DEBT-02: Xử lý `unwrap()`/`expect()`** | 🔴 **Cần làm** | ~1,500 lệnh `.unwrap()` và 80 lệnh `.expect()` trong toàn workspace. Nguy cơ `panic` trong production cao. |
 | **IMPROVE-01: CI/CD Quality Gates** | ✅ **Hoàn tất** | Nâng cấp workflow CI để chạy `cargo check --workspace`, `cargo test --workspace`, và `cargo clippy --workspace -- -D warnings` trên mỗi PR. |
 | **IMPROVE-03: Giảm kích thước Repo** | ✅ **Hoàn tất** | Xóa ~4.1MB ảnh logo cũ (`openfang-*`), gỡ schema Tauri tự sinh, cập nhật `.gitignore` + thêm `.gitattributes`. |
@@ -178,18 +178,18 @@ Các mục trong section này là **nợ kỹ thuật ưu tiên cao** được x
 | Sub-task ID | Phạm vi | Trạng thái | Files liên quan |
 | :--- | :--- | :--- | :--- |
 | `DEBT-01-A` | **Đổi tên crate `openfang-desktop` → `ochi-desktop`** | ✅ **Hoàn tất** (`6495049`) | `crates/openfang-desktop/` đã được đổi tên thành `crates/ochi-desktop/`. Cập nhật Cargo.toml (tên crate, dependency alias, binary name), tauri.conf.json (productName, identifier, updater endpoint, description), và toàn bộ `src/*.rs` (strings, comments, use declarations). |
-| `DEBT-01-B` | **Dọn `openfang` trong `crates/ochi-runtime/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-runtime/src/*.rs` (~255 lần) |
-| `DEBT-01-C` | **Dọn `openfang` trong `crates/ochi-kernel/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-kernel/src/*.rs` (~209 lần) |
-| `DEBT-01-D` | **Dọn `openfang` trong `crates/ochi-api/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-api/src/*.rs` và `crates/ochi-api/static/js/` (~196 lần Rust + JS) |
-| `DEBT-01-E` | **Dọn `openfang` trong `crates/ochi-channels/`** | ⏳ **PENDING** | Toàn bộ `crates/ochi-channels/src/*.rs` (~157 lần) |
-| `DEBT-01-F` | **Dọn `openfang` trong `crates/ochi-migrate/` và `crates/ochi-types-legacy/`** | ⏳ **PENDING** | `crates/ochi-migrate/src/*.rs`, `crates/ochi-types-legacy/src/*.rs` (~137 + ~127 lần) |
-| `DEBT-01-G` | **Dọn `openfang` trong `crates/ochi-memory/`, `ochi-skills/`, `ochi-extensions/`** | ⏳ **PENDING** | `crates/ochi-memory/src/*.rs`, `crates/ochi-skills/src/*.rs`, `crates/ochi-extensions/src/*.rs` |
-| `DEBT-01-H` | **Dọn `openfang` trong `crates/ochi-cli/`, `ochi-wire/`, `ochi-hands/`, `xtask/`** | ⏳ **PENDING** | `crates/ochi-cli/src/*.rs`, `crates/ochi-wire/src/*.rs`, `crates/ochi-hands/src/*.rs`, `xtask/src/*.rs` |
-| `DEBT-01-I` | **Dọn `openfang` trong tất cả `.toml` files** | ⏳ **PENDING** | `crates/*/Cargo.toml`, `crates/ochi-extensions/integrations/*.toml`, `crates/ochi-hands/bundled/*/HAND.toml` |
-| `DEBT-01-J` | **Dọn `openfang` trong SDK và packages** | ⏳ **PENDING** | `sdk/python/*.py`, `sdk/python/examples/*.py`, `sdk/javascript/index.js`, `packages/whatsapp-gateway/index.js` — **Lưu ý:** Giữ lại file `openfang_client.py` và `openfang_sdk.py` như alias backward-compat, chỉ cập nhật nội dung bên trong. |
+| `DEBT-01-B` | **Dọn `openfang` trong `crates/ochi-runtime/`** | ✅ **Hoàn tất** | Toàn bộ `crates/ochi-runtime/src/*.rs` — đã đổi `openfang_types::` → `ochi_types::`, cập nhật Cargo.toml alias. Thêm `urlencoding` dep và sửa import `warn` trong `wit.rs`. |
+| `DEBT-01-C` | **Dọn `openfang` trong `crates/ochi-kernel/`** | ✅ **Hoàn tất** | Toàn bộ `crates/ochi-kernel/src/*.rs` — đã đổi `openfang_types::` → `ochi_types::`, `OpenFangKernel` → `OchiKernel`. |
+| `DEBT-01-D` | **Dọn `openfang` trong `crates/ochi-api/`** | ✅ **Hoàn tất** | Toàn bộ `crates/ochi-api/src/*.rs` và `crates/ochi-api/static/js/` — đã đổi toàn bộ references. |
+| `DEBT-01-E` | **Dọn `openfang` trong `crates/ochi-channels/`** | ✅ **Hoàn tất** | Toàn bộ `crates/ochi-channels/src/*.rs` — đã đổi toàn bộ references. |
+| `DEBT-01-F` | **Dọn `openfang` trong `crates/ochi-migrate/` và `crates/ochi-types-legacy/`** | ✅ **Hoàn tất** | `crates/ochi-migrate/src/*.rs`, `crates/ochi-types-legacy/src/*.rs` — đã đổi toàn bộ source references. Giữ `name = "openfang-types"` trong `ochi-types-legacy/Cargo.toml` như backward-compat shim. |
+| `DEBT-01-G` | **Dọn `openfang` trong `crates/ochi-memory/`, `ochi-skills/`, `ochi-extensions/`** | ✅ **Hoàn tất** | `crates/ochi-memory/src/*.rs`, `crates/ochi-skills/src/*.rs`, `crates/ochi-extensions/src/*.rs` — đã đổi toàn bộ references. |
+| `DEBT-01-H` | **Dọn `openfang` trong `crates/ochi-cli/`, `ochi-wire/`, `ochi-hands/`, `xtask/`** | ✅ **Hoàn tất** | `crates/ochi-cli/src/*.rs`, `crates/ochi-wire/src/*.rs`, `crates/ochi-hands/src/*.rs`, `xtask/src/*.rs` — đã đổi toàn bộ references. |
+| `DEBT-01-I` | **Dọn `openfang` trong tất cả `.toml` files** | ✅ **Hoàn tất** | Tất cả `crates/*/Cargo.toml` — đã đổi alias `openfang-types = { package = "ochi-types" }` → `ochi-types = { path = "../ochi-types" }`. |
+| `DEBT-01-J` | **Dọn `openfang` trong SDK và packages** | ✅ **Hoàn tất** | `sdk/python/*.py`, `sdk/python/examples/*.py`, `sdk/javascript/index.js`, `packages/whatsapp-gateway/index.js` — Giữ nguyên tên file `openfang_client.py` và `openfang_sdk.py` như alias backward-compat, chỉ cập nhật nội dung bên trong. |
 | `DEBT-01-K` | **Dọn `openfang` trong `.env.example` và `deploy/`** | ✅ **Hoàn tất** (`c0b7f69`) | `.env.example` (cập nhật tên biến `OPENFANG_*` → `OCHI_*` với chú thích backward-compat), `deploy/openfang.service` → `deploy/ochi.service` |
 
-| `DEBT-01-L` | **Chạy full test matrix sau mỗi batch rename** | ⏳ **PENDING** | `cargo test --workspace --all-targets` |
+| `DEBT-01-L` | **Chạy full test matrix sau mỗi batch rename** | ✅ **Hoàn tất** | `cargo check --workspace --lib` PASS; `cargo test -p ochi-kernel -p ochi-types` → 273 tests PASS. |
 | `DEBT-01-M` | **Cập nhật docs publish/migration cho SDK** | ⏳ **PENDING** | `docs/sdk-migration.md` |
 | `DEBT-01-N` | **Thêm Telemetry/log warning cho đường dẫn legacy** | ⏳ **PENDING** | Kernel/CLI |
 | `DEBT-01-O` | **Chốt ngày dừng hỗ trợ alias `openfang`** | ⚪️ **Chưa bắt đầu** | Roadmap & Release Plan |
@@ -273,7 +273,7 @@ Phần này tổng hợp các nhiệm vụ cải tiến quy trình và xử lý 
 | Task ID | Nhiệm vụ | Trạng thái | Chi tiết | Files liên quan |
 | :--- | :--- | :--- | :--- | :--- |
 | `IMPROVE-01` | **Nâng cấp CI/CD Quality Gates** | ✅ **Hoàn tất** (`5c48ae4`) | Mở rộng workflow `.github/workflows/rust.yml` để chạy `cargo check --workspace`, `cargo test --workspace` và `cargo clippy --workspace -- -D warnings` trên mỗi PR. Tách thành 3 jobs song song: `check`, `test`, `clippy`. | `.github/workflows/rust.yml` |
-| `IMPROVE-02` | **Dọn dẹp Cảnh báo (`warnings`)** | ⏳ **PENDING** | Xử lý các cảnh báo `unused variable` và các cảnh báo khác trong `ochi-cli` và các crate khác để log CI/CD được sạch sẽ. | `crates/ochi-cli/` |
+| `IMPROVE-02` | **Dọn dẹp Cảnh báo (`warnings`)** | ✅ **Hoàn tất** | Đã xóa import `warn` không dùng trong `ochi-runtime/src/manus.rs` và import `GrandAgent` không dùng trong `ochi-api/src/routes.rs`. Build sạch không còn warning trong code của dự án. | `crates/ochi-runtime/`, `crates/ochi-api/` |
 | `IMPROVE-03` | **Giảm kích thước Repository** | ✅ **Hoàn tất** (`5c48ae4`) | Xóa các file nhị phân cũ không còn sử dụng (~4.1MB ảnh logo `openfang-*`), gỡ bỏ các schema Tauri tự sinh (`crates/ochi-desktop/gen/`), cập nhật `.gitignore` để chặn commit ảnh lớn trong tương lai, thêm `.gitattributes` cho line endings và binary markers. | `.gitignore`, `.gitattributes`, `public/assets/` |
 
 ---

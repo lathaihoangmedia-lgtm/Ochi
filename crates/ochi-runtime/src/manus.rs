@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::env;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ManusError {
