@@ -15,14 +15,17 @@ use tracing::{debug, info, warn};
 use zeroize::Zeroizing;
 
 /// Default OAuth client IDs for public PKCE flows.
-/// These are safe to embed — PKCE doesn't require a client_secret.
+///
+/// All values default to empty string. Users **must** configure their own
+/// OAuth client IDs via `[oauth]` in `ochi.toml` (or the equivalent config
+/// fields `google_client_id`, `github_client_id`, etc.).  An empty client ID
+/// will cause `run_pkce_flow` to return an error before opening the browser.
 pub fn default_client_ids() -> HashMap<&'static str, &'static str> {
     let mut m = HashMap::new();
-    // Placeholder IDs — users should configure their own via config
-    m.insert("google", "ochi-google-client-id");
-    m.insert("github", "ochi-github-client-id");
-    m.insert("microsoft", "ochi-microsoft-client-id");
-    m.insert("slack", "ochi-slack-client-id");
+    m.insert("google", "");
+    m.insert("github", "");
+    m.insert("microsoft", "");
+    m.insert("slack", "");
     m
 }
 
@@ -127,7 +130,16 @@ fn generate_state() -> String {
 /// 3. Wait for callback with authorization code.
 /// 4. Exchange code for tokens.
 /// 5. Return tokens.
+///
+/// Returns `Err` immediately if `client_id` is empty — callers must
+/// configure their own OAuth client ID via `[oauth]` in `ochi.toml`.
 pub async fn run_pkce_flow(oauth: &OAuthTemplate, client_id: &str) -> ExtensionResult<OAuthTokens> {
+    if client_id.is_empty() {
+        return Err(ExtensionError::OAuth(
+            "OAuth client ID is not configured. \
+             Set it in ochi.toml under [oauth] (e.g. google_client_id = \"...\").".to_string(),
+        ));
+    }
     let pkce = generate_pkce();
     let state = generate_state();
 
@@ -358,14 +370,20 @@ mod tests {
         assert!(ids.contains_key("github"));
         assert!(ids.contains_key("microsoft"));
         assert!(ids.contains_key("slack"));
+        // All defaults are empty — users must configure their own client IDs.
+        assert!(ids["google"].is_empty());
+        assert!(ids["github"].is_empty());
+        assert!(ids["microsoft"].is_empty());
+        assert!(ids["slack"].is_empty());
     }
 
     #[test]
     fn resolve_client_ids_uses_defaults() {
         let config = ochi_types::config::OAuthConfig::default();
         let ids = resolve_client_ids(&config);
-        assert_eq!(ids["google"], "ochi-google-client-id");
-        assert_eq!(ids["github"], "ochi-github-client-id");
+        // Unconfigured providers resolve to empty string.
+        assert!(ids["google"].is_empty());
+        assert!(ids["github"].is_empty());
     }
 
     #[test]
@@ -378,8 +396,29 @@ mod tests {
         };
         let ids = resolve_client_ids(&config);
         assert_eq!(ids["google"], "my-real-google-id");
-        assert_eq!(ids["github"], "ochi-github-client-id"); // default
+        assert!(ids["github"].is_empty()); // not configured
         assert_eq!(ids["microsoft"], "my-msft-id");
-        assert_eq!(ids["slack"], "ochi-slack-client-id"); // default
+        assert!(ids["slack"].is_empty()); // not configured
+    }
+
+    #[tokio::test]
+    async fn run_pkce_flow_rejects_empty_client_id() {
+        let oauth = OAuthTemplate {
+            provider: "test-provider".into(),
+            scopes: vec!["read".into()],
+            auth_url: "https://example.com/oauth/authorize".into(),
+            token_url: "https://example.com/oauth/token".into(),
+        };
+        let result = run_pkce_flow(&oauth, "").await;
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ExtensionError::OAuth(msg) => {
+                assert!(
+                    msg.contains("OAuth client ID is not configured"),
+                    "Expected unconfigured-client-ID error, got: {msg}"
+                );
+            }
+            other => panic!("Expected OAuth error, got: {other:?}"),
+        }
     }
 }
