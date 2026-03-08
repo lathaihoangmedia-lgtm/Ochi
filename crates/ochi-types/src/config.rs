@@ -946,6 +946,11 @@ pub struct KernelConfig {
     /// require a `Authorization: Bearer <key>` header.
     /// If empty, the API is unauthenticated (local development only).
     pub api_key: String,
+    /// Extra CORS origins allowed to access the API (e.g. your custom domain).
+    /// Example: `cors_allowed_origins = ["https://ochi.example.com"]`
+    /// These are added on top of the default localhost origins.
+    #[serde(default)]
+    pub cors_allowed_origins: Vec<String>,
     /// Kernel operating mode (stable, default, dev).
     #[serde(default)]
     pub mode: KernelMode,
@@ -1181,6 +1186,7 @@ impl Default for KernelConfig {
             network: NetworkConfig::default(),
             channels: ChannelsConfig::default(),
             api_key: String::new(),
+            cors_allowed_origins: Vec::new(),
             mode: KernelMode::default(),
             language: "en".to_string(),
             users: Vec::new(),
@@ -1276,6 +1282,7 @@ impl std::fmt::Debug for KernelConfig {
                     "<redacted>"
                 },
             )
+            .field("cors_allowed_origins", &self.cors_allowed_origins)
             .field("mode", &self.mode)
             .field("language", &self.language)
             .field("users", &format!("{} user(s)", self.users.len()))

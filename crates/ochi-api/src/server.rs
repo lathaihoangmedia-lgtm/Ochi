@@ -71,6 +71,7 @@ pub async fn build_router(
                 }
             }
         }
+        append_configured_origins(&mut origins, &state.kernel.config.cors_allowed_origins);
         CorsLayer::new()
             .allow_origin(origins)
             .allow_methods(tower_http::cors::Any)
@@ -95,6 +96,7 @@ pub async fn build_router(
                 origins.push(v);
             }
         }
+        append_configured_origins(&mut origins, &state.kernel.config.cors_allowed_origins);
         CorsLayer::new()
             .allow_origin(origins)
             .allow_methods(tower_http::cors::Any)
@@ -855,5 +857,23 @@ fn is_process_alive(pid: u32) -> bool {
     {
         let _ = pid;
         false
+    }
+}
+
+/// Append user-configured CORS origins from `config.toml`'s
+/// `cors_allowed_origins` list to the provided `origins` vector.
+/// Invalid origin strings are logged as warnings and skipped.
+fn append_configured_origins(
+    origins: &mut Vec<axum::http::HeaderValue>,
+    configured: &[String],
+) {
+    for raw in configured {
+        match raw.parse::<axum::http::HeaderValue>() {
+            Ok(v) => origins.push(v),
+            Err(_) => tracing::warn!(
+                "cors_allowed_origins: {:?} is not a valid HTTP header value — skipped",
+                raw
+            ),
+        }
     }
 }

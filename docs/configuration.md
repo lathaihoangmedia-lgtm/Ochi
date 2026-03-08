@@ -86,6 +86,7 @@ log_level = "info"                   # trace | debug | info | warn | error
 api_listen = "127.0.0.1:50051"      # HTTP/WS API bind address
 network_enabled = false              # Enable OFP peer-to-peer network
 api_key = ""                         # API Bearer token (empty = unauthenticated)
+# cors_allowed_origins = ["https://ochi.example.com"]  # Custom domain CORS origins
 mode = "default"                     # stable | default | dev
 language = "en"                      # Locale for CLI/messages
 usage_footer = "full"                # off | tokens | cost | full
@@ -230,6 +231,7 @@ These fields sit at the root of `config.toml` (not inside any `[section]`).
 | `api_listen` | string | `"127.0.0.1:50051"` | Bind address for the HTTP/WebSocket/SSE API server. |
 | `network_enabled` | bool | `false` | Enable the OFP peer-to-peer network layer. |
 | `api_key` | string | `""` (empty) | API authentication key. When set, all endpoints except `/api/health` require `Authorization: Bearer <key>`. Empty means unauthenticated (local development only). |
+| `cors_allowed_origins` | list of strings | `[]` | Extra origins allowed to access the API from a browser (CORS). Add your custom domain here, e.g. `["https://ochi.example.com"]`. Always combined with the default localhost origins. See [domain-setup.md](domain-setup.md). |
 | `mode` | string | `"default"` | Kernel operating mode. See below. |
 | `language` | string | `"en"` | Language/locale code for CLI output and system messages. |
 | `usage_footer` | string | `"full"` | Controls usage info appended to responses. See below. |
