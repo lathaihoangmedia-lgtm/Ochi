@@ -46,3 +46,9 @@ If full workspace checks are blocked by local environment constraints (permissio
 - Use the same definition of done across agents.
 - Require verification evidence, not assumptions.
 - Keep handoff format stable: what changed, where, validation, next step.
+
+## Self-Protection Baseline
+
+- Apply `docs/agent-self-protection.md` for all security-sensitive flows.
+- Prefer defensive outputs and remediation guidance over offensive instruction.
+- Require explicit authorization and bounded scope for penetration testing tasks.
