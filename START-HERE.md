@@ -63,6 +63,18 @@ cargo run --example demo --features cuda
 | `scripts\test-hardware.bat` | Test hardware detection |
 | `scripts\download-model.bat` | Download models |
 
+### ⚠️ Lưu ý GitHub Sync
+
+- `models/` là dữ liệu local-only, không push lên GitHub.
+- Nếu lỡ bị track và push lỗi `GH001` / `gh.io/lfs`, chạy:
+
+```bash
+git rm --cached -r models
+git add .gitignore
+git commit -m "chore: stop tracking models"
+git push origin main
+```
+
 ---
 
 ## 🎮 Hardware Của Bạn

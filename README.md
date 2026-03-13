@@ -90,6 +90,23 @@ cargo run --example demo --features cuda
 
 ---
 
+## 🔒 Git Sync & Models (Important)
+
+- Thư mục `models/` **không sync lên GitHub** (đã nằm trong `.gitignore`).
+- Lý do: file GGUF thường >100MB, GitHub sẽ chặn push với lỗi `GH001` / `gh.io/lfs`.
+- Nếu gặp lỗi push do model, chạy:
+
+```bash
+git rm --cached -r models
+git add .gitignore
+git commit -m "chore: stop tracking models"
+git push origin main
+```
+
+- Model vẫn giữ ở local, chỉ bỏ khỏi Git tracking.
+
+---
+
 ## 🎯 Features
 
 - **GGUF Model Inference** - llama.cpp integration

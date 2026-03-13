@@ -54,6 +54,19 @@ cargo build --features cuda
 
 ## Troubleshooting
 
+### Lỗi: `GH001` / `gh.io/lfs` khi `git push`
+
+Nguyên nhân thường do thư mục `models/` chứa file GGUF >100MB bị track bởi Git.
+
+```bash
+git rm --cached -r models
+git add .gitignore
+git commit -m "chore: stop tracking models"
+git push origin main
+```
+
+`models/` vẫn ở máy local, chỉ không đẩy lên remote.
+
 ### Lỗi: "Unable to find libclang"
 
 ```bash
