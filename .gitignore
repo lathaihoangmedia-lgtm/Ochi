@@ -1,0 +1,55 @@
+# Rust
+/target/
+**/target/
+*.rlib
+*.rlib.rmeta
+*.so
+*.dylib
+*.dll
+*.pdb
+
+# Cargo.lock (keep for workspace)
+# Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.exe
+*.msi
+dist/
+build/
+
+# Test coverage
+*.gcda
+*.gcno
+coverage/
+tarpaulin-report.html
+
+# Temporary files
+tmp/
+temp/
+.cache/
+.archive/
+
+# Documentation build
+docs/book/
+site/
