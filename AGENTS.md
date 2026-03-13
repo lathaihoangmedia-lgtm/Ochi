@@ -9,6 +9,14 @@ This file defines a shared execution standard for all AI agents working in this 
 - Fix root causes instead of masking symptoms.
 - Never assume success: always verify with concrete checks.
 - Keep outputs concise, actionable, and professional.
+- Keep implementation modular and test-friendly across Rust + Go + Rust2Go boundaries.
+
+## 1.1) Size & Modularity Targets
+
+- Prefer files <= 300 lines where practical.
+- Prefer functions <= 60 lines.
+- Prefer readable line length <= 100 characters.
+- Prefer short, direct prose sentences in docs and handoff text.
 
 ## 2) Execution Workflow
 

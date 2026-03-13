@@ -13,6 +13,8 @@ This file aligns Claude Code behavior with the shared repository standard.
 - Keep changes minimal and scoped.
 - Validate before handoff.
 - Report blockers with exact command output.
+- Keep changes modular for Rust + Go + Rust2Go integration paths.
+- Prefer lightweight files/functions (target <= 300 lines per file, <= 60 lines per function).
 
 ## Validation Baseline
 

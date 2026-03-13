@@ -4,8 +4,23 @@ This repository follows a high-consistency execution style inspired by prior Dra
 
 ## Scope
 
+- Primary stack: Rust + Go with Rust2Go interoperability.
 - Rust workspace centered on `crates/ochi-core` (current active member).
 - Favor practical MVP progress with clear verification.
+
+## Architecture Discipline (Rust + Go + Rust2Go)
+
+- Keep boundaries clear: Rust core logic in crates, Go integration adapters thin and explicit.
+- Split features by crate/module responsibility; avoid monolithic files.
+- Prefer small modules that are easy to compile and test independently.
+- For Rust2Go bridge code, keep FFI surface minimal and typed; avoid leaking transport details into domain logic.
+
+## Size & Readability Constraints
+
+- Prefer short, direct sentences in generated docs/messages (target <= 25 words per sentence).
+- Keep code line length readable (target <= 100 characters; avoid long chained expressions).
+- Keep module/file size lightweight (target <= 300 lines per file where practical).
+- Keep functions focused (target <= 60 lines; extract helpers when growing).
 
 ## Default Working Style
 
@@ -33,6 +48,15 @@ cargo test --workspace
 ```
 
 If full workspace checks are blocked by local environment constraints (permissions, missing tools, etc.), run narrower checks and report the exact blocker.
+
+For Go or Rust2Go-related updates, also attempt the narrowest relevant checks available (module/package-level first), then broader checks.
+
+## Testing Precision Rules
+
+- Start with the smallest impacted crate/module/package tests.
+- Prefer deterministic tests over broad end-to-end runs when narrowing regressions.
+- Only expand to wider test scope after local target checks pass.
+- In reports, include exactly what was tested and what was intentionally not tested.
 
 ## Prompt & Skill Discipline
 
