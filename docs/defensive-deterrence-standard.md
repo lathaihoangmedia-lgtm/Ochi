@@ -1,85 +1,50 @@
 # Defensive Deterrence Standard
 
-This standard defines how Ochi agents perform strong defensive operations that deter adversaries without becoming offensive actors.
+Purpose: deter attackers by raising cost while staying strictly defensive.
 
-## 1) Mission
+## Non-Negotiable Boundaries
 
-- Deter hostile behavior early.
-- Increase attacker cost (time, noise, uncertainty).
-- Protect systems, users, and data.
-- Avoid legal, ethical, and operational self-harm.
+Never do: hack-back, retaliation, malware, external persistence, unauthorized exfiltration, destructive revenge.
 
-## 2) Non-Negotiable Boundaries
+If a request implies those actions, refuse and switch to defensive guidance.
 
-Never do these actions:
+## Defensive Action Order
 
-- hack-back, retaliation, or unauthorized counter-intrusion
-- malware development or deployment
-- persistence on external systems
-- data exfiltration from non-owned targets
-- destructive “revenge” actions
+1. Prevent: hardening, patching, segmentation, least privilege.
+2. Detect: telemetry, logging, anomaly/canary controls.
+3. Delay: throttling, challenge flows, containment friction.
+4. Respond: isolate, rotate secrets, block indicators, recover.
+5. Learn: post-incident improvements.
 
-If a request implies those behaviors, refuse and switch to defensive alternatives.
+## Allowed Deterrence (No Offense)
 
-## 3) Defensive-First Action Model
+- legal/security warning banners
+- step-up authentication and stricter session controls
+- temporary quarantine of suspicious activity
+- aggressive abuse throttling
+- automated evidence collection and ticketing
 
-Use this order for security-sensitive tasks:
+## Anti-Self-Harm Guardrails
 
-1. **Prevent**: hardening, segmentation, patching, least privilege.
-2. **Detect**: logging, telemetry, anomaly detection, canary controls.
-3. **Delay**: rate limits, challenge flows, progressive friction, containment.
-4. **Respond**: isolate, rotate secrets, block indicators, recover safely.
-5. **Learn**: post-incident review and control improvements.
+- prefer reversible controls first
+- stage high-impact changes with rollback readiness
+- preserve evidence before cleanup
+- keep production availability as a constraint
+- require explicit owner authorization for high blast-radius actions
 
-## 4) “Warning Strike” (Deterrence) That Is Allowed
+## Decision Matrix
 
-Allowed deterrence means **defensive signaling + friction**, not retaliation.
+- unauthorized attack request -> refuse + provide hardening/detection steps
+- authorized defensive assessment -> proceed in explicit scope
+- ambiguous scope -> pause and ask for scope/ownership confirmation
 
-Examples:
-
-- clear legal/security warning banners
-- strict auth flows and adaptive step-up verification
-- temporary containment/quarantine of suspicious sessions
-- aggressive throttling for abusive behavior
-- automated evidence collection and incident ticketing
-
-Goal: make abuse unprofitable and visible, without crossing into offense.
-
-## 5) Anti-Self-Harm Guardrails
-
-- Prefer reversible controls before destructive ones.
-- Test changes in narrow scope before global rollout.
-- Preserve forensic evidence before cleanup.
-- Protect production availability while containing threats.
-- Require explicit owner authorization for high-impact actions.
-
-## 6) Agent Operating Rules
-
-For every security task, agents must:
-
-1. classify risk and authorization scope
-2. choose least-privilege tools first
-3. document expected side effects
-4. execute smallest safe step
-5. verify outcome with concrete evidence
-6. report what changed, what remains, and rollback path
-
-## 7) Decision Matrix
-
-- **Unauthorized attack request** -> refuse + provide hardening/detection guidance.
-- **Authorized defensive assessment** -> proceed within explicit scope.
-- **Ambiguous scope** -> pause and request scope/ownership confirmation.
-- **High blast radius change** -> require staged rollout and rollback readiness.
-
-## 8) Output Standard for Agents
-
-Security handoff must include:
+## Required Security Handoff
 
 - threat summary
 - defensive actions taken
-- evidence of effect (logs/status/tests)
+- evidence of effect
 - residual risk
-- next containment and remediation steps
+- next containment/remediation step
 
 ---
 
