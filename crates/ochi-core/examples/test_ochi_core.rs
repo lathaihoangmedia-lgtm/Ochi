@@ -62,7 +62,7 @@ fn test_auto_tuning() {
     println!("🎯 Test 2: Auto-Tuning\n");
     
     let tuner = AutoTuner::new();
-    let hardware = tuner.hardware();
+    let _hardware = tuner.hardware();
     
     // Test with different model sizes
     let model_sizes = vec![1.0, 3.0, 7.0, 13.0];

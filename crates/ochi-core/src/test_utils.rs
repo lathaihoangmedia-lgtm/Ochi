@@ -4,7 +4,7 @@
 
 #[cfg(test)]
 pub mod mocks {
-    use crate::hardware::{HardwareInfo, CpuInfo, GpuInfo, MemoryInfo};
+    use crate::hardware::{HardwareInfo, detector::{CpuInfo, GpuInfo, MemoryInfo}};
 
     /// Mock hardware info for testing
     impl HardwareInfo {
@@ -75,30 +75,26 @@ pub mod mocks {
 
 #[cfg(test)]
 pub mod fixtures {
-    use crate::ai::model::{GGUFModel, GGUFConfig};
+    use crate::ai::model::CandleConfig;
 
     /// Get path to test model
     pub fn test_model_path() -> String {
-        "test_fixtures/tiny-model.gguf".to_string()
+        "test_fixtures/tiny-model.safetensors".to_string()
     }
 
     /// Create minimal test config
-    pub fn test_config() -> GGUFConfig {
-        GGUFConfig {
+    pub fn test_config() -> CandleConfig {
+        CandleConfig {
             model_path: test_model_path(),
             context_size: 256,
-            n_gpu_layers: 0,
             temperature: 0.0,
             max_tokens: 32,
+            top_p: 0.9,
+            top_k: 40,
+            repetition_penalty: 1.0,
+            cpu_only: true,
             n_threads: Some(1),
-            n_batch: 64,
         }
-    }
-
-    /// Load test model (if available)
-    pub fn try_load_test_model() -> Option<GGUFModel> {
-        let config = test_config();
-        GGUFModel::load(&config.model_path, config).ok()
     }
 }
 
