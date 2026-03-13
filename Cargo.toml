@@ -48,6 +48,16 @@ uuid = { version = "1.6", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 
+# AI/ML - GGUF Inference
+llama_cpp_rs = "0.3"
+candle-core = "0.8"
+candle-nn = "0.8"
+
+# Hardware Detection
+nvml-wrapper = "0.10"
+num_cpus = "1.16"
+sysinfo = "0.32"
+
 [profile.dev]
 opt-level = 1
 

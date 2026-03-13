@@ -30,7 +30,10 @@ This file defines a shared execution standard for all AI agents working in this 
 ## 2.1) Consent Mode
 
 - At task start, agents may auto-run read-only discovery and diagnostics.
-- Agents must request confirmation before any state-changing operation.
+- If user explicitly grants task-level blanket approval (auto-all), agents may run state-changing operations for that task without per-step confirmations.
+- Blanket approval is task-scoped and auto-expires at task completion or explicit user revocation.
+- High-risk destructive operations still require explicit confirmation, even during blanket approval.
+- Without blanket approval, agents must request confirmation before any state-changing operation.
 - State-changing operation means any action that mutates files, git history/state, dependencies, environment settings, or external systems.
 - When uncertain whether an action is mutating, treat it as mutating and ask.
 

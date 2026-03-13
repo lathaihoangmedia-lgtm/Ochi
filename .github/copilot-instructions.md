@@ -34,7 +34,11 @@ This repository follows a high-consistency execution style inspired by prior Dra
 
 - Default at task start: **auto-allow** for read-only and diagnostic work.
 - Auto-allow scope includes: listing/searching files, reading docs/code, dependency inspection, and non-mutating checks/tests.
-- Before any state-changing action, require explicit user confirmation.
+- Support **task-level blanket approval** when user explicitly requests auto-all for the current work process.
+- Under task-level blanket approval, agents may execute state-changing actions without per-step confirmation until the task is complete.
+- High-risk destructive actions still require confirmation even under blanket approval (e.g., mass delete outside scope, force reset of unrelated work, credential rotation with service impact).
+- Blanket approval expires when the task finishes or when user revokes it.
+- Before any state-changing action without blanket approval, require explicit user confirmation.
 - State-changing actions include: file edits/creation/deletion, dependency install/upgrade, git commit/push/rebase/reset, environment/config changes, and destructive shell commands.
 - If a command is mixed (read + write), treat it as state-changing and ask first.
 

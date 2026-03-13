@@ -39,6 +39,7 @@ known_hosts
 *.msi
 dist/
 build/
+models/
 
 # Test coverage
 *.gcda

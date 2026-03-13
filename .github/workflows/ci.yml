@@ -1,0 +1,189 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Job 1: Check & Lint (Fast)
+  check:
+    name: Check & Lint
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Check (no build)
+        run: cargo check --workspace --features ai
+      
+      - name: Clippy (if installed)
+        run: cargo clippy --workspace --features ai -- -D warnings
+        continue-on-error: true
+
+  # Job 2: Unit Tests (Fast, Parallel)
+  test-unit:
+    name: Unit Tests
+    runs-on: windows-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-unit-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install LLVM
+        run: choco install llvm -y --no-progress
+      
+      - name: Run Unit Tests
+        run: cargo test --lib --workspace --features ai
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-unit
+          path: target/cargo-test-results.xml
+
+  # Job 3: Hardware Tests (System-Dependent)
+  test-hardware:
+    name: Hardware Detection
+    runs-on: ${{ matrix.os }}
+    needs: check
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.os }}-cargo-hw-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install LLVM (Windows)
+        if: matrix.os == 'windows-latest'
+        run: choco install llvm -y --no-progress
+      
+      - name: Install LLVM (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y llvm-dev
+      
+      - name: Run Hardware Tests
+        run: cargo test --features ai hardware::detector -- --nocapture
+      
+      - name: Print Hardware Info
+        run: cargo test --features ai hardware::detector::tests::test_detect_hardware -- --nocapture --ignored
+
+  # Job 4: Integration Tests (Slow, Sequential)
+  test-integration:
+    name: Integration Tests
+    runs-on: windows-latest
+    needs: [test-unit, test-hardware]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-integration-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install LLVM
+        run: choco install llvm -y --no-progress
+      
+      - name: Download Test Model
+        run: |
+          mkdir models
+          # Download small test model or use mock
+          echo "Using mock model for integration tests"
+      
+      - name: Run Integration Tests
+        run: cargo test --features ai -- --test-threads=1 --skip gpu
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-integration
+          path: target/cargo-test-results.xml
+
+  # Job 5: Build Release
+  build-release:
+    name: Build Release
+    runs-on: windows-latest
+    needs: [test-unit, test-hardware, test-integration]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Install LLVM
+        run: choco install llvm -y --no-progress
+      
+      - name: Build Release
+        run: cargo build --release --features ai
+      
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ochi-core-release
+          path: target/release/ochi_core.*
+
+  # Summary Job
+  ci-summary:
+    name: CI Pipeline Summary
+    runs-on: windows-latest
+    needs: [check, test-unit, test-hardware, test-integration, build-release]
+    if: always()
+    steps:
+      - name: Print Summary
+        run: |
+          echo "========================================"
+          echo "CI Pipeline Completed"
+          echo "========================================"
+          echo "Check: ${{ needs.check.result }}"
+          echo "Unit Tests: ${{ needs.test-unit.result }}"
+          echo "Hardware Tests: ${{ needs.test-hardware.result }}"
+          echo "Integration Tests: ${{ needs.test-integration.result }}"
+          echo "Build Release: ${{ needs.build-release.result }}"
+          echo "========================================"
