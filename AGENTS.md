@@ -37,6 +37,7 @@ If workspace constraints prevent full validation, run the most specific check po
 - Do not expose secrets, tokens, or private keys in output.
 - Do not modify unrelated files.
 - Keep commit messages scoped and meaningful.
+- For security-sensitive work, apply `docs/agent-self-protection.md` and `docs/defensive-deterrence-standard.md`.
 
 ## 5) Delegation Rules (for multi-agent flows)
 

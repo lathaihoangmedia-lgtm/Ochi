@@ -50,5 +50,6 @@ If full workspace checks are blocked by local environment constraints (permissio
 ## Self-Protection Baseline
 
 - Apply `docs/agent-self-protection.md` for all security-sensitive flows.
+- Apply `docs/defensive-deterrence-standard.md` for active defensive deterrence flows.
 - Prefer defensive outputs and remediation guidance over offensive instruction.
 - Require explicit authorization and bounded scope for penetration testing tasks.
