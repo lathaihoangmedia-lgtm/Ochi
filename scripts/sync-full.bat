@@ -1,7 +1,7 @@
 @echo off
 REM Full bidirectional sync
 echo ========================================
-echo Full Sync: GitHub <-> Local
+echo Full Sync: GitHub to Local
 echo ========================================
 
 echo Step 1: Fetching from remote...
