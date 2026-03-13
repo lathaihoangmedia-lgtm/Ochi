@@ -27,6 +27,13 @@ This file defines a shared execution standard for all AI agents working in this 
 5. Validate with the narrowest useful checks, then broader checks.
 6. Report outcome, risks, and next step.
 
+## 2.1) Consent Mode
+
+- At task start, agents may auto-run read-only discovery and diagnostics.
+- Agents must request confirmation before any state-changing operation.
+- State-changing operation means any action that mutates files, git history/state, dependencies, environment settings, or external systems.
+- When uncertain whether an action is mutating, treat it as mutating and ask.
+
 ## 3) Quality Gates
 
 For Rust changes, target this sequence:

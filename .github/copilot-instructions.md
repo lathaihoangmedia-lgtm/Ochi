@@ -30,6 +30,14 @@ This repository follows a high-consistency execution style inspired by prior Dra
 4. Validate changes with project-appropriate commands.
 5. Summarize outcomes and blockers clearly.
 
+## Execution Consent Mode
+
+- Default at task start: **auto-allow** for read-only and diagnostic work.
+- Auto-allow scope includes: listing/searching files, reading docs/code, dependency inspection, and non-mutating checks/tests.
+- Before any state-changing action, require explicit user confirmation.
+- State-changing actions include: file edits/creation/deletion, dependency install/upgrade, git commit/push/rebase/reset, environment/config changes, and destructive shell commands.
+- If a command is mixed (read + write), treat it as state-changing and ask first.
+
 ## Coding Rules
 
 - Match existing style and naming.
