@@ -1,11 +1,10 @@
-//! Model Auto-Configuration & Loop Prevention
+//! Model Auto-Configuration
 //!
-//! Automatically detects model issues, applies fixes, and generates reports
+//! Automatically configures models based on hardware and model characteristics
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use crate::ai::model::GGUFConfig;
-use crate::ai::loop_detector::LoopDetector;
+use crate::ai::model::CandleConfig;
 use crate::hardware::HardwareInfo;
 
 /// Auto-configuration result
@@ -13,37 +12,9 @@ use crate::hardware::HardwareInfo;
 pub struct AutoConfigResult {
     pub model_name: String,
     pub model_path: String,
-    pub config: GGUFConfig,
-    pub issues_detected: Vec<Issue>,
-    pub fixes_applied: Vec<Fix>,
+    pub config: CandleConfig,
     pub recommendations: Vec<String>,
     pub performance_estimate: PerformanceEstimate,
-}
-
-/// Detected issue
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Issue {
-    pub code: String,
-    pub severity: Severity,
-    pub description: String,
-    pub suggestion: String,
-}
-
-/// Severity level
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum Severity {
-    Info,
-    Warning,
-    Critical,
-}
-
-/// Applied fix
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Fix {
-    pub issue_code: String,
-    pub description: String,
-    pub old_value: String,
-    pub new_value: String,
 }
 
 /// Performance estimate
@@ -55,39 +26,32 @@ pub struct PerformanceEstimate {
     pub quality_rating: u8,
 }
 
-/// Model issue detector and auto-fixer
+/// Model auto-configurator
 pub struct AutoConfigurator {
     hardware: HardwareInfo,
-    loop_detector: LoopDetector,
 }
 
 impl AutoConfigurator {
     /// Create new auto-configurator
     pub fn new(hardware: HardwareInfo) -> Self {
-        Self {
-            hardware,
-            loop_detector: LoopDetector::new(10, 0.7),
-        }
+        Self { hardware }
     }
 
-    /// Auto-configure model with all fixes
-    pub fn auto_configure<P: AsRef<Path>>(&mut self, model_path: P) -> AutoConfigResult {
+    /// Auto-configure model with optimal settings
+    pub fn auto_configure<P: AsRef<Path>>(&self, model_path: P) -> AutoConfigResult {
         let path = model_path.as_ref();
         let model_name = self.extract_model_name(path);
-        
-        let mut issues = Vec::new();
-        let mut fixes = Vec::new();
+
         let mut recommendations = Vec::new();
 
-        // Start with default config
-        let mut config = GGUFConfig::default();
-        config.model_path = path.to_string_lossy().to_string();
+        // Start with balanced config
+        let mut config = CandleConfig::balanced(path.to_string_lossy().to_string());
 
-        // Detect and fix issues
-        self.detect_model_specific_issues(&model_name, &mut config, &mut issues, &mut fixes);
+        // Apply hardware optimizations
         self.apply_hardware_optimizations(&mut config, &mut recommendations);
-        self.enable_loop_prevention(&mut config, &mut recommendations);
-        self.add_stop_sequences(&mut config, &model_name);
+
+        // Model-specific recommendations
+        self.add_model_recommendations(&model_name, &mut recommendations);
 
         // Estimate performance
         let perf = self.estimate_performance(&model_name, &config);
@@ -96,8 +60,6 @@ impl AutoConfigurator {
             model_name,
             model_path: path.to_string_lossy().to_string(),
             config,
-            issues_detected: issues,
-            fixes_applied: fixes,
             recommendations,
             performance_estimate: perf,
         }
@@ -111,34 +73,106 @@ impl AutoConfigurator {
             .to_string()
     }
 
-    /// Detect model-specific issues
-    fn detect_model_specific_issues(
+    /// Apply hardware-based optimizations
+    fn apply_hardware_optimizations(
+        &self,
+        config: &mut CandleConfig,
+        recommendations: &mut Vec<String>,
+    ) {
+        // Adjust context size based on RAM
+        let ram_gb = self.hardware.memory.available as f32;
+        
+        if ram_gb < 8.0 {
+            config.context_size = 2048;
+            recommendations.push("Limited RAM detected: reduced context size to 2048".to_string());
+        } else if ram_gb > 16.0 {
+            config.context_size = 8192;
+            recommendations.push("Ample RAM available: increased context size to 8192".to_string());
+        }
+
+        // CPU threads
+        config.n_threads = Some(self.hardware.cpu.threads);
+        recommendations.push(format!(
+            "Using {} CPU threads for inference",
+            self.hardware.cpu.threads
+        ));
+    }
+
+    /// Add model-specific recommendations
+    fn add_model_recommendations(
         &self,
         model_name: &str,
-        config: &mut GGUFConfig,
-        issues: &mut Vec<Issue>,
-        fixes: &mut Vec<Fix>,
+        recommendations: &mut Vec<String>,
     ) {
-        // Qwen3.5-0.8B specific fixes
-        if model_name.contains("qwen3.5") || model_name.contains("qwen_3.5") {
-            // Issue: Tends to loop on short responses
-            issues.push(Issue {
-                code: "QWEN_LOOP_TENDENCY".to_string(),
-                severity: Severity::Warning,
-                description: "Qwen3.5-0.8B has tendency to loop on repetitive prompts".to_string(),
-                suggestion: "Enable loop detection and increase temperature".to_string(),
-            });
+        // Qwen models
+        if model_name.contains("qwen") {
+            recommendations.push(
+                "Qwen models work best with temperature 0.7-0.8 for balanced output".to_string()
+            );
+        }
 
-            // Fix: Increase temperature
-            if config.temperature < 0.75 {
-                fixes.push(Fix {
-                    issue_code: "QWEN_LOOP_TENDENCY".to_string(),
-                    description: "Increased temperature to reduce looping".to_string(),
-                    old_value: format!("{:.2}", config.temperature),
-                    new_value: "0.75".to_string(),
-                });
-                config.temperature = 0.75;
-            }
+        // Llama models
+        if model_name.contains("llama") {
+            recommendations.push(
+                "Llama models: use repetition penalty 1.1 to prevent loops".to_string()
+            );
+        }
 
-            // Fix: Add repetition penalty
-            if config.repetition_penalty
+        // Small models (< 3B)
+        if model_name.contains("0.5b") || model_name.contains("1b") || model_name.contains("3b") {
+            recommendations.push(
+                "Small model: increase temperature (0.8+) for more creative output".to_string()
+            );
+        }
+    }
+
+    /// Estimate performance
+    fn estimate_performance(&self, model_name: &str, config: &CandleConfig) -> PerformanceEstimate {
+        // Estimate model size from name
+        let model_size_b = self.estimate_model_size(model_name);
+        
+        // Candle performance estimates (CPU inference)
+        // Rough estimate: 1-5 tokens/s for CPU, depends on model size
+        let base_speed = if config.cpu_only {
+            2.0  // CPU tokens/s
+        } else {
+            20.0  // GPU tokens/s (if CUDA available)
+        };
+        
+        // Speed decreases with model size
+        let speed = base_speed / model_size_b;
+        
+        // VRAM/RAM estimates (Q4_K_M quantization)
+        let vram_per_b: f32 = 700.0;  // ~0.7GB per 1B params
+        let estimated_vram = (model_size_b * vram_per_b) as u32;
+        let estimated_ram = estimated_vram * 2;  // System RAM for context
+
+        PerformanceEstimate {
+            estimated_speed_tps: speed,
+            estimated_vram_mb: estimated_vram,
+            estimated_ram_mb: estimated_ram,
+            quality_rating: if model_size_b >= 7.0 { 8 } else { 6 },
+        }
+    }
+
+    /// Estimate model size from name (in billions of parameters)
+    fn estimate_model_size(&self, model_name: &str) -> f32 {
+        if model_name.contains("70b") || model_name.contains("70b") {
+            70.0
+        } else if model_name.contains("34b") {
+            34.0
+        } else if model_name.contains("13b") {
+            13.0
+        } else if model_name.contains("7b") {
+            7.0
+        } else if model_name.contains("3b") {
+            3.0
+        } else if model_name.contains("1b") {
+            1.0
+        } else if model_name.contains("0.5b") {
+            0.5
+        } else {
+            3.0  // Default assumption
+        }
+    }
+}

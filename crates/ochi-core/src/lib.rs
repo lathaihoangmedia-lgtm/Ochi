@@ -8,12 +8,10 @@ pub mod error;
 /// Core utilities
 pub mod utils;
 
-/// AI/ML - GGUF Inference with CUDA
-#[cfg(feature = "ai")]
+/// AI/ML - Candle Inference + Ollama
 pub mod ai;
 
 /// Hardware Detection & Auto-Tuning
-#[cfg(feature = "ai")]
 pub mod hardware;
 
 /// Test utilities
@@ -32,10 +30,11 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "ai")]
-pub use ai::model::{GGUFModel, GGUFConfig};
+pub use ai::model::CandleModel;
 
-#[cfg(feature = "ai")]
+#[cfg(feature = "ollama")]
+pub use ai::OllamaClient;
+
 pub use hardware::{HardwareInfo, AutoTuner};
 
 #[cfg(test)]

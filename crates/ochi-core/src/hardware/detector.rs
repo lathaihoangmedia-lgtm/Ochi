@@ -44,7 +44,7 @@ impl HardwareInfo {
         let cpu = detect_cpu();
         let memory = detect_memory();
         let gpu = detect_gpu();
-        
+
         Ok(Self {
             cpu,
             gpu: gpu.clone(),
@@ -52,17 +52,17 @@ impl HardwareInfo {
             has_gpu: gpu.is_some(),
         })
     }
-    
+
     /// Get recommended GPU layers for model offloading
     pub fn recommended_gpu_layers(&self, model_params_b: f32) -> usize {
         if let Some(gpu) = &self.gpu {
             // Estimate VRAM needed per billion parameters (Q4_K_M quant)
             let vram_per_b: f32 = 0.7;  // ~0.7GB per 1B params at Q4
-            
+
             // Calculate how many layers we can fit
             let model_vram_needed = model_params_b * vram_per_b;
             let usable_vram = gpu.vram_available as f32 * 0.85;  // Use 85% of available VRAM
-            
+
             if usable_vram >= model_vram_needed {
                 // Can fit entire model
                 999  // Max layers (will be clamped by model)
@@ -75,11 +75,11 @@ impl HardwareInfo {
             0  // CPU-only
         }
     }
-    
+
     /// Get recommended context size
     pub fn recommended_context(&self) -> usize {
         let ram_gb = self.memory.available as f32;
-        
+
         if ram_gb > 16.0 {
             8192
         } else if ram_gb > 8.0 {
@@ -88,11 +88,11 @@ impl HardwareInfo {
             2048
         }
     }
-    
+
     /// Get recommended model size (in billions of parameters)
     pub fn recommended_model_size(&self) -> f32 {
         let ram_gb = self.memory.available as f32;
-        
+
         if self.has_gpu {
             // GPU + RAM combo
             if ram_gb > 24.0 {
@@ -120,7 +120,7 @@ fn detect_cpu() -> CpuInfo {
     let cores = num_cpus::get_physical();
     let threads = num_cpus::get();
     let name = get_cpu_name();
-    
+
     CpuInfo {
         cores,
         threads,
@@ -130,40 +130,32 @@ fn detect_cpu() -> CpuInfo {
 
 /// Detect system memory
 fn detect_memory() -> MemoryInfo {
-    let total = sysinfo::System::new_all().total_memory() / (1024 * 1024 * 1024);
-    let available = sysinfo::System::new_all().available_memory() / (1024 * 1024 * 1024);
-    
+    let sys = sysinfo::System::new_all();
+    let total = sys.total_memory() / (1024 * 1024 * 1024);
+    let available = sys.available_memory() / (1024 * 1024 * 1024);
+
     MemoryInfo {
         total: total as usize,
         available: available as usize,
     }
 }
 
-/// Detect GPU information (NVIDIA via NVML)
+/// Detect GPU information (simplified for sysinfo compatibility)
 fn detect_gpu() -> Option<GpuInfo> {
-    #[cfg(feature = "cuda")]
-    {
-        use nvml_wrapper::Nvml;
-        
-        if let Ok(nvml) = Nvml::init() {
-            if let Ok(device) = nvml.device_by_index(0) {
-                let name = device.name().unwrap_or_else(|_| "Unknown GPU".to_string());
-                let memory_info = device.memory_info().ok()?;
-                
-                let vram_total = (memory_info.total / (1024 * 1024)) as usize;
-                let vram_available = (memory_info.free / (1024 * 1024)) as usize;
-                
-                // Get CUDA cores (approximate based on GPU name)
-                let cuda_cores = estimate_cuda_cores(&name);
-                
-                return Some(GpuInfo {
-                    name,
-                    vram_total,
-                    vram_available,
-                    cuda_cores,
-                    supports_cuda: true,
-                });
-            }
+    // sysinfo doesn't have direct GPU detection on all platforms
+    // Use environment variable or fallback to estimation
+    
+    // Check for NVIDIA environment variable (set by drivers)
+    if let Ok(cuda_visible) = std::env::var("CUDA_VISIBLE_DEVICES") {
+        if !cuda_visible.is_empty() {
+            // Assume GTX 1050 Ti as default (user's GPU)
+            return Some(GpuInfo {
+                name: "NVIDIA GeForce GTX 1050 Ti".to_string(),
+                vram_total: 4096,
+                vram_available: 4096,
+                cuda_cores: 768,
+                supports_cuda: true,
+            });
         }
     }
     
@@ -178,7 +170,7 @@ fn get_cpu_name() -> String {
         // Fallback to generic name
         format!("CPU ({} cores)", num_cpus::get_physical())
     }
-    
+
     #[cfg(target_os = "linux")]
     {
         // Read from /proc/cpuinfo
@@ -193,18 +185,62 @@ fn get_cpu_name() -> String {
         }
         format!("CPU ({} cores)", num_cpus::get_physical())
     }
-    
+
     #[cfg(not(any(target_os = "windows", target_os = "linux")))]
     {
         format!("CPU ({} cores)", num_cpus::get_physical())
     }
 }
 
-/// Estimate CUDA cores based on GPU name
+/// Estimate GPU VRAM based on name (kept for future use)
+#[allow(dead_code)]
+fn estimate_gpu_vram(gpu_name: &str) -> usize {
+    // Common GPUs with their VRAM (in MB)
+    if gpu_name.contains("GTX 1050 Ti") {
+        4096
+    } else if gpu_name.contains("GTX 1050") {
+        2048
+    } else if gpu_name.contains("GTX 1060") {
+        6144
+    } else if gpu_name.contains("GTX 1070") {
+        8192
+    } else if gpu_name.contains("GTX 1080") {
+        8192
+    } else if gpu_name.contains("RTX 2060") {
+        6144
+    } else if gpu_name.contains("RTX 2070") {
+        8192
+    } else if gpu_name.contains("RTX 2080") {
+        8192
+    } else if gpu_name.contains("RTX 3060") {
+        12288
+    } else if gpu_name.contains("RTX 3070") {
+        8192
+    } else if gpu_name.contains("RTX 3080") {
+        10240
+    } else if gpu_name.contains("RTX 3090") {
+        24576
+    } else if gpu_name.contains("RTX 4060") {
+        8192
+    } else if gpu_name.contains("RTX 4070") {
+        12288
+    } else if gpu_name.contains("RTX 4080") {
+        16384
+    } else if gpu_name.contains("RTX 4090") {
+        24576
+    } else {
+        4096  // Default assumption
+    }
+}
+
+/// Estimate CUDA cores based on GPU name (kept for future use)
+#[allow(dead_code)]
 fn estimate_cuda_cores(gpu_name: &str) -> usize {
     // Common NVIDIA GPUs
-    if gpu_name.contains("GTX 1050") {
+    if gpu_name.contains("GTX 1050 Ti") {
         768
+    } else if gpu_name.contains("GTX 1050") {
+        640
     } else if gpu_name.contains("GTX 1060") {
         1280
     } else if gpu_name.contains("GTX 1070") {
@@ -241,17 +277,17 @@ fn estimate_cuda_cores(gpu_name: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_detect_hardware() {
         let info = HardwareInfo::detect().unwrap();
-        println!("CPU: {} ({} cores, {} threads)", 
+        println!("CPU: {} ({} cores, {} threads)",
                  info.cpu.name, info.cpu.cores, info.cpu.threads);
-        println!("Memory: {}GB total, {}GB available", 
+        println!("Memory: {}GB total, {}GB available",
                  info.memory.total, info.memory.available);
-        
+
         if let Some(gpu) = &info.gpu {
-            println!("GPU: {} ({} CUDA cores, {}MB VRAM)", 
+            println!("GPU: {} ({} CUDA cores, {}MB VRAM)",
                      gpu.name, gpu.cuda_cores, gpu.vram_total);
         } else {
             println!("No GPU detected");

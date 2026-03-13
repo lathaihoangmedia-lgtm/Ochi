@@ -55,7 +55,7 @@ impl LoopDetector {
         if len >= 4 {
             let pattern1 = format!("{}{}", tokens[len - 2], tokens[len - 1]);
             let pattern2 = format!("{}{}", tokens[len - 4], tokens[len - 3]);
-            
+
             if pattern1 == pattern2 && !pattern1.trim().is_empty() {
                 // Check if it's meaningful repetition (not just spaces/punctuation)
                 if pattern1.chars().any(|c| c.is_alphanumeric()) {
@@ -66,9 +66,9 @@ impl LoopDetector {
 
         // Check for sentence-level repetition
         if len >= 6 {
-            let recent = tokens[len - 3..].join(" ");
-            let older = tokens[len - 6..len - 3].join(" ");
-            
+            let recent: String = tokens[len - 3..].iter().map(|s| s.as_str()).collect::<Vec<_>>().join(" ");
+            let older: String = tokens[len - 6..len - 3].iter().map(|s| s.as_str()).collect::<Vec<_>>().join(" ");
+
             let similarity = self.string_similarity(&recent, &older);
             if similarity > self.threshold {
                 return LoopStatus::Detected(format!(
@@ -137,39 +137,39 @@ mod tests {
     #[test]
     fn test_no_loop() {
         let mut detector = LoopDetector::new(10, 0.8);
-        
-        assert!(detector.check("Hello").is_ok());
-        assert!(detector.check("world").is_ok());
-        assert!(detector.check("how").is_ok());
-        assert!(detector.check("are").is_ok());
-        assert!(detector.check("you").is_ok());
+
+        assert!(matches!(detector.check("Hello"), LoopStatus::Ok));
+        assert!(matches!(detector.check("world"), LoopStatus::Ok));
+        assert!(matches!(detector.check("how"), LoopStatus::Ok));
+        assert!(matches!(detector.check("are"), LoopStatus::Ok));
+        assert!(matches!(detector.check("you"), LoopStatus::Ok));
     }
 
     #[test]
     fn test_detect_repetition() {
         let mut detector = LoopDetector::new(10, 0.7);
-        
+
         // Add pattern
         detector.check("test");
         detector.check("pattern");
         detector.check("test");
         detector.check("pattern");
-        
+
         // Should detect repetition
         let status = detector.check("test");
-        assert!(status.is_loop() || matches!(status, LoopStatus::Warning(_)));
+        assert!(matches!(status, LoopStatus::Warning(_) | LoopStatus::Detected(_)));
     }
 
     #[test]
     fn test_similarity() {
         let detector = LoopDetector::new(10, 0.5);
-        
+
         let sim1 = detector.string_similarity("hello world", "hello world");
         assert!(sim1 > 0.9);
-        
+
         let sim2 = detector.string_similarity("hello world", "world hello");
         assert!(sim2 > 0.5);
-        
+
         let sim3 = detector.string_similarity("hello", "goodbye");
         assert!(sim3 < 0.5);
     }
