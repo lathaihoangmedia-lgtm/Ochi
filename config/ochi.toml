@@ -1,9 +1,9 @@
 [llm]
-# Ollama (primary - when available)
+# Ollama (PRIMARY - ĐÃ CÓ MODEL)
 ollama_url = "http://localhost:11434"
-ollama_model = "qwen2.5:0.5b"
+ollama_model = "qwen2.5:0.5b"  # ✅ 397MB - Đã download
 
-# Candle (fallback - local GGUF)
+# Candle (FALLBACK - Local GGUF)
 candle_model_path = "models/qwen3.5-0.8b.gguf"
 candle_enabled = true
 
