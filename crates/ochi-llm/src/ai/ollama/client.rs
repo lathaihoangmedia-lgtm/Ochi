@@ -7,8 +7,6 @@ use super::{OllamaModel, OllamaOptions};
 
 #[cfg(feature = "ollama")]
 use ollama_rs::{Ollama as OllamaAPI, generation::options::GenerationOptions};
-#[cfg(feature = "ollama")]
-use futures::StreamExt;
 
 // ollama-rs 0.2 API compatibility
 #[cfg(feature = "ollama")]
