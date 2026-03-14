@@ -304,5 +304,5 @@ Solution 3: Increase temperature (0.7 → 0.8)
 **Resources:**
 - [HuggingFace GGUF Search](https://huggingface.co/models?search=gguf)
 - [TheBloke's Models](https://huggingface.co/TheBloke)
-- [llama.cpp Docs](https://github.com/ggerganov/llama.cpp)
+- [Candle Docs](https://docs.rs/candle-core)
 - [GGUF Format Spec](https://github.com/ggerganov/ggml/blob/master/docs/gguf.md)

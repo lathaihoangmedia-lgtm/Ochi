@@ -31,7 +31,7 @@ SETUP.bat  (Right-click → Run as Administrator)
 ### Bước 3: Chạy Demo
 
 ```bash
-cargo run --example demo --features cuda
+cargo run --example demo
 ```
 
 ---
@@ -47,8 +47,8 @@ cargo run --example demo --features cuda
 ### ✅ Install Dependencies
 
 4. **LLVM/Clang 17+** - Build dependency
-5. **CUDA Toolkit 12.x** - GPU acceleration
-6. **NVIDIA Driver** - Update nếu cần
+5. **CUDA Toolkit (Optional)** - GPU acceleration
+6. **NVIDIA Driver (Optional)** - Update nếu cần
 
 ### ✅ Setup Environment
 
@@ -89,13 +89,13 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ```powershell
 # Run as Administrator
-choco install llvm cuda -y
+choco install llvm -y
 ```
 
 ### 4. Build
 
 ```bash
-cargo build --release --features cuda
+cargo build --release
 ```
 
 ---
@@ -124,17 +124,17 @@ rustc --version
 # LLVM installed?
 clang --version
 
-# CUDA installed?
+# CUDA installed? (Optional)
 nvcc --version
 
-# NVIDIA detected?
+# NVIDIA detected? (Optional)
 nvidia-smi
 
 # Build successful?
-cargo build --features cuda
+cargo build --workspace
 
 # Demo runs?
-cargo run --example demo --features cuda
+cargo run --example demo
 ```
 
 ---
@@ -157,7 +157,7 @@ cargo run --example demo --features cuda
 nvidia-smi
 
 # If no GPU, build CPU-only:
-cargo build --features ai
+cargo build --workspace
 ```
 
 ### Build fails with "link.exe not found"
@@ -192,7 +192,7 @@ Setup thành công khi thấy:
 ```
 ✅ Rust installed
 ✅ LLVM installed
-✅ CUDA installed
+✅ CUDA installed (optional)
 ✅ Build successful
 ✅ Demo runs
 ✅ All tests pass

@@ -109,7 +109,7 @@ pub extern "C" fn ffi_model_generate(
 
 ```bash
 # Build as C dynamic library
-cargo build --release --features ai
+cargo build --release
 
 # Output: target/release/libochi_core.so (Linux)
 #         target/release/ochi_core.dll (Windows)
@@ -230,7 +230,7 @@ func main() {
 ```bash
 # 1. Build Rust library
 cd crates/ochi-core
-cargo build --release --features ai
+cargo build --release
 
 # 2. Set library path
 export LD_LIBRARY_PATH=$(pwd)/../../target/release:$LD_LIBRARY_PATH

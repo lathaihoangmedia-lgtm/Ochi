@@ -6,8 +6,8 @@
 
 ## 📦 Bạn Có Gì?
 
-✅ **Rust Core** với GGUF inference  
-✅ **CUDA support** cho NVIDIA GPU  
+✅ **Rust Core** với Candle inference  
+✅ **GPU support** (tuỳ môi trường)  
 ✅ **Auto-tuning** theo hardware  
 ✅ **FFI bindings** cho Go integration  
 ✅ **Qwen3.5-0.8B model** (đã download sẵn)  
@@ -17,13 +17,15 @@
 
 ## 🧭 Layout Mới (Theo Kiến Trúc Ochi 108)
 
-- `crates/ochi-core`: error + utils
+- `crates/ochi-core`: error + utils + hardware
+- `crates/ochi-automation`: tools/skills/prompts
 - `crates/ochi-llm`: Candle + Ollama
-- `crates/ochi-hardware`: hardware detection + auto-tune
 - `crates/ochi-ngu-hanh`: 5 Ngũ Hành + DB layout
-- `crates/ochi-trung-cung`: Âm-Dương + 8 Bát Quái
+- `crates/ochi-trung-cung`: Âm-Dương + 8 Bát Quái + DuckDB
 - `crates/ochi-thien-co-cac`: 36 Thiên Cương (scaffold)
 - `crates/ochi-cong-hoi`: 72 Địa Sát (scaffold)
+- `crates/ochi-gateway`: API/gateway routing (scaffold)
+- `crates/ochi-runtime`: execution/runtime glue (scaffold)
 - `data/`: 5 SQLite DBs (kim/moc/thuy/hoa/tho)
 
 ---
@@ -51,7 +53,7 @@
 ### Setup Script Tự Động:
 - ✅ Check & install Rust
 - ✅ Install LLVM/Clang
-- ✅ Install CUDA Toolkit
+- ✅ Install CUDA Toolkit (Optional)
 - ✅ Download sample model
 - ✅ Build project
 - ✅ Run tests
@@ -61,7 +63,7 @@
 ```bash
 # Close terminal và mở lại
 # Run demo
-cargo run --example demo --features cuda
+cargo run --example demo
 ```
 
 ---
@@ -171,7 +173,7 @@ GPU: GeForce GTX 1050 Ti (768 CUDA cores, 4096MB VRAM)
 → GPU acceleration: ENABLED
 
 Setup Complete!
-Next: Run: cargo run --example demo --features cuda
+Next: Run: cargo run --example demo
 ```
 
 ---

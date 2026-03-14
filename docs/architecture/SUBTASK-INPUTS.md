@@ -43,7 +43,7 @@ Mục tiêu: lưu metadata điều phối, registry, cache index, routing log.
 
 ### 4.2 Bảng kiến trúc (schema/index/rules)
 - `cuu_cung_nodes`: 9 cung + thuộc tính + mapping DB.
-- `bat_quai_index`: map quẻ → loại request → agent group.
+- `bat_quai_db_map`: map quẻ → DB/agent group.
 - `ngu_hanh_rules`: bảng rule sinh/khắc (from, to, action).
 - `rules_5w1h`: template rules cho parse.
 - `logic_constraints`: constraint rules (tam đoạn luận).
@@ -95,7 +95,7 @@ Ghi chú: đã tạo thêm `rules_5w1h`, `logic_constraints`, `task_flow_logs` v
      - 8 Tây Nam = Cấn → Thổ → `tho.db`
      - 9 Nam = Ly → Hỏa → `hoa.db`
 2. **Ánh xạ Bát Quái → routing rules**
-   - Dựa trên tags/intent (chat/stream/cache/webhook/session/search…).
+   - Ưu tiên rules_5w1h trong DuckDB, fallback về tags/intent (chat/stream/cache/webhook/session/search…).
    - Lưu route log vào `router_logs` của DuckDB.
 3. **Chuẩn hóa task mẫu & kiểm thử**
    - Dùng 5 task mẫu + bổ sung task thật từ dự án.

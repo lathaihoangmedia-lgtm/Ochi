@@ -4,11 +4,13 @@ resolver = "2"
 members = [
     "crates/ochi-core",
     "crates/ochi-llm",
-    "crates/ochi-hardware",
     "crates/ochi-ngu-hanh",
     "crates/ochi-trung-cung",
     "crates/ochi-thien-co-cac",
     "crates/ochi-cong-hoi",
+    "crates/ochi-automation",
+    "crates/ochi-gateway",
+    "crates/ochi-runtime",
 ]
 
 [workspace.package]
@@ -23,11 +25,13 @@ homepage = "https://ochi.dev"
 # Core
 ochi-core = { path = "crates/ochi-core" }
 ochi-llm = { path = "crates/ochi-llm" }
-ochi-hardware = { path = "crates/ochi-hardware" }
 ochi-ngu-hanh = { path = "crates/ochi-ngu-hanh" }
 ochi-trung-cung = { path = "crates/ochi-trung-cung" }
 ochi-thien-co-cac = { path = "crates/ochi-thien-co-cac" }
 ochi-cong-hoi = { path = "crates/ochi-cong-hoi" }
+ochi-automation = { path = "crates/ochi-automation" }
+ochi-gateway = { path = "crates/ochi-gateway" }
+ochi-runtime = { path = "crates/ochi-runtime" }
 
 # Async & Runtime
 tokio = { version = "1.35", features = ["full"] }

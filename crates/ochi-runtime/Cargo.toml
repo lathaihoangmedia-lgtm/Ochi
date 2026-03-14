@@ -1,0 +1,11 @@
+[package]
+name = "ochi-runtime"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Runtime glue for automation + agents"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }
+ochi-automation = { path = "../ochi-automation" }

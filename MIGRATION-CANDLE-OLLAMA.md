@@ -288,7 +288,7 @@ async fn main() -> anyhow::Result<()> {
 ### Example 3: Hardware-Aware Configuration
 
 ```rust
-use ochi_hardware::{HardwareInfo, AutoTuner};
+use ochi_core::{HardwareInfo, AutoTuner};
 use ochi_llm::{CandleModel, CandleConfig};
 
 fn main() -> anyhow::Result<()> {

@@ -1,6 +1,6 @@
 # Ochi Next - AI-Powered Core
 
-> Rust Workspace với GGUF Inference + CUDA Acceleration + Auto-Tuning
+> Rust Workspace với Candle Inference + Optional GPU + Auto-Tuning
 
 ---
 
@@ -19,7 +19,7 @@ SETUP.bat
 **Setup tự động:**
 - ✅ Check & install Rust
 - ✅ Install LLVM/Clang  
-- ✅ Install CUDA Toolkit
+- ✅ Install CUDA Toolkit (Optional)
 - ✅ Download sample model
 - ✅ Build project
 - ✅ Run tests
@@ -34,12 +34,14 @@ SETUP.bat
 ochi/
 ├── crates/
 │   ├── ochi-core/        # Core errors + utils
+│   ├── ochi-automation/  # Tools/skills/prompts automation layer
 │   ├── ochi-llm/         # Candle + Ollama integration
-│   ├── ochi-hardware/    # Hardware detection + auto-tune
 │   ├── ochi-ngu-hanh/    # 5 Ngũ Hành agents + DB layout
 │   ├── ochi-trung-cung/  # Âm-Dương router + 8 Bát Quái
 │   ├── ochi-thien-co-cac/# 36 Thiên Cương (scaffold)
-│   └── ochi-cong-hoi/    # 72 Địa Sát (scaffold)
+│   ├── ochi-cong-hoi/    # 72 Địa Sát (scaffold)
+│   ├── ochi-gateway/     # API/gateway routing
+│   └── ochi-runtime/     # execution/runtime glue
 ├── data/                # 5 SQLite DBs (kim/moc/thuy/hoa/tho)
 ├── models/              # GGUF models
 │   └── qwen3.5-0.8b.gguf
@@ -70,13 +72,13 @@ SETUP.bat
 
 ```powershell
 # Install dependencies
-choco install llvm cuda -y
+choco install llvm -y
 
 # Build
-cargo build --features cuda
+cargo build --workspace
 
 # Run tests
-cargo test --features cuda
+cargo test --workspace
 ```
 
 ---
@@ -113,8 +115,8 @@ git push origin main
 
 ## 🎯 Features
 
-- **GGUF Model Inference** - llama.cpp integration
-- **CUDA GPU Acceleration** - NVIDIA support (GTX/RTX)
+- **Model Inference** - Candle (pure Rust)
+- **GPU Acceleration (Optional)** - NVIDIA support (GTX/RTX)
 - **Auto-Tuning** - Tự động optimize theo hardware
 - **rust2go FFI** - Go agents integration
 - **Lightweight** - Chạy model 0.8B-70B với quantization
@@ -149,13 +151,13 @@ git push origin main
 .\scripts\test.ps1
 
 # Unit tests only
-cargo test --lib --features ai
+cargo test --lib
 
 # Hardware tests
-cargo test --features ai hardware -- --nocapture
+cargo test -p ochi-core hardware -- --nocapture
 
 # Integration tests
-cargo test --features ai -- --test-threads=1
+cargo test -- --test-threads=1
 ```
 
 ### CI Pipeline
@@ -214,7 +216,7 @@ choco install cuda -y
 
 **License:** MIT  
 **Authors:** Ochi Team  
-**Stack:** Rust + CUDA + GGUF + Go (FFI)
+**Stack:** Rust + Candle + Ollama + Go (FFI)
 
 ---
 

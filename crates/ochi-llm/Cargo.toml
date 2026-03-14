@@ -8,7 +8,6 @@ description = "LLM inference and model management for Ochi"
 
 [dependencies]
 ochi-core = { path = "../ochi-core" }
-ochi-hardware = { path = "../ochi-hardware" }
 
 serde.workspace = true
 tracing.workspace = true

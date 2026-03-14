@@ -45,7 +45,13 @@ impl AmDuongRouter {
         let mut notes = Vec::new();
         notes.push("Routing placeholder - refine in Phase 1".to_string());
 
-        let bat_quai = select_bat_quai(&request);
+        let bat_quai = if let Some(store) = &self.store {
+            store
+                .find_bat_quai_by_5w1h(&request.intent, &request.tags)?
+                .unwrap_or_else(|| select_bat_quai(&request))
+        } else {
+            select_bat_quai(&request)
+        };
 
         if let Some(store) = &self.store {
             let db = store

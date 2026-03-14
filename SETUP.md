@@ -26,9 +26,9 @@ clang --version
 # Should show: clang version 17.x.x
 ```
 
-### 2. Install CUDA Toolkit (For GPU Acceleration)
+### 2. Install CUDA Toolkit (Optional, For GPU Acceleration)
 
-**Required for:** NVIDIA GPU (GTX 1050 Ti, RTX series, etc.)
+**Optional for:** NVIDIA GPU (GTX 1050 Ti, RTX series, etc.)
 
 **Option A: Chocolatey**
 ```bash
@@ -49,14 +49,11 @@ nvidia-smi
 ### 3. Build Ochi Core
 
 ```bash
-# CPU-only build (no CUDA)
-cargo build --features ai
-
-# Full build with CUDA
-cargo build --features cuda
+# Build (CPU-only by default)
+cargo build --workspace
 
 # Release build
-cargo build --release --features cuda
+cargo build --release
 ```
 
 ---
@@ -117,7 +114,7 @@ Error: CUDA out of memory
 **Solution:**
 ```rust
 // Reduce GPU layers
-let config = GGUFConfig::balanced("model.gguf")
+let config = CandleConfig::balanced("model.gguf")
     .with_gpu_layers(20);  // Instead of 999
 ```
 
@@ -126,8 +123,8 @@ let config = GGUFConfig::balanced("model.gguf")
 ## Next Steps
 
 1. ✅ Install LLVM (choco install llvm)
-2. ✅ Install CUDA (choco install cuda)
-3. ✅ Build: `cargo build --features cuda`
+2. ✅ Install CUDA (optional)
+3. ✅ Build: `cargo build --workspace`
 4. 📚 Read [USAGE-AI.md](USAGE-AI.md) for usage guide
 5. 📚 Read [SETUP-CUDA.md](SETUP-CUDA.md) for detailed CUDA setup
 
@@ -136,8 +133,8 @@ let config = GGUFConfig::balanced("model.gguf")
 **Quick Test:**
 ```bash
 # After setup, test build
-cargo build --features cuda
+cargo build --workspace
 
 # Test hardware detection
-cargo test --features cuda hardware::detector::tests::test_detect_hardware -- --nocapture
+cargo test -p ochi-core hardware::detector::tests::test_detect_hardware -- --nocapture
 ```

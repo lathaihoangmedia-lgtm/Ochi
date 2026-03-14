@@ -10,11 +10,11 @@ Ochi Core uses a **multi-layered testing approach** with isolated, parallelizabl
 
 ### 1. Unit Tests (Fast, Isolated)
 
-**Location:** `src/*/tests.rs`, inline `#[cfg(test)]` modules
+**Location:** `crates/*/src/*`, inline `#[cfg(test)]` modules
 
 **Run:**
 ```bash
-cargo test --lib --features ai
+cargo test --lib
 ```
 
 **Tests include:**
@@ -26,11 +26,11 @@ cargo test --lib --features ai
 
 ### 2. Hardware Detection Tests (System-Dependent)
 
-**Location:** `src/hardware/detector.rs`
+**Location:** `crates/ochi-core/src/hardware/detector.rs`
 
 **Run:**
 ```bash
-cargo test --features ai hardware::detector::tests::test_detect_hardware -- --nocapture
+cargo test -p ochi-core hardware::detector::tests::test_detect_hardware -- --nocapture
 ```
 
 **Tests:**
@@ -42,11 +42,11 @@ cargo test --features ai hardware::detector::tests::test_detect_hardware -- --no
 
 ### 3. Auto-Tuner Tests (Configuration)
 
-**Location:** `src/hardware/tuner.rs`
+**Location:** `crates/ochi-core/src/hardware/mod.rs`
 
 **Run:**
 ```bash
-cargo test --features ai hardware::tuner::tests::test_auto_tuner -- --nocapture
+cargo test -p ochi-core hardware::tests::test_auto_tuner -- --nocapture
 ```
 
 **Tests:**
@@ -62,7 +62,7 @@ cargo test --features ai hardware::tuner::tests::test_auto_tuner -- --nocapture
 
 **Run:**
 ```bash
-cargo test --features ai -- --test-threads=1
+cargo test -- --test-threads=1
 ```
 
 **Tests:**
@@ -94,13 +94,13 @@ jobs:
         uses: dtolnay/rust-action@stable
       
       - name: Run Unit Tests
-        run: cargo test --lib --features ai
+        run: cargo test --lib
       
       - name: Run Hardware Tests
-        run: cargo test --features ai hardware -- --nocapture
+        run: cargo test -p ochi-core hardware -- --nocapture
       
       - name: Run Integration Tests
-        run: cargo test --features ai -- --test-threads=1
+        run: cargo test -- --test-threads=1
 ```
 
 ---
@@ -125,8 +125,8 @@ jobs:
 
 ### Filter Tests
 ```bash
-cargo test --features ai test_generate_id
-cargo test --features ai ai::model::tests
+cargo test test_generate_id
+cargo test ai::model::tests
 ```
 
 ---
@@ -175,10 +175,10 @@ mod tests {
 ```rust
 #[cfg(test)]
 mod tests {
-    fn load_test_model() -> GGUFModel {
-        GGUFModel::load(
+    fn load_test_model() -> CandleModel {
+        CandleModel::load(
             "test_fixtures/tiny-model.gguf",
-            GGUFConfig::default()
+            CandleConfig::default()
         ).unwrap()
     }
     
@@ -197,10 +197,10 @@ mod tests {
 
 ```bash
 # Run benchmarks (nightly only)
-cargo bench --features ai
+cargo bench
 
 # Benchmark specific function
-cargo bench --features ai ai::model::generate
+cargo bench ai::model::generate
 ```
 
 ---
@@ -212,7 +212,7 @@ cargo bench --features ai ai::model::generate
 cargo install cargo-tarpaulin
 
 # Generate coverage
-cargo tarpaulin --features ai --out html
+cargo tarpaulin --out html
 
 # Open report
 start ./tarpaulin-report.html
@@ -225,25 +225,25 @@ start ./tarpaulin-report.html
 ### Test Hangs
 ```bash
 # Run with timeout
-timeout 60 cargo test --features ai
+timeout 60 cargo test
 
 # Run single-threaded
-cargo test --features ai -- --test-threads=1
+cargo test -- --test-threads=1
 ```
 
 ### Out of Memory
 ```bash
 # Limit test threads
-cargo test --features ai -- --test-threads=1
+cargo test -- --test-threads=1
 
 # Skip heavy integration tests
-cargo test --lib --features ai
+cargo test --lib
 ```
 
 ### GPU Tests Fail
 ```bash
 # Skip GPU tests (if not available)
-cargo test --features ai -- --skip gpu
+cargo test -- --skip gpu
 ```
 
 ---
@@ -251,14 +251,11 @@ cargo test --features ai -- --skip gpu
 ## Test Organization
 
 ```
-ochi-core/
+crates/ochi-core/
 ├── src/
-│   ├── ai/
-│   │   ├── model.rs       # + #[cfg(test)] mod tests
-│   │   └── ffi.rs         # + #[cfg(test)] mod tests
 │   ├── hardware/
 │   │   ├── detector.rs    # + #[cfg(test)] mod tests
-│   │   └── tuner.rs       # + #[cfg(test)] mod tests
+│   │   └── mod.rs         # + #[cfg(test)] mod tests
 │   └── lib.rs
 ├── tests/
 │   ├── integration.rs     # End-to-end tests

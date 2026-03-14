@@ -433,6 +433,207 @@ impl DuckDbStore {
             Ok(None)
         }
     }
+
+    pub fn find_bat_quai_by_5w1h(&self, intent: &str, tags: &[String]) -> Result<Option<String>> {
+        let intent_lc = intent.to_lowercase();
+        let tags_lc: Vec<String> = tags.iter().map(|t| t.to_lowercase()).collect();
+
+        let mut stmt = self
+            .conn
+            .prepare(
+                "SELECT who_hint, what_hint, where_hint, when_hint, why_hint, how_hint, bat_quai FROM rules_5w1h",
+            )
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))?;
+        let mut rows = stmt
+            .query([])
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))?;
+
+        while let Some(row) = rows
+            .next()
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))? {
+            let who_hint: String = row.get(0).unwrap_or_default();
+            let what_hint: String = row.get(1).unwrap_or_default();
+            let where_hint: String = row.get(2).unwrap_or_default();
+            let when_hint: String = row.get(3).unwrap_or_default();
+            let why_hint: String = row.get(4).unwrap_or_default();
+            let how_hint: String = row.get(5).unwrap_or_default();
+            let bat_quai: String = row.get(6).unwrap_or_default();
+
+            if !matches_hint(&who_hint, &intent_lc, &tags_lc) {
+                continue;
+            }
+            if !matches_hint(&what_hint, &intent_lc, &tags_lc) {
+                continue;
+            }
+            if !matches_hint(&where_hint, &intent_lc, &tags_lc) {
+                continue;
+            }
+            if !matches_hint(&when_hint, &intent_lc, &tags_lc) {
+                continue;
+            }
+            if !matches_hint(&why_hint, &intent_lc, &tags_lc) {
+                continue;
+            }
+            if !matches_hint(&how_hint, &intent_lc, &tags_lc) {
+                continue;
+            }
+
+            if !bat_quai.is_empty() {
+                return Ok(Some(bat_quai));
+            }
+        }
+
+        Ok(None)
+    }
+
+    pub fn insert_cuu_cung(&self, cung_number: i32, record: CuuCungRecord) -> Result<()> {
+        self.validate_constraints(&record)?;
+
+        let table = cuu_cung_table_name(cung_number)
+            .ok_or_else(|| Error::Custom("Invalid cung_number".to_string()))?;
+
+        let tags = record.tags.join(",");
+        let sql = format!(
+            "INSERT INTO {} (id, title, payload, tags, who, what, where_, when_, why_, how_, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, now())",
+            table
+        );
+
+        self.conn
+            .execute(
+                &sql,
+                duckdb::params![
+                    record.id,
+                    record.title,
+                    record.payload,
+                    tags,
+                    record.who,
+                    record.what,
+                    record.where_,
+                    record.when_,
+                    record.why_,
+                    record.how_
+                ],
+            )
+            .map_err(|e| Error::Custom(format!("DuckDB insert failed: {e}")))?;
+        Ok(())
+    }
+
+    pub fn get_cuu_cung(&self, cung_number: i32, id: &str) -> Result<Option<CuuCungRecord>> {
+        let table = cuu_cung_table_name(cung_number)
+            .ok_or_else(|| Error::Custom("Invalid cung_number".to_string()))?;
+        let sql = format!(
+            "SELECT id, title, payload, tags, who, what, where_, when_, why_, how_ FROM {} WHERE id = ?1",
+            table
+        );
+        let mut stmt = self
+            .conn
+            .prepare(&sql)
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))?;
+        let mut rows = stmt
+            .query(duckdb::params![id])
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))?;
+
+        if let Some(row) = rows
+            .next()
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))? {
+            let tags_raw: String = row.get(3).unwrap_or_default();
+            let tags = tags_raw
+                .split(',')
+                .filter(|t| !t.is_empty())
+                .map(|t| t.to_string())
+                .collect::<Vec<_>>();
+
+            Ok(Some(CuuCungRecord {
+                id: row.get(0).unwrap_or_default(),
+                title: row.get(1).unwrap_or_default(),
+                payload: row.get(2).unwrap_or_default(),
+                tags,
+                who: row.get(4).ok(),
+                what: row.get(5).ok(),
+                where_: row.get(6).ok(),
+                when_: row.get(7).ok(),
+                why_: row.get(8).ok(),
+                how_: row.get(9).ok(),
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn update_cuu_cung(&self, cung_number: i32, record: CuuCungRecord) -> Result<()> {
+        self.validate_constraints(&record)?;
+        let table = cuu_cung_table_name(cung_number)
+            .ok_or_else(|| Error::Custom("Invalid cung_number".to_string()))?;
+        let tags = record.tags.join(",");
+        let sql = format!(
+            "UPDATE {} SET title=?2, payload=?3, tags=?4, who=?5, what=?6, where_=?7, when_=?8, why_=?9, how_=?10 WHERE id=?1",
+            table
+        );
+        self.conn
+            .execute(
+                &sql,
+                duckdb::params![
+                    record.id,
+                    record.title,
+                    record.payload,
+                    tags,
+                    record.who,
+                    record.what,
+                    record.where_,
+                    record.when_,
+                    record.why_,
+                    record.how_
+                ],
+            )
+            .map_err(|e| Error::Custom(format!("DuckDB update failed: {e}")))?;
+        Ok(())
+    }
+
+    pub fn delete_cuu_cung(&self, cung_number: i32, id: &str) -> Result<()> {
+        let table = cuu_cung_table_name(cung_number)
+            .ok_or_else(|| Error::Custom("Invalid cung_number".to_string()))?;
+        let sql = format!("DELETE FROM {} WHERE id = ?1", table);
+        self.conn
+            .execute(&sql, duckdb::params![id])
+            .map_err(|e| Error::Custom(format!("DuckDB delete failed: {e}")))?;
+        Ok(())
+    }
+
+    fn validate_constraints(&self, record: &CuuCungRecord) -> Result<()> {
+        let constraints = self.load_constraints()?;
+        for constraint in constraints {
+            if !evaluate_constraint(&constraint.predicate, record) {
+                return Err(Error::Custom(format!(
+                    "Constraint failed: {}",
+                    constraint.description
+                )));
+            }
+        }
+        Ok(())
+    }
+
+    fn load_constraints(&self) -> Result<Vec<LogicConstraint>> {
+        let mut stmt = self
+            .conn
+            .prepare("SELECT constraint_id, description, predicate FROM logic_constraints")
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))?;
+        let mut rows = stmt
+            .query([])
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))?;
+
+        let mut out = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .map_err(|e| Error::Custom(format!("DuckDB query failed: {e}")))? {
+            out.push(LogicConstraint {
+                constraint_id: row.get(0).unwrap_or_default(),
+                description: row.get(1).unwrap_or_default(),
+                predicate: row.get(2).unwrap_or_default(),
+            });
+        }
+        Ok(out)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -450,6 +651,77 @@ pub struct TaskFlowLog {
     pub checkpoint_number: i32,
     pub bat_quai: String,
     pub status: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct CuuCungRecord {
+    pub id: String,
+    pub title: String,
+    pub payload: String,
+    pub tags: Vec<String>,
+    pub who: Option<String>,
+    pub what: Option<String>,
+    pub where_: Option<String>,
+    pub when_: Option<String>,
+    pub why_: Option<String>,
+    pub how_: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct LogicConstraint {
+    pub constraint_id: String,
+    pub description: String,
+    pub predicate: String,
+}
+
+fn cuu_cung_table_name(cung_number: i32) -> Option<&'static str> {
+    match cung_number {
+        1 => Some("cung_1"),
+        2 => Some("cung_2"),
+        3 => Some("cung_3"),
+        4 => Some("cung_4"),
+        5 => Some("cung_5"),
+        6 => Some("cung_6"),
+        7 => Some("cung_7"),
+        8 => Some("cung_8"),
+        9 => Some("cung_9"),
+        _ => None,
+    }
+}
+
+fn matches_hint(hint: &str, intent: &str, tags: &[String]) -> bool {
+    if hint.trim().is_empty() {
+        return true;
+    }
+    let hint_lc = hint.to_lowercase();
+    if intent.contains(&hint_lc) {
+        return true;
+    }
+    tags.iter().any(|t| t.contains(&hint_lc))
+}
+
+fn evaluate_constraint(predicate: &str, record: &CuuCungRecord) -> bool {
+    let pred = predicate.trim().to_lowercase();
+    if pred.is_empty() {
+        return true;
+    }
+    if pred == "deny_all" {
+        return false;
+    }
+
+    if let Some(tag) = pred.strip_prefix("require_tag:") {
+        return record
+            .tags
+            .iter()
+            .any(|t| t.to_lowercase() == tag);
+    }
+    if let Some(tag) = pred.strip_prefix("deny_tag:") {
+        return !record
+            .tags
+            .iter()
+            .any(|t| t.to_lowercase() == tag);
+    }
+    true
 }
 
 #[cfg(test)]
@@ -472,5 +744,14 @@ mod tests {
             .expect("rule");
         assert_eq!(rule.checkpoint_number, 6);
         assert_eq!(rule.ngu_hanh, "Kim");
+    }
+
+    #[test]
+    fn test_find_bat_quai_by_5w1h() {
+        let store = DuckDbStore::open_in_memory().expect("store");
+        let bat_quai = store
+            .find_bat_quai_by_5w1h("please chat", &vec!["chat".to_string()])
+            .expect("query");
+        assert_eq!(bat_quai.as_deref(), Some("Doai"));
     }
 }

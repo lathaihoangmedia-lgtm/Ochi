@@ -83,24 +83,24 @@ $env:Path += ";$env:CUDA_PATH\bin"
 
 Download: https://visualstudio.microsoft.com/downloads/
 
-### 6. Build Ochi Core with CUDA
+### 6. Build Ochi Core (GPU Optional)
 
 ```bash
 # Navigate to project
 cd e:\Ochi
 
-# Build with CUDA feature
-cargo build --release --features cuda
+# Build release
+cargo build --release
 
 # Or for development
-cargo build --features cuda
+cargo build --workspace
 ```
 
 ### 7. Test GPU Detection
 
 ```bash
 # Run hardware detection test
-cargo test --features cuda hardware::detector::tests::test_detect_hardware -- --nocapture
+cargo test -p ochi-core hardware::detector::tests::test_detect_hardware -- --nocapture
 ```
 
 **Expected Output:**
@@ -139,7 +139,7 @@ choco install llvm
 **Solution:**
 ```rust
 // Reduce GPU layers
-let config = GGUFConfig::balanced("models/qwen3.5-0.8b.gguf")
+let config = CandleConfig::balanced("models/qwen3.5-0.8b.gguf")
     .with_gpu_layers(20);  // Instead of 999
 ```
 
@@ -159,7 +159,8 @@ let config = GGUFConfig::balanced("models/qwen3.5-0.8b.gguf")
 Create `examples/gpu_test.rs`:
 
 ```rust
-use ochi_core::{AutoTuner, GGUFModel, GGUFConfig};
+use ochi_core::AutoTuner;
+use ochi_llm::{CandleModel, CandleConfig};
 
 fn main() {
     // Detect hardware
@@ -167,8 +168,8 @@ fn main() {
     tuner.print_summary();
     
     // Load model with auto-tuned config
-    let config = GGUFConfig::balanced("models/qwen3.5-0.8b.gguf");
-    let model = GGUFModel::load("models/qwen3.5-0.8b.gguf", config).unwrap();
+let config = CandleConfig::balanced("models/qwen3.5-0.8b.gguf");
+let model = CandleModel::load("models/qwen3.5-0.8b.gguf", config).unwrap();
     
     // Test inference
     let output = model.generate("Hello, how are you?").unwrap();
@@ -178,7 +179,7 @@ fn main() {
 
 Run:
 ```bash
-cargo run --example gpu_test --features cuda
+cargo run --example gpu_test
 ```
 
 ## Optimization Tips
@@ -187,7 +188,7 @@ cargo run --example gpu_test --features cuda
 
 ```rust
 // Use all VRAM
-let config = GGUFConfig::speed("models/qwen3.5-0.8b.gguf")
+let config = CandleConfig::speed("models/qwen3.5-0.8b.gguf")
     .with_gpu_layers(999);  // Offload all layers
 ```
 
@@ -195,7 +196,7 @@ let config = GGUFConfig::speed("models/qwen3.5-0.8b.gguf")
 
 ```rust
 // For larger models
-let config = GGUFConfig::balanced("models/llama-3-8b.gguf")
+let config = CandleConfig::balanced("models/llama-3-8b.gguf")
     .with_gpu_layers(25);  // Partial offload
 ```
 
@@ -203,14 +204,14 @@ let config = GGUFConfig::balanced("models/llama-3-8b.gguf")
 
 ```rust
 // Run multiple small models
-let config1 = GGUFConfig::speed("models/qwen3.5-0.8b.gguf");
-let config2 = GGUFConfig::speed("models/phi-2.gguf");
+let config1 = CandleConfig::speed("models/qwen3.5-0.8b.gguf");
+let config2 = CandleConfig::speed("models/phi-2.gguf");
 ```
 
 ## Next Steps
 
 1. ✅ Install CUDA Toolkit
-2. ✅ Build with `--features cuda`
+2. ✅ Build (no feature flags)
 3. ✅ Test GPU detection
 4. 📚 Read [docs/rust2go.md](docs/rust2go.md) for Go integration
 5. 📚 Read [docs/gguf-models.md](docs/gguf-models.md) for model selection
@@ -219,5 +220,5 @@ let config2 = GGUFConfig::speed("models/phi-2.gguf");
 
 **Resources:**
 - [CUDA Toolkit Docs](https://docs.nvidia.com/cuda/)
-- [llama-cpp-rs with CUDA](https://docs.rs/llama-cpp-rs)
+- [Candle Docs](https://docs.rs/candle-core)
 - [NVIDIA Developer](https://developer.nvidia.com/)

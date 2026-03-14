@@ -1,0 +1,10 @@
+[package]
+name = "ochi-automation"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Automation layer: tools, skills, prompts, and task glue"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }

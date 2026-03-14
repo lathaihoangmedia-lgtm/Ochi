@@ -1,0 +1,10 @@
+[package]
+name = "ochi-gateway"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Gateway/API routing layer for Ochi"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }
