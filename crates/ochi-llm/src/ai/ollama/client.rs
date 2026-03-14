@@ -6,7 +6,7 @@ use ochi_core::{Error, Result};
 use super::{OllamaModel, OllamaOptions};
 
 #[cfg(feature = "ollama")]
-use ollama_rs::{Ollama as OllamaAPI, generation::options::GenerationOptions};
+use ollama_rs::{Ollama as OllamaAPI, generation::options::GenerationOptions, generation::request::GenerationRequest};
 #[cfg(feature = "ollama")]
 use futures::StreamExt;
 
@@ -39,24 +39,10 @@ impl OllamaClient {
     }
 
     /// Pull a model from Ollama library
-    /// 
-    /// # Usage
-    /// ```no_run
-    /// use ochi_llm::OllamaClient;
-    /// 
-    /// let client = OllamaClient::new();
-    /// client.pull_model("llama3.2").await?;
-    /// ```
     #[cfg(feature = "ollama")]
     pub async fn pull_model(&self, model: &str) -> Result<()> {
         tracing::info!("Pulling model: {}", model);
-        
-        let ollama = OllamaAPI::new(self.url(), self.port);
-        
-        // Note: ollama-rs doesn't have pull API yet
-        // User needs to run: ollama pull <model> in terminal
         tracing::warn!("Please run: ollama pull {} in terminal", model);
-        
         Ok(())
     }
 
@@ -64,18 +50,18 @@ impl OllamaClient {
     #[cfg(feature = "ollama")]
     pub async fn list_models(&self) -> Result<Vec<OllamaModel>> {
         tracing::debug!("Listing local models");
-        
+
         let ollama = OllamaAPI::new(self.url(), self.port);
-        
+
         match ollama.list_local_models().await {
             Ok(models) => {
-                let models = models.iter().map(|m| OllamaModel {
+                let models: Vec<OllamaModel> = models.iter().map(|m| OllamaModel {
                     name: m.name.clone(),
                     size: format!("{:.2} GB", m.size as f64 / 1e9),
-                    digest: m.digest.clone().unwrap_or_default(),
-                    modified_at: m.modified_at.clone().unwrap_or_default(),
+                    digest: String::new(),
+                    modified_at: m.modified_at.clone(),
                 }).collect();
-                
+
                 tracing::info!("Found {} models", models.len());
                 Ok(models)
             }
@@ -89,12 +75,12 @@ impl OllamaClient {
     #[cfg(feature = "ollama")]
     pub async fn generate(&self, model: &str, prompt: &str, options: OllamaOptions) -> Result<String> {
         tracing::debug!("Generating with model: {}", model);
-        
+
         let ollama = OllamaAPI::new(self.url(), self.port);
-        
+
         // Build generation options
         let mut gen_options = GenerationOptions::default();
-        
+
         if let Some(temp) = options.temperature {
             gen_options = gen_options.temperature(temp);
         }
@@ -110,11 +96,14 @@ impl OllamaClient {
         if let Some(num) = options.num_predict {
             gen_options = gen_options.num_predict(num as i32);
         }
-        
-        match ollama.generate(model.to_string(), prompt.to_string(), Some(gen_options)).await {
+
+        let request = GenerationRequest::new(model.to_string(), prompt.to_string())
+            .options(gen_options);
+
+        match ollama.generate(request).await {
             Ok(response) => {
-                tracing::debug!("Generated {} tokens", response.context.len());
-                Ok(response.result)
+                tracing::debug!("Generated: {}", response.response.len());
+                Ok(response.response)
             }
             Err(e) => {
                 Err(Error::Custom(format!("Generation failed: {}", e)))
@@ -136,29 +125,28 @@ impl OllamaClient {
         Fut: std::future::Future<Output = bool> + Send,
     {
         tracing::debug!("Streaming generation with model: {}", model);
-        
+
         let ollama = OllamaAPI::new(self.url(), self.port);
-        
-        // Build generation options
+
         let mut gen_options = GenerationOptions::default();
-        
         if let Some(temp) = options.temperature {
             gen_options = gen_options.temperature(temp);
         }
         if let Some(penalty) = options.repeat_penalty {
             gen_options = gen_options.repeat_penalty(penalty);
         }
-        
+
         let mut output = String::new();
-        
-        let mut stream = ollama.generate_stream(model.to_string(), prompt.to_string(), Some(gen_options));
-        
+        let request = GenerationRequest::new(model.to_string(), prompt.to_string())
+            .options(gen_options);
+
+        let mut stream = ollama.generate_stream(request);
+
         while let Some(chunk) = stream.next().await {
             match chunk {
                 Ok(response) => {
                     let text = response.response;
                     output.push_str(&text);
-                    
                     if !callback(text).await {
                         break;
                     }
@@ -168,7 +156,7 @@ impl OllamaClient {
                 }
             }
         }
-        
+
         Ok(output)
     }
 

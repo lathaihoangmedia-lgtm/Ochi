@@ -1,3 +1,13 @@
 [llm]
+# Ollama (primary - when available)
 ollama_url = "http://localhost:11434"
-ollama_model = "qwen2.5:3b"
+ollama_model = "qwen2.5:0.5b"
+
+# Candle (fallback - local GGUF)
+candle_model_path = "models/qwen3.5-0.8b.gguf"
+candle_enabled = true
+
+[hardware]
+# Auto-detection
+gpu_enabled = false
+cpu_threads = 4

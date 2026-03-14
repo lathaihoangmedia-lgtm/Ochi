@@ -26,3 +26,8 @@ ollama-rs = { version = "0.2", optional = true }
 [features]
 default = []
 ollama = ["ollama-rs"]
+
+[[example]]
+name = "candle-demo"
+path = "../../examples/candle-demo.rs"
+required-features = ["ollama"]
