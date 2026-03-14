@@ -225,7 +225,7 @@ func main() {
 3. **Wrap C types** in Go structs
 4. **Handle NULL returns** from FFI calls
 
-## Example Workflow
+## Workflow
 
 ```bash
 # 1. Build Rust library

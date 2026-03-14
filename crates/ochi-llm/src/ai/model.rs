@@ -4,7 +4,7 @@
 //! Supports GGUF and Safetensors formats
 
 use candle_core::Device;
-use crate::error::Result;
+use ochi_core::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 

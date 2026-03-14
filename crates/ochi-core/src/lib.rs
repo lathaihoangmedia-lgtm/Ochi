@@ -8,12 +8,6 @@ pub mod error;
 /// Core utilities
 pub mod utils;
 
-/// AI/ML - Candle Inference + Ollama
-pub mod ai;
-
-/// Hardware Detection & Auto-Tuning
-pub mod hardware;
-
 /// Test utilities
 #[cfg(test)]
 pub mod test_utils;
@@ -29,13 +23,6 @@ pub fn init() -> Result<()> {
     tracing::info!("Initializing Ochi Core v{}", VERSION);
     Ok(())
 }
-
-pub use ai::model::CandleModel;
-
-#[cfg(feature = "ollama")]
-pub use ai::OllamaClient;
-
-pub use hardware::{HardwareInfo, AutoTuner};
 
 #[cfg(test)]
 mod tests {

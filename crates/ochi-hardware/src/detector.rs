@@ -202,15 +202,11 @@ fn estimate_gpu_vram(gpu_name: &str) -> usize {
         2048
     } else if gpu_name.contains("GTX 1060") {
         6144
-    } else if gpu_name.contains("GTX 1070") {
-        8192
-    } else if gpu_name.contains("GTX 1080") {
+    } else if gpu_name.contains("GTX 1070") || gpu_name.contains("GTX 1080") {
         8192
     } else if gpu_name.contains("RTX 2060") {
         6144
-    } else if gpu_name.contains("RTX 2070") {
-        8192
-    } else if gpu_name.contains("RTX 2080") {
+    } else if gpu_name.contains("RTX 2070") || gpu_name.contains("RTX 2080") {
         8192
     } else if gpu_name.contains("RTX 3060") {
         12288

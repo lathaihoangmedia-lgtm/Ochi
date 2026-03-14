@@ -3,6 +3,12 @@ resolver = "2"
 
 members = [
     "crates/ochi-core",
+    "crates/ochi-llm",
+    "crates/ochi-hardware",
+    "crates/ochi-ngu-hanh",
+    "crates/ochi-trung-cung",
+    "crates/ochi-thien-co-cac",
+    "crates/ochi-cong-hoi",
 ]
 
 [workspace.package]
@@ -16,6 +22,12 @@ homepage = "https://ochi.dev"
 [workspace.dependencies]
 # Core
 ochi-core = { path = "crates/ochi-core" }
+ochi-llm = { path = "crates/ochi-llm" }
+ochi-hardware = { path = "crates/ochi-hardware" }
+ochi-ngu-hanh = { path = "crates/ochi-ngu-hanh" }
+ochi-trung-cung = { path = "crates/ochi-trung-cung" }
+ochi-thien-co-cac = { path = "crates/ochi-thien-co-cac" }
+ochi-cong-hoi = { path = "crates/ochi-cong-hoi" }
 
 # Async & Runtime
 tokio = { version = "1.35", features = ["full"] }
@@ -47,6 +59,7 @@ redis = "0.24"
 uuid = { version = "1.6", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
+duckdb = { version = "0.9", features = ["bundled"] }
 
 # AI/ML - Candle (Pure Rust, no C bindings)
 candle-core = "0.8"

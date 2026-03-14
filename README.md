@@ -32,17 +32,21 @@ SETUP.bat
 
 ```
 ochi/
-├── crates/ochi-core/    # Rust core library
-│   ├── src/
-│   │   ├── ai/          # GGUF inference
-│   │   ├── hardware/    # Auto-tune module
-│   │   └── lib.rs
-│   └── Cargo.toml
+├── crates/
+│   ├── ochi-core/        # Core errors + utils
+│   ├── ochi-llm/         # Candle + Ollama integration
+│   ├── ochi-hardware/    # Hardware detection + auto-tune
+│   ├── ochi-ngu-hanh/    # 5 Ngũ Hành agents + DB layout
+│   ├── ochi-trung-cung/  # Âm-Dương router + 8 Bát Quái
+│   ├── ochi-thien-co-cac/# 36 Thiên Cương (scaffold)
+│   └── ochi-cong-hoi/    # 72 Địa Sát (scaffold)
+├── data/                # 5 SQLite DBs (kim/moc/thuy/hoa/tho)
 ├── models/              # GGUF models
 │   └── qwen3.5-0.8b.gguf
 ├── docs/
-│   ├── rust2go.md       # Go integration
-│   └── gguf-models.md   # Model guide
+│   ├── rust2go.md        # Go integration
+│   ├── gguf-models.md    # Model guide
+│   └── architecture/     # Architecture notes
 ├── SETUP.ps1            # Auto setup script ⭐
 ├── SETUP.bat            # Auto setup (BAT version)
 ├── START-HERE.md        # Quick start
@@ -71,8 +75,8 @@ choco install llvm cuda -y
 # Build
 cargo build --features cuda
 
-# Run demo
-cargo run --example demo --features cuda
+# Run tests
+cargo test --features cuda
 ```
 
 ---
@@ -84,7 +88,6 @@ cargo run --example demo --features cuda
 | **[START-HERE.md](START-HERE.md)** | **BẮT ĐẦU TỪ ĐÂY!** 📖 |
 | [SETUP-AUTO.md](SETUP-AUTO.md) | One-click setup guide |
 | [REQUIREMENTS.md](REQUIREMENTS.md) | System requirements |
-| [USAGE-AI.md](USAGE-AI.md) | AI usage examples |
 | [docs/gguf-models.md](docs/gguf-models.md) | Model selection |
 | [docs/rust2go.md](docs/rust2go.md) | Go integration |
 
@@ -93,6 +96,7 @@ cargo run --example demo --features cuda
 ## 🔒 Git Sync & Models (Important)
 
 - Thư mục `models/` **không sync lên GitHub** (đã nằm trong `.gitignore`).
+- Thư mục `data/` chứa 5 SQLite DB và **không sync lên GitHub** (`data/*.db`).
 - Lý do: file GGUF thường >100MB, GitHub sẽ chặn push với lỗi `GH001` / `gh.io/lfs`.
 - Nếu gặp lỗi push do model, chạy:
 

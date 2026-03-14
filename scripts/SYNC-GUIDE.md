@@ -38,5 +38,5 @@ git remote set-url origin https://github.com/<owner>/<repo>.git
 
 ```batch
 git config --global user.name "<your-name>"
-git config --global user.email "<your-email@example.com>"
+git config --global user.email "<your-email@domain.com>"
 ```

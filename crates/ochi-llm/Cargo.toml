@@ -1,0 +1,28 @@
+[package]
+name = "ochi-llm"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "LLM inference and model management for Ochi"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }
+ochi-hardware = { path = "../ochi-hardware" }
+
+serde.workspace = true
+tracing.workspace = true
+reqwest.workspace = true
+futures.workspace = true
+
+# AI/ML - Candle (Pure Rust)
+candle-core.workspace = true
+candle-nn.workspace = true
+candle-transformers.workspace = true
+
+# Ollama - Easy model switching
+ollama-rs = { version = "0.2", optional = true }
+
+[features]
+default = []
+ollama = ["ollama-rs"]

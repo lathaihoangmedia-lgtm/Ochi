@@ -44,7 +44,7 @@ cargo build --release --workspace
 ### 2. Use Candle for Inference (Pure Rust)
 
 ```rust
-use ochi_core::{CandleModel, CandleConfig};
+use ochi_llm::{CandleModel, CandleConfig};
 
 // Load model
 let config = CandleConfig::balanced("models/llama3.2.safetensors");
@@ -68,7 +68,7 @@ ollama pull qwen2.5:3b
 ```
 
 ```rust
-use ochi_core::OllamaClient;
+use ochi_llm::OllamaClient;
 
 #[tokio::main]
 async fn main() {
@@ -237,7 +237,7 @@ let config = CandleConfig::balanced("meta-llama/Llama-3.2-3B");
 ### Example 1: Simple Chat
 
 ```rust
-use ochi_core::{CandleModel, CandleConfig};
+use ochi_llm::{CandleModel, CandleConfig};
 
 fn main() -> anyhow::Result<()> {
     let config = CandleConfig::balanced("models/llama3.2.safetensors");
@@ -257,7 +257,7 @@ fn main() -> anyhow::Result<()> {
 ### Example 2: With Ollama Model Switching
 
 ```rust
-use ochi_core::{OllamaClient, OllamaOptions};
+use ochi_llm::{OllamaClient, OllamaOptions};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -288,7 +288,8 @@ async fn main() -> anyhow::Result<()> {
 ### Example 3: Hardware-Aware Configuration
 
 ```rust
-use ochi_core::{HardwareInfo, AutoTuner, CandleModel, CandleConfig};
+use ochi_hardware::{HardwareInfo, AutoTuner};
+use ochi_llm::{CandleModel, CandleConfig};
 
 fn main() -> anyhow::Result<()> {
     // Detect hardware

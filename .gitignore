@@ -40,6 +40,7 @@ known_hosts
 dist/
 build/
 models/
+data/*.db
 
 # Test coverage
 *.gcda
@@ -52,6 +53,7 @@ tmp/
 temp/
 .cache/
 .archive/
+refs/
 
 # Documentation build
 docs/book/

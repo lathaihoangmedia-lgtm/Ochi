@@ -1,0 +1,10 @@
+[package]
+name = "ochi-ngu-hanh"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Ngu Hanh agents and SQLite data access for Ochi"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }

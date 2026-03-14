@@ -1,0 +1,10 @@
+[package]
+name = "ochi-thien-co-cac"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Thiên Cơ Các manager for 36 Thiên Cương agents"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }

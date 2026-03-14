@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use crate::ai::model::CandleConfig;
-use crate::hardware::HardwareInfo;
+use ochi_hardware::HardwareInfo;
 
 /// Auto-configuration result
 #[derive(Debug, Clone, Serialize, Deserialize)]

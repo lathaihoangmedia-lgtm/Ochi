@@ -2,11 +2,13 @@
 //!
 //! Simple wrapper around ollama-rs for pulling and switching models
 
-use crate::error::{Error, Result};
-use crate::ai::ollama::{OllamaModel, OllamaRequest, OllamaOptions, OllamaResponse};
+use ochi_core::{Error, Result};
+use super::{OllamaModel, OllamaOptions};
 
 #[cfg(feature = "ollama")]
 use ollama_rs::{Ollama as OllamaAPI, generation::options::GenerationOptions};
+#[cfg(feature = "ollama")]
+use futures::StreamExt;
 
 /// Ollama Client for model management
 pub struct OllamaClient {
@@ -38,9 +40,9 @@ impl OllamaClient {
 
     /// Pull a model from Ollama library
     /// 
-    /// # Examples
+    /// # Usage
     /// ```no_run
-    /// use ochi_core::ai::OllamaClient;
+    /// use ochi_llm::OllamaClient;
     /// 
     /// let client = OllamaClient::new();
     /// client.pull_model("llama3.2").await?;

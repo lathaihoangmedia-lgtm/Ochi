@@ -1,0 +1,11 @@
+[package]
+name = "ochi-trung-cung"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Trung Cung - Am Duong router and Bat Quai modules"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }
+duckdb.workspace = true

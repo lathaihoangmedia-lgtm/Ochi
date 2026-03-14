@@ -17,7 +17,7 @@ Ochi Core uses a **multi-layered testing approach** with isolated, parallelizabl
 cargo test --lib --features ai
 ```
 
-**Examples:**
+**Tests include:**
 - Error type conversions
 - Utility functions
 - Config validation
@@ -58,7 +58,7 @@ cargo test --features ai hardware::tuner::tests::test_auto_tuner -- --nocapture
 
 ### 4. Integration Tests (End-to-End)
 
-**Location:** `tests/`, `examples/`
+**Location:** `tests/`
 
 **Run:**
 ```bash
@@ -263,8 +263,6 @@ ochi-core/
 ├── tests/
 │   ├── integration.rs     # End-to-end tests
 │   └── ffi_tests.rs       # FFI binding tests
-├── examples/
-│   └── demo.rs            # Example (also tested)
 └── test_fixtures/
     └── tiny-model.gguf    # Small test model
 ```

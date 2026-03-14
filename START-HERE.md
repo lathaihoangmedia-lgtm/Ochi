@@ -15,6 +15,19 @@
 
 ---
 
+## 🧭 Layout Mới (Theo Kiến Trúc Ochi 108)
+
+- `crates/ochi-core`: error + utils
+- `crates/ochi-llm`: Candle + Ollama
+- `crates/ochi-hardware`: hardware detection + auto-tune
+- `crates/ochi-ngu-hanh`: 5 Ngũ Hành + DB layout
+- `crates/ochi-trung-cung`: Âm-Dương + 8 Bát Quái
+- `crates/ochi-thien-co-cac`: 36 Thiên Cương (scaffold)
+- `crates/ochi-cong-hoi`: 72 Địa Sát (scaffold)
+- `data/`: 5 SQLite DBs (kim/moc/thuy/hoa/tho)
+
+---
+
 ## 🎯 One-Click Setup (1 LỆNH DUY NHẤT!)
 
 ### Windows (Administrator):
@@ -66,6 +79,7 @@ cargo run --example demo --features cuda
 ### ⚠️ Lưu ý GitHub Sync
 
 - `models/` là dữ liệu local-only, không push lên GitHub.
+- `data/` chứa SQLite DB, không push lên GitHub.
 - Nếu lỡ bị track và push lỗi `GH001` / `gh.io/lfs`, chạy:
 
 ```bash

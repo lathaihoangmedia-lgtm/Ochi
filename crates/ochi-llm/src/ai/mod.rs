@@ -8,19 +8,13 @@
 pub mod model;
 pub mod loop_detector;
 pub mod auto_config;
-
-#[cfg(feature = "ollama")]
 pub mod ollama;
-
-#[cfg(feature = "ollama")]
-pub mod client;
 
 pub use model::CandleModel;
 pub use loop_detector::{LoopDetector, LoopStatus};
 pub use auto_config::{AutoConfigurator, AutoConfigResult};
 
-#[cfg(feature = "ollama")]
 pub use ollama::{OllamaModel, OllamaRequest, OllamaOptions, OllamaResponse};
 
 #[cfg(feature = "ollama")]
-pub use client::OllamaClient;
+pub use ollama::client::OllamaClient;

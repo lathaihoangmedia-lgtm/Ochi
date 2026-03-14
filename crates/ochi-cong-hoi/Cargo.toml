@@ -1,0 +1,10 @@
+[package]
+name = "ochi-cong-hoi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Công Hội manager for 72 Địa Sát agents"
+
+[dependencies]
+ochi-core = { path = "../ochi-core" }

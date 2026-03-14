@@ -3,7 +3,7 @@ echo Generating SSH key for GitHub...
 echo.
 
 set /p GIT_EMAIL="Enter your GitHub email: "
-if "%GIT_EMAIL%"=="" set GIT_EMAIL=your-email@example.com
+if "%GIT_EMAIL%"=="" set GIT_EMAIL=your-email@domain.com
 
 ssh-keygen -t ed25519 -C "%GIT_EMAIL%" -N "" -f "%USERPROFILE%/.ssh/id_ed25519"
 
