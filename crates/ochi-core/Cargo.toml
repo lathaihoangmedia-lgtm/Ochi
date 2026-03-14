@@ -17,3 +17,6 @@ uuid.workspace = true
 # Hardware Detection
 num_cpus.workspace = true
 sysinfo.workspace = true
+
+# Database (re-exported for agents)
+rusqlite = { version = "0.31", features = ["bundled"] }

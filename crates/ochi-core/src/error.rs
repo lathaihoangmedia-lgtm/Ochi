@@ -11,8 +11,17 @@ pub enum Error {
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
+    #[error("Database error: {0}")]
+    Database(String),
+
     #[error("Custom error: {0}")]
     Custom(String),
+}
+
+impl From<rusqlite::Error> for Error {
+    fn from(err: rusqlite::Error) -> Self {
+        Error::Database(err.to_string())
+    }
 }
 
 /// Result type alias

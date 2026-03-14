@@ -8,3 +8,7 @@ description = "Ngu Hanh agents and SQLite data access for Ochi"
 
 [dependencies]
 ochi-core = { path = "../ochi-core" }
+rusqlite = { version = "0.31", features = ["bundled"] }
+
+[dev-dependencies]
+tempfile = "3.10"
