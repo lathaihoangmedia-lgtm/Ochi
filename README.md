@@ -115,7 +115,7 @@ git push origin main
 
 ## 🎯 Features
 
-- **Model Inference** - Candle (pure Rust)
+- **Model Inference** - Ollama (primary), Candle (deploy-phase)
 - **GPU Acceleration (Optional)** - NVIDIA support (GTX/RTX)
 - **Auto-Tuning** - Tự động optimize theo hardware
 - **rust2go FFI** - Go agents integration

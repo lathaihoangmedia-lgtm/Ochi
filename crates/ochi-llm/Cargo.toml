@@ -13,6 +13,7 @@ serde.workspace = true
 tracing.workspace = true
 reqwest.workspace = true
 futures.workspace = true
+tokio.workspace = true
 
 # AI/ML - Candle (Pure Rust)
 candle-core.workspace = true

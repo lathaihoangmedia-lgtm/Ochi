@@ -9,3 +9,8 @@ description = "Runtime glue for automation + agents"
 [dependencies]
 ochi-core = { path = "../ochi-core" }
 ochi-automation = { path = "../ochi-automation" }
+ochi-trung-cung = { path = "../ochi-trung-cung", default-features = false }
+
+[features]
+default = []
+# duckdb = ["ochi-trung-cung/duckdb"]

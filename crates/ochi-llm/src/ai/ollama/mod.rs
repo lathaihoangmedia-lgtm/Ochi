@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ollama")]
 pub mod client;
 
+pub mod auto_tune;
+
 /// Ollama model metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OllamaModel {

@@ -63,7 +63,7 @@ redis = "0.24"
 uuid = { version = "1.6", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
-duckdb = { version = "0.9", features = ["bundled"] }
+# duckdb = { version = "0.9", features = ["bundled"] }  # Disabled: arrow-arith 49 conflict
 
 # AI/ML - Candle (Pure Rust, no C bindings)
 candle-core = "0.8"

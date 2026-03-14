@@ -8,4 +8,8 @@ description = "Trung Cung - Am Duong router and Bat Quai modules"
 
 [dependencies]
 ochi-core = { path = "../ochi-core" }
-duckdb.workspace = true
+# duckdb = { version = "0.9", features = ["bundled"], optional = true }  # Disabled: arrow-arith conflict
+
+[features]
+default = []
+# duckdb = ["dep:duckdb"]

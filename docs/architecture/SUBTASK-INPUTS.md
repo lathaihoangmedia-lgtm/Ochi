@@ -10,6 +10,10 @@ Mục tiêu: gom kiến thức nền thành 1 file để kích hoạt Sub-Task (
 - 8 Bát Quái → 8 tuyến định tuyến động.
 - 108 agent → 36 Thiên Cương (strategic) + 72 Địa Sát (execution).
 - Thiên Cơ Các quản 36 Thiên Cương; Công Hội quản 72 Địa Sát.
+- LLM local: **Ollama dùng ngay** (primary), Candle để giai đoạn deploy ổn định.
+- Runtime: `ochi-runtime` gọi Trung Cung để chạy automation tasks theo route.
+- Gateway: `ochi-gateway` nhận request và gọi runtime.
+- Ollama auto-tune: `OllamaAutoTuner` chọn options theo hardware + model size.
 
 ---
 

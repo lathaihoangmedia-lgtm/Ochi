@@ -15,6 +15,7 @@ pub use loop_detector::{LoopDetector, LoopStatus};
 pub use auto_config::{AutoConfigurator, AutoConfigResult};
 
 pub use ollama::{OllamaModel, OllamaRequest, OllamaOptions, OllamaResponse};
+pub use ollama::auto_tune::OllamaAutoTuner;
 
 #[cfg(feature = "ollama")]
 pub use ollama::client::OllamaClient;

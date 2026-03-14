@@ -3,6 +3,9 @@
 ## Core Structure
 - **Trung Cung (Thổ)**: Âm–Dương smart router điều phối toàn hệ.
 - **Trung Cung Storage**: DuckDB local store cho metadata, registry, routing logs.
+- **LLM Local**: Ollama dùng ngay (primary), Candle giữ cho giai đoạn deploy ổn định.
+- **Runtime**: `ochi-runtime` gọi Trung Cung để khởi chạy automation tasks.
+- **Gateway**: `ochi-gateway` nhận request và chuyển vào runtime.
 
 ## Ground Crates (9 crates theo plan)
 1. `crates/ochi-core` — error + utils nền.

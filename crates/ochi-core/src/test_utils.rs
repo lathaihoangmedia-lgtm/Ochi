@@ -75,27 +75,8 @@ pub mod mocks {
 
 #[cfg(test)]
 pub mod fixtures {
-    use crate::ai::model::CandleConfig;
-
-    /// Get path to test model
-    pub fn test_model_path() -> String {
-        "test_fixtures/tiny-model.safetensors".to_string()
-    }
-
-    /// Create minimal test config
-    pub fn test_config() -> CandleConfig {
-        CandleConfig {
-            model_path: test_model_path(),
-            context_size: 256,
-            temperature: 0.0,
-            max_tokens: 32,
-            top_p: 0.9,
-            top_k: 40,
-            repetition_penalty: 1.0,
-            cpu_only: true,
-            n_threads: Some(1),
-        }
-    }
+    // CandleConfig moved to ochi-llm crate
+    // Re-export from ochi-llm if needed for tests
 }
 
 #[cfg(test)]

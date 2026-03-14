@@ -1,7 +1,10 @@
 //! Âm Dương Smart Router.
 
+#[cfg(feature = "duckdb")]
 use std::sync::Arc;
 use ochi_core::Result;
+
+#[cfg(feature = "duckdb")]
 use crate::storage::{DuckDbStore, TaskFlowLog};
 
 /// Request envelope for routing.
@@ -13,10 +16,46 @@ pub struct RouteRequest {
     pub required_checkpoints: Vec<i32>,
 }
 
+impl RouteRequest {
+    pub fn new(intent: impl Into<String>, payload: impl Into<String>) -> Self {
+        Self {
+            intent: intent.into(),
+            payload: payload.into(),
+            tags: Vec::new(),
+            required_checkpoints: Vec::new(),
+        }
+    }
+
+    pub fn with_tags(mut self, tags: Vec<String>) -> Self {
+        self.tags = tags;
+        self
+    }
+
+    pub fn require_checkpoints(mut self, checkpoints: Vec<i32>) -> Self {
+        self.required_checkpoints = checkpoints;
+        self
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TaskEnvelope {
     pub task_id: String,
     pub request: RouteRequest,
+}
+
+impl TaskEnvelope {
+    pub fn new(task_id: impl Into<String>, request: RouteRequest) -> Self {
+        Self {
+            task_id: task_id.into(),
+            request,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct OllamaConfig {
+    pub url: String,
+    pub model: String,
 }
 
 /// Routing decision output.
@@ -26,18 +65,57 @@ pub struct RouteDecision {
     pub notes: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct RouterStatus {
+    pub ready: bool,
+    pub notes: Vec<String>,
+}
+
 /// Smart router that coordinates Âm (automation) and Dương (LLM).
 pub struct AmDuongRouter {
+    #[cfg(feature = "duckdb")]
     store: Option<Arc<DuckDbStore>>,
+    #[cfg(not(feature = "duckdb"))]
+    store: Option<()>,
+    ollama: Option<OllamaConfig>,
+}
+
+impl Default for AmDuongRouter {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AmDuongRouter {
     pub fn new() -> Self {
-        Self { store: None }
+        Self {
+            store: None,
+            ollama: None,
+        }
     }
 
+    #[cfg(feature = "duckdb")]
     pub fn with_store(store: Arc<DuckDbStore>) -> Self {
-        Self { store: Some(store) }
+        Self {
+            store: Some(store),
+            ollama: None,
+        }
+    }
+
+    /// Configure Ollama as primary local LLM (scaffold).
+    pub fn with_ollama(mut self, url: impl Into<String>, model: impl Into<String>) -> Self {
+        self.ollama = Some(OllamaConfig {
+            url: url.into(),
+            model: model.into(),
+        });
+        self
+    }
+
+    pub fn set_ollama(&mut self, url: impl Into<String>, model: impl Into<String>) {
+        self.ollama = Some(OllamaConfig {
+            url: url.into(),
+            model: model.into(),
+        });
     }
 
     /// Placeholder routing logic.
@@ -45,6 +123,7 @@ impl AmDuongRouter {
         let mut notes = Vec::new();
         notes.push("Routing placeholder - refine in Phase 1".to_string());
 
+        #[cfg(feature = "duckdb")]
         let bat_quai = if let Some(store) = &self.store {
             store
                 .find_bat_quai_by_5w1h(&request.intent, &request.tags)?
@@ -53,6 +132,10 @@ impl AmDuongRouter {
             select_bat_quai(&request)
         };
 
+        #[cfg(not(feature = "duckdb"))]
+        let bat_quai = select_bat_quai(&request);
+
+        #[cfg(feature = "duckdb")]
         if let Some(store) = &self.store {
             let db = store
                 .db_for_bat_quai(&bat_quai)?
@@ -93,6 +176,7 @@ impl AmDuongRouter {
         Ok(RouteDecision { bat_quai, notes })
     }
 
+    #[cfg(feature = "duckdb")]
     pub fn execute_task(&self, task: TaskEnvelope) -> Result<RouteDecision> {
         let decision = self.route(task.request)?;
         if let Some(store) = &self.store {
@@ -121,6 +205,34 @@ impl AmDuongRouter {
         }
 
         Ok(decision)
+    }
+
+    /// Lightweight startup check to validate routing readiness.
+    pub fn start(&self) -> RouterStatus {
+        let mut notes = Vec::new();
+        #[cfg(feature = "duckdb")]
+        if self.store.is_some() {
+            notes.push("DuckDB store: ready".to_string());
+        } else {
+            notes.push("DuckDB store: not configured".to_string());
+        }
+
+        #[cfg(not(feature = "duckdb"))]
+        notes.push("DuckDB store: disabled (feature not enabled)".to_string());
+
+        if let Some(cfg) = &self.ollama {
+            notes.push(format!("Ollama configured: {} ({})", cfg.url, cfg.model));
+        } else {
+            notes.push("Ollama not configured".to_string());
+        }
+
+        RouterStatus {
+            #[cfg(feature = "duckdb")]
+            ready: self.store.is_some(),
+            #[cfg(not(feature = "duckdb"))]
+            ready: false,
+            notes,
+        }
     }
 }
 
@@ -157,7 +269,7 @@ fn select_bat_quai(request: &RouteRequest) -> String {
     "Can".to_string()
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "duckdb"))]
 mod tests {
     use super::*;
     use crate::storage::DuckDbStore;
