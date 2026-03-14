@@ -112,37 +112,14 @@ huggingface.co/models?search=llama-3-gguf
 ### 1. Setup Model Path
 
 ```rust
-use ochi_core::ai::{GGUFModel, GGUFConfig};
+use ochi_llm::{CandleModel, CandleConfig};
 
-let config = GGUFConfig {
-    model_path: "models/phi-3-mini.Q4_K_M.gguf".to_string(),
-    context_size: 2048,
-    n_gpu_layers: 0,  // CPU-only
-    temperature: 0.7,
-    max_tokens: 512,
-};
+let mut config = CandleConfig::balanced("models/phi-3-mini.Q4_K_M.gguf");
+config.context_size = 2048;
+config.cpu_only = true;
 
-let model = GGUFModel::load("models/phi-3-mini.Q4_K_M.gguf", config)?;
+let model = CandleModel::load("models/phi-3-mini.Q4_K_M.gguf", config)?;
 let output = model.generate("Hello, how are you?")?;
-```
-
-### 2. FFI Usage (Go Side)
-
-```go
-package main
-
-import "C"
-
-// Load model
-C.ffi_model_load(
-    ctx,
-    C.CString("models/phi-3-mini.Q4_K_M.gguf"),
-    C.int(2048),  // context_size
-    C.int(0),     // n_gpu_layers
-)
-
-// Generate
-result := C.ffi_model_generate(ctx, C.CString("Hello!"))
 ```
 
 ### 3. Model Directory Structure
@@ -259,9 +236,6 @@ echo "✅ Downloaded to models/${MODEL}.${QUANT}.gguf"
 ```rust
 // Use smaller context
 config.context_size = 1024;  // Instead of 2048
-
-// Use lower quantization
-config.quantization = "Q3_K_S";  // Instead of Q4_K_M
 
 // CPU threads
 config.n_threads = 4;  // Match your CPU cores

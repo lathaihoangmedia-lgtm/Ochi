@@ -177,9 +177,9 @@ let config = tuner.tune(0.8, TuningProfile::Balanced);
 
 ### Manual Config
 ```rust
-let config = GGUFConfig::balanced("model.gguf")
-    .with_gpu_layers(999)  // Full GPU offload
-    .with_context_size(4096);
+let mut config = CandleConfig::balanced("model.gguf");
+config.context_size = 4096;
+config.cpu_only = false; // Use GPU if available
 ```
 
 ### FFI (Go Integration)

@@ -139,8 +139,9 @@ choco install llvm
 **Solution:**
 ```rust
 // Reduce GPU layers
-let config = CandleConfig::balanced("models/qwen3.5-0.8b.gguf")
-    .with_gpu_layers(20);  // Instead of 999
+let mut config = CandleConfig::balanced("models/qwen3.5-0.8b.gguf");
+config.context_size = 2048;
+config.cpu_only = false;
 ```
 
 ## Performance Expectations
@@ -187,17 +188,18 @@ cargo run --example gpu_test
 ### 1. Maximize GPU Offload
 
 ```rust
-// Use all VRAM
-let config = CandleConfig::speed("models/qwen3.5-0.8b.gguf")
-    .with_gpu_layers(999);  // Offload all layers
+// Use GPU if available
+let mut config = CandleConfig::speed("models/qwen3.5-0.8b.gguf");
+config.cpu_only = false;
 ```
 
 ### 2. Balance VRAM Usage
 
 ```rust
 // For larger models
-let config = CandleConfig::balanced("models/llama-3-8b.gguf")
-    .with_gpu_layers(25);  // Partial offload
+let mut config = CandleConfig::balanced("models/llama-3-8b.gguf");
+config.context_size = 2048;
+config.cpu_only = false;
 ```
 
 ### 3. Multi-Model Setup

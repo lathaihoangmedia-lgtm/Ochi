@@ -8,7 +8,7 @@
 | **CPU** | 4 cores | Xeon E3, i5, Ryzen 5 |
 | **RAM** | 8GB | 16GB+ recommended |
 | **Storage** | 5GB free | For models + dependencies |
-| **GPU** | Optional | NVIDIA for CUDA acceleration |
+| **GPU** | Optional | NVIDIA for GPU acceleration |
 
 ## Recommended Requirements
 
@@ -39,7 +39,7 @@ Status: ✅ Fully Compatible
 |----------|---------|---------|--------------|
 | **Rust** | Latest | Core language | ✅ (if needed) |
 | **LLVM/Clang** | 17+ | Build dependency | ✅ |
-| **CUDA Toolkit** | 12.x | GPU acceleration | ✅ |
+| **CUDA Toolkit** | 12.x | GPU acceleration (optional) | ✅ |
 | **Chocolatey** | Latest | Package manager | ✅ (if needed) |
 
 ### Pre-Requirements
@@ -60,10 +60,10 @@ rustc --version
 # Check LLVM (after install)
 clang --version
 
-# Check CUDA (after install)
+# Check CUDA (after install, optional)
 nvcc --version
 
-# Check NVIDIA GPU
+# Check NVIDIA GPU (optional)
 nvidia-smi
 ```
 
@@ -95,8 +95,8 @@ nvidia-smi
 - Free up disk space (need 5GB+)
 - Use smaller quantization (Q3_K_S instead of Q4_K_M)
 
-### "CUDA out of memory"
-- Reduce GPU layers in config
+### "GPU out of memory"
+- Reduce context size
 - Use smaller model
 - Close other GPU applications
 

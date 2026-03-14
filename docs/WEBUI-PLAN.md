@@ -8,7 +8,7 @@
 
 - **Simple Demo UI** - Test inference nhanh
 - **Config Panel** - Chỉnh model params
-- **Hardware Toggle** - Bật/tắt CUDA, GPU layers
+- **Hardware Toggle** - Bật/tắt GPU (nếu khả dụng)
 - **Chat Interface** - Test model real-time
 
 ---
@@ -37,8 +37,7 @@
   - [ ] Repeat penalty slider
 
 - [ ] **Hardware Toggle**
-  - [ ] CUDA On/Off toggle ⭐
-  - [ ] GPU layers slider (0 - 999)
+  - [ ] GPU On/Off toggle ⭐
   - [ ] CPU threads selector
   - [ ] VRAM usage indicator
   - [ ] RAM usage indicator
@@ -46,7 +45,7 @@
 - [ ] **Performance Monitor**
   - [ ] Tokens/sec counter
   - [ ] Inference time display
-  - [ ] GPU utilization % (nếu có CUDA)
+  - [ ] GPU utilization % (nếu có GPU)
   - [ ] Memory usage graph
 
 ---
@@ -69,8 +68,7 @@
 │  │ Max Tokens: [512] ──○───── │  │ Time: 1.2s           │ │
 │  │ Context: [4096 ▼]          │  │ GPU: ████████░░ 80%  │ │
 │  │                             │  │                      │ │
-│  │ ☑ CUDA Enabled             │  │                      │ │
-│  │ GPU Layers: [999] ─────○──│  │                      │ │
+│  │ ☑ GPU Enabled              │  │                      │ │
 │  └─────────────────────────────┘  └──────────────────────┘ │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
@@ -239,7 +237,7 @@ WS /ws/inference           # Real-time inference stream
 
 ### Important Considerations
 
-1. **CUDA Toggle** ⭐
+1. **GPU Toggle** ⭐
    - Need to reload model when toggling
    - Show warning before reload
    - Save preference to config
@@ -257,7 +255,7 @@ WS /ws/inference           # Real-time inference stream
 4. **Error Handling**
    - OOM errors (VRAM/RAM)
    - Model load failures
-   - CUDA errors
+   - GPU errors (CUDA/driver)
    - User-friendly messages
 
 ---

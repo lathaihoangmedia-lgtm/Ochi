@@ -113,9 +113,10 @@ Error: CUDA out of memory
 
 **Solution:**
 ```rust
-// Reduce GPU layers
-let config = CandleConfig::balanced("model.gguf")
-    .with_gpu_layers(20);  // Instead of 999
+// Reduce GPU load
+let mut config = CandleConfig::balanced("model.gguf");
+config.context_size = 2048;
+config.cpu_only = false;
 ```
 
 ---

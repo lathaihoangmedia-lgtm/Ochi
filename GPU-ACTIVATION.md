@@ -26,30 +26,17 @@ export CUDA_VISIBLE_DEVICES=0
 
 ### Before Activation
 ```bash
-cargo run -p ochi-core --example test_gpu_real
-```
-
-Expected output:
-```
-⚠️  GPU: Not detected
-💡 Set CUDA_VISIBLE_DEVICES=0 to enable detection
+# Check detection via your app logs or hardware info
+# (implementation-dependent)
 ```
 
 ### After Activation
 ```bash
 # Windows
 set CUDA_VISIBLE_DEVICES=0
-cargo run -p ochi-core --example test_gpu_real
 
 # Linux
 export CUDA_VISIBLE_DEVICES=0
-cargo run -p ochi-core --example test_gpu_real
-```
-
-Expected output:
-```
-✅ GPU: NVIDIA GeForce GTX 1050 Ti (4096MB VRAM, 768 CUDA cores)
-🎯 GPU detected via environment variable!
 ```
 
 ---
@@ -63,14 +50,11 @@ For safe GPU testing with limited power:
 let tuner = AutoTuner::new();
 let rec = tuner.recommend(0.8);  // 0.8B model
 
-// Use only 20% of GPU layers
-let gpu_layers_20pct = (rec.gpu_layers as f32 * 0.2) as usize;
-
 let config = CandleConfig {
     model_path: "models/qwen3.5-0.8b.safetensors".to_string(),
     context_size: rec.context_size,
     n_threads: rec.n_threads,
-    cpu_only: gpu_layers_20pct == 0,
+    cpu_only: false,
     ..Default::default()
 };
 ```
@@ -125,21 +109,7 @@ echo 'CUDA_VISIBLE_DEVICES=0' | sudo tee -a /etc/environment
 ## 🧪 Test GPU with Examples
 
 ### 1. GPU Detection Test
-```bash
-cargo run -p ochi-core --example test_gpu_real
-```
-
-### 2. Qwen3.5-0.8B Demo
-```bash
-set CUDA_VISIBLE_DEVICES=0
-cargo run -p ochi-core --example demo_qwen3_5
-```
-
-### 3. Interactive Chat
-```bash
-set CUDA_VISIBLE_DEVICES=0
-cargo run -p ochi-core --example chat_demo
-```
+Use your app's hardware detection logs after setting `CUDA_VISIBLE_DEVICES`.
 
 ---
 
@@ -193,9 +163,8 @@ Candle CUDA support: ⚠️  Not available
 **Solution:**
 - Ensure CUDA Toolkit is installed
 - Check that `CUDA_HOME` or `CUDA_PATH` is set
-- Rebuild with CUDA:
+- Rebuild the project:
   ```bash
-  cargo clean
   cargo build --release
   ```
 
@@ -220,13 +189,9 @@ CUDA out of memory
    - 0.8B instead of 3B
    - 3B instead of 7B
 
-3. **Reduce GPU layers:**
-   ```rust
-   CandleConfig {
-       n_gpu_layers: 10,  // Instead of 999
-       ..
-   }
-   ```
+3. **Reduce GPU load:**
+   - Use smaller models
+   - Reduce context size
 
 4. **Use 20% power mode:**
    ```bash
@@ -270,7 +235,6 @@ nvtop
 ```rust
 CandleConfig {
     context_size: 4096,      // Fits in VRAM
-    n_gpu_layers: 20,        // Partial offload
     n_threads: Some(8),      // Use all CPU threads
     ..
 }
@@ -297,7 +261,7 @@ let gpu_layers = (total_layers as f32 * 0.2) as usize;
 | `export CUDA_VISIBLE_DEVICES=0` | Enable GPU (Linux) |
 | `nvidia-smi` | Check GPU status |
 | `nvcc --version` | Check CUDA version |
-| `cargo run -p ochi-core --example test_gpu_real` | Test GPU |
+| `nvidia-smi` | Check GPU status |
 
 ---
 
@@ -307,7 +271,7 @@ After enabling GPU:
 
 - [ ] `CUDA_VISIBLE_DEVICES` is set
 - [ ] `nvidia-smi` shows GPU
-- [ ] `test_gpu_real` detects GPU
+- [ ] App logs confirm GPU detection
 - [ ] Candle CUDA support is available
 - [ ] Temperature monitoring is set up
 - [ ] Power limits are configured (20% for testing)
