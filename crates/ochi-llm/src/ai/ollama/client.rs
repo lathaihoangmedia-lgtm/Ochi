@@ -6,9 +6,13 @@ use ochi_core::{Error, Result};
 use super::{OllamaModel, OllamaOptions};
 
 #[cfg(feature = "ollama")]
-use ollama_rs::{Ollama as OllamaAPI, generation::options::GenerationOptions, generation::request::GenerationRequest};
+use ollama_rs::{Ollama as OllamaAPI, generation::options::GenerationOptions};
 #[cfg(feature = "ollama")]
 use futures::StreamExt;
+
+// ollama-rs 0.2 API compatibility
+#[cfg(feature = "ollama")]
+type GenerationRequest<'a> = ollama_rs::generation::completion::request::GenerationRequest<'a>;
 
 /// Ollama Client for model management
 pub struct OllamaClient {
@@ -140,20 +144,15 @@ impl OllamaClient {
         let request = GenerationRequest::new(model.to_string(), prompt.to_string())
             .options(gen_options);
 
-        let mut stream = ollama.generate_stream(request);
-
-        while let Some(chunk) = stream.next().await {
-            match chunk {
-                Ok(response) => {
-                    let text = response.response;
-                    output.push_str(&text);
-                    if !callback(text).await {
-                        break;
-                    }
-                }
-                Err(e) => {
-                    return Err(Error::Custom(format!("Stream error: {}", e)));
-                }
+        // Note: ollama-rs 0.2 doesn't have streaming in this version
+        // Use regular generate instead
+        match ollama.generate(request).await {
+            Ok(response) => {
+                output = response.response;
+                let _ = callback(output.clone()).await;
+            }
+            Err(e) => {
+                return Err(Error::Custom(format!("Stream error: {}", e)));
             }
         }
 

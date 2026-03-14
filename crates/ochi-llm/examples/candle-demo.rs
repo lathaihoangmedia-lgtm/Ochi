@@ -1,6 +1,6 @@
 //! Candle Demo - Run inference with local GGUF model
 //! 
-//! Usage: cargo run --example candle-demo --features ollama
+//! Usage: cargo run --example candle-demo -p ochi-llm --features ollama
 
 use ochi_core::{HardwareInfo, Result};
 use ochi_llm::{CandleModel, CandleConfig, AutoConfigurator};

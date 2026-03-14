@@ -15,17 +15,13 @@ if not exist "models\qwen3.5-0.8b.gguf" (
 )
 
 echo Model found. Building...
-cargo build --release -p ochi-llm --features ollama
+cargo run --example candle-demo -p ochi-llm --features ollama
 
 if errorlevel 1 (
-    echo Build failed!
+    echo Run failed!
     exit /b 1
 )
 
 echo.
-echo Build complete. Ready to run inference.
-echo.
-echo Next steps:
-echo   1. Create a Rust example to load the model
-echo   2. Or use ochi-runtime to integrate with agents
+echo Demo complete!
 echo.
