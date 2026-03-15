@@ -10,7 +10,7 @@
 
 ```bash
 # From project root
-cargo build --release --features ai
+cargo build --release
 ```
 
 ### 2. Build Go Agent

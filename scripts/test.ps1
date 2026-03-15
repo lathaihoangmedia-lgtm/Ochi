@@ -22,7 +22,7 @@ Write-Host ""
 # Test 1: Unit Tests (Core)
 function Test-Unit {
     Write-Host "[1/4] Running Unit Tests..." -ForegroundColor Yellow
-    $result = cargo test --lib --features ai 2>&1
+    $result = cargo test --lib 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ Unit Tests PASSED" -ForegroundColor Green
         return $true
@@ -36,7 +36,7 @@ function Test-Unit {
 function Test-Hardware {
     Write-Host ""
     Write-Host "[2/4] Running Hardware Detection Tests..." -ForegroundColor Yellow
-    $result = cargo test --features ai hardware::detector::tests::test_detect_hardware -- --nocapture 2>&1
+    $result = cargo test hardware::detector::tests::test_detect_hardware -- --nocapture 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ Hardware Detection PASSED" -ForegroundColor Green
         return $true
@@ -50,7 +50,7 @@ function Test-Hardware {
 function Test-AutoTuner {
     Write-Host ""
     Write-Host "[3/4] Running Auto-Tuner Tests..." -ForegroundColor Yellow
-    $result = cargo test --features ai hardware::tuner::tests::test_auto_tuner -- --nocapture 2>&1
+    $result = cargo test hardware::tuner::tests::test_auto_tuner -- --nocapture 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ Auto-Tuner PASSED" -ForegroundColor Green
         return $true
@@ -68,7 +68,7 @@ function Test-Integration {
     # Check if model exists
     if (Test-Path "models/qwen3.5-0.8b.gguf") {
         Write-Host "Model found, running AI tests..." -ForegroundColor Cyan
-        $result = cargo test --features ai -- --test-threads=1 2>&1
+        $result = cargo test -- --test-threads=1 2>&1
     } else {
         Write-Host "Model not found, skipping AI integration tests" -ForegroundColor Yellow
         return $true

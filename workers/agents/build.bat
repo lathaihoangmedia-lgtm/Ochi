@@ -12,7 +12,7 @@ if not exist "..\..\target\release\ochi_core.dll" (
     echo Building Rust library first...
     echo.
     cd ..\..
-    cargo build --release --features ai
+    cargo build --release
     if errorlevel 1 (
         echo.
         echo Rust build failed!
