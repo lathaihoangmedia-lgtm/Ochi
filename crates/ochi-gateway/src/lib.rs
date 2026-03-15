@@ -28,7 +28,6 @@ impl GatewayRouter {
         self.runtime.configure_ollama(url, model);
     }
 
-    #[cfg(feature = "duckdb")]
     pub fn route_request(
         &self,
         task_id: impl Into<String>,
@@ -37,7 +36,7 @@ impl GatewayRouter {
     ) -> ochi_core::Result<()> {
         let request = RouteRequest::new(intent, payload);
         let task = TaskEnvelope::new(task_id, request);
-        let _decision = self.runtime.run_task(task)?;
+        let _decision = self.runtime.execute_task(task)?;
         Ok(())
     }
 }

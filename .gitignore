@@ -40,7 +40,15 @@ known_hosts
 dist/
 build/
 models/
+
+# Database files (Thổ Agent Memory)
 data/*.db
+data/*.db-shm
+data/*.db-wal
+data/journal*
+
+# Keep data directory structure
+!data/.gitkeep
 
 # Test coverage
 *.gcda
@@ -53,15 +61,16 @@ tmp/
 temp/
 .cache/
 .archive/
+
+# Reference materials (large, external docs)
 refs/
 reference/
 references/
 *.reference
 *.references
 
-# Documentation build
-docs/book/
-site/
+# Skills (local knowledge base)
+skills/
 
 # Markdown files - exclude detailed docs for sensitive components
 *.md

@@ -8,6 +8,17 @@ description = "Trung Cung - Am Duong router and Bat Quai modules"
 
 [dependencies]
 ochi-core = { path = "../ochi-core" }
+ochi-automation = { path = "../ochi-automation" }
+ochi-ngu-hanh = { path = "../ochi-ngu-hanh" }
+
+# HTTP & LLM
+reqwest = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# NLP - Rust NLP for fast path (placeholder for now)
+# Full implementation: tokenizers = "0.15", ndarray = "0.15"
 
 [features]
 default = []

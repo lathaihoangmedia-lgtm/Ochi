@@ -14,6 +14,9 @@ pub enum Error {
     #[error("Database error: {0}")]
     Database(String),
 
+    #[error("HTTP error: {0}")]
+    Http(String),
+
     #[error("Custom error: {0}")]
     Custom(String),
 }
@@ -21,6 +24,12 @@ pub enum Error {
 impl From<rusqlite::Error> for Error {
     fn from(err: rusqlite::Error) -> Self {
         Error::Database(err.to_string())
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Self {
+        Error::Http(err.to_string())
     }
 }
 

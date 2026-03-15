@@ -43,9 +43,14 @@ impl RuntimeEngine {
         &mut self.prompts
     }
 
-    #[cfg(feature = "duckdb")]
-    pub fn run_task(&self, task: TaskEnvelope) -> ochi_core::Result<RouteDecision> {
+    /// Execute a task
+    pub fn execute_task(&self, task: TaskEnvelope) -> ochi_core::Result<RouteDecision> {
         self.router.execute_task(task)
+    }
+
+    /// Get router status
+    pub fn router_status(&self) -> ochi_trung_cung::am_duong::RouterStatus {
+        self.router.start()
     }
 
     pub fn configure_ollama(&mut self, url: impl Into<String>, model: impl Into<String>) {

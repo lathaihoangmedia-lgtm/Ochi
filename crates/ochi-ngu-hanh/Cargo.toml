@@ -10,6 +10,9 @@ description = "Ngu Hanh agents and SQLite data access for Ochi"
 ochi-core = { path = "../ochi-core" }
 rusqlite = { version = "0.31", features = ["bundled"] }
 chrono = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+reqwest = { workspace = true, features = ["blocking", "json"] }
 
 
 [dev-dependencies]

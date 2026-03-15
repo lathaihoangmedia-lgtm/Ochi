@@ -13,4 +13,3 @@ ochi-trung-cung = { path = "../ochi-trung-cung", default-features = false }
 
 [features]
 default = []
-# duckdb = ["ochi-trung-cung/duckdb"]

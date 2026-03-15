@@ -1,11 +1,17 @@
-//! Thổ Agent - Full Stack Learning + Cửu Cung 3 Số (2-5-8)
-//! 
+//! Thổ Agent - Full Stack Memory System + Cửu Cung 3 Số (2-5-8)
+//!
 //! Responsibilities:
 //! - System configuration (ochi.toml parsing)
 //! - Router metadata (bat_quai → DB mappings)
 //! - Cửu Cung mappings (positions 2, 5, 8 - center column)
 //! - Health checks & audit logs
 //! - Schema migrations (learning track)
+//! - **Memory System** (ZeroClaw-style):
+//!   - Vector embeddings (cosine similarity search)
+//!   - FTS5 full-text search (BM25 scoring)
+//!   - Hybrid merge (vector + keyword)
+//!   - Embedding cache with LRU eviction
+//!   - Safe reindex support
 
 use rusqlite::{Connection, params};
 use std::path::PathBuf;
@@ -86,13 +92,80 @@ impl ThoAgent {
                 applied_at TEXT DEFAULT (datetime('now'))
             ) STRICT;
 
-            -- Indexes
-            CREATE INDEX IF NOT EXISTS idx_health_component 
+            -- === MEMORY SYSTEM (ZeroClaw-style) ===
+            
+            -- Memory chunks (documents)
+            CREATE TABLE IF NOT EXISTS memory_chunks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content TEXT NOT NULL,
+                source TEXT,
+                chunk_index INTEGER,
+                metadata TEXT, -- JSON metadata
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
+            ) STRICT;
+
+            -- Vector embeddings (stored as JSON array for portability)
+            CREATE TABLE IF NOT EXISTS embeddings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                chunk_id INTEGER NOT NULL,
+                embedding_type TEXT NOT NULL, -- 'openai', 'custom', 'noop'
+                vector_json TEXT NOT NULL, -- JSON array [0.1, 0.2, ...]
+                dimensions INTEGER NOT NULL,
+                created_at TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (chunk_id) REFERENCES memory_chunks(id) ON DELETE CASCADE
+            ) STRICT;
+
+            -- FTS5 virtual table for full-text search (BM25)
+            CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
+                content,
+                source,
+                metadata,
+                content='memory_chunks',
+                content_rowid='id'
+            );
+
+            -- Triggers to keep FTS5 in sync
+            CREATE TRIGGER IF NOT EXISTS memory_chunks_ai AFTER INSERT ON memory_chunks BEGIN
+                INSERT INTO memory_fts(rowid, content, source, metadata)
+                VALUES (new.id, new.content, new.source, new.metadata);
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS memory_chunks_ad AFTER DELETE ON memory_chunks BEGIN
+                INSERT INTO memory_fts(memory_fts, rowid, content, source, metadata)
+                VALUES ('delete', old.id, old.content, old.source, old.metadata);
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS memory_chunks_au AFTER UPDATE ON memory_chunks BEGIN
+                INSERT INTO memory_fts(memory_fts, rowid, content, source, metadata)
+                VALUES ('delete', old.id, old.content, old.source, old.metadata);
+                INSERT INTO memory_fts(rowid, content, source, metadata)
+                VALUES (new.id, new.content, new.source, new.metadata);
+            END;
+
+            -- Embedding cache with LRU eviction
+            CREATE TABLE IF NOT EXISTS embedding_cache (
+                key TEXT PRIMARY KEY, -- hash of input text
+                embedding_json TEXT NOT NULL,
+                dimensions INTEGER NOT NULL,
+                hits INTEGER DEFAULT 0,
+                last_accessed TEXT DEFAULT (datetime('now')),
+                created_at TEXT DEFAULT (datetime('now'))
+            ) STRICT;
+
+            -- Indexes for performance
+            CREATE INDEX IF NOT EXISTS idx_health_component
                 ON health_checks(component);
-            CREATE INDEX IF NOT EXISTS idx_audit_action 
+            CREATE INDEX IF NOT EXISTS idx_audit_action
                 ON audit_logs(action);
-            CREATE INDEX IF NOT EXISTS idx_cuu_cung_active 
+            CREATE INDEX IF NOT EXISTS idx_cuu_cung_active
                 ON cuu_cung(active);
+            CREATE INDEX IF NOT EXISTS idx_embeddings_chunk
+                ON embeddings(chunk_id);
+            CREATE INDEX IF NOT EXISTS idx_embeddings_type
+                ON embeddings(embedding_type);
+            CREATE INDEX IF NOT EXISTS idx_cache_accessed
+                ON embedding_cache(last_accessed);
         ")?;
 
         self.seed_bat_quai()?;
@@ -249,14 +322,194 @@ impl ThoAgent {
 
     // === Audit Logging ===
 
-    fn log_audit(&self, action: &str, entity: Option<&str>, 
+    pub fn log_audit(&self, action: &str, entity: Option<&str>,
                  old_value: Option<&str>, new_value: Option<&str>) -> Result<()> {
         self.conn.execute(
-            "INSERT INTO audit_logs (action, entity, old_value, new_value) 
+            "INSERT INTO audit_logs (action, entity, old_value, new_value)
              VALUES (?1, ?2, ?3, ?4)",
             params![action, entity.unwrap_or(""), old_value.unwrap_or(""), new_value.unwrap_or("")],
         )?;
         Ok(())
+    }
+
+    // === MEMORY SYSTEM OPERATIONS (ZeroClaw-style) ===
+
+    /// Store a memory chunk
+    pub fn store_chunk(&self, content: &str, source: Option<&str>, metadata: Option<&str>) -> Result<i64> {
+        self.conn.execute(
+            "INSERT INTO memory_chunks (content, source, metadata)
+             VALUES (?1, ?2, ?3)",
+            params![content, source.unwrap_or(""), metadata.unwrap_or("")],
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    /// Store embedding for a chunk
+    pub fn store_embedding(&self, chunk_id: i64, embedding_type: &str, vector: &[f32]) -> Result<()> {
+        let vector_json = serde_json::to_string(vector)
+            .map_err(|e| Error::Custom(format!("JSON serialize failed: {}", e)))?;
+
+        self.conn.execute(
+            "INSERT INTO embeddings (chunk_id, embedding_type, vector_json, dimensions)
+             VALUES (?1, ?2, ?3, ?4)",
+            params![chunk_id, embedding_type, vector_json, vector.len() as i64],
+        )?;
+        Ok(())
+    }
+
+    /// Search with hybrid (vector + keyword)
+    pub fn hybrid_search(&self, query: &str, vector: Option<&[f32]>, vector_weight: f32, limit: i64) -> Result<Vec<MemorySearchResult>> {
+        // FTS5 keyword search with BM25
+        let fts_sql = "
+            SELECT m.id, m.content, m.source, bm25(memory_fts) as score
+            FROM memory_chunks m
+            JOIN memory_fts ON m.id = memory_fts.rowid
+            WHERE memory_fts MATCH ?1
+            ORDER BY score
+            LIMIT ?2
+        ";
+
+        let mut stmt = self.conn.prepare(fts_sql)?;
+        let rows = stmt.query_map(params![query, limit], |row| {
+            Ok(MemorySearchResult {
+                id: row.get(0)?,
+                content: row.get(1)?,
+                source: row.get(2)?,
+                keyword_score: row.get(3)?,
+                vector_score: 0.0,
+                combined_score: 0.0,
+            })
+        })?;
+
+        let mut results: Vec<MemorySearchResult> = rows.filter_map(|r| r.ok()).collect();
+
+        // If vector provided, calculate cosine similarity and merge
+        if let Some(query_vector) = vector {
+            self.merge_vector_scores(&mut results, query_vector, vector_weight)?;
+        }
+
+        // Sort by combined score
+        results.sort_by(|a, b| b.combined_score.partial_cmp(&a.combined_score).unwrap_or(std::cmp::Ordering::Equal));
+
+        Ok(results)
+    }
+
+    /// Merge vector scores with keyword scores
+    fn merge_vector_scores(&self, results: &mut [MemorySearchResult], query_vector: &[f32], vector_weight: f32) -> Result<()> {
+        for result in results.iter_mut() {
+            // Get embedding for this chunk
+            let embedding = self.get_embedding_for_chunk(result.id)?;
+            
+            if let Some(doc_vector) = embedding {
+                // Calculate cosine similarity
+                let similarity = cosine_similarity(query_vector, &doc_vector);
+                result.vector_score = similarity;
+                
+                // Normalize keyword score (BM25 is negative, lower is better)
+                let keyword_norm = 1.0 / (1.0 - result.keyword_score.min(0.0));
+                
+                // Hybrid merge (cast to f64 for consistency)
+                result.combined_score = (vector_weight as f64) * similarity + (1.0 - (vector_weight as f64)) * keyword_norm;
+            }
+        }
+        Ok(())
+    }
+
+    /// Get embedding for a chunk
+    fn get_embedding_for_chunk(&self, chunk_id: i64) -> Result<Option<Vec<f32>>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT vector_json FROM embeddings WHERE chunk_id = ?1 LIMIT 1"
+        )?;
+
+        let result = stmt.query_row([chunk_id], |row| row.get::<_, String>(0));
+        
+        match result {
+            Ok(json_str) => {
+                let vector: Vec<f32> = serde_json::from_str(&json_str)
+                    .map_err(|e| Error::Custom(format!("JSON parse failed: {}", e)))?;
+                Ok(Some(vector))
+            }
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(Error::Custom(e.to_string())),
+        }
+    }
+
+    /// Cache embedding with LRU
+    pub fn cache_embedding(&self, key: &str, embedding: &[f32]) -> Result<()> {
+        let embedding_json = serde_json::to_string(embedding)
+            .map_err(|e| Error::Custom(format!("JSON serialize failed: {}", e)))?;
+
+        self.conn.execute(
+            "INSERT OR REPLACE INTO embedding_cache (key, embedding_json, dimensions, last_accessed)
+             VALUES (?1, ?2, ?3, datetime('now'))",
+            params![key, embedding_json, embedding.len() as i64],
+        )?;
+
+        // LRU eviction: keep only 1000 most recent
+        self.conn.execute(
+            "DELETE FROM embedding_cache
+             WHERE key NOT IN (
+                 SELECT key FROM embedding_cache
+                 ORDER BY last_accessed DESC
+                 LIMIT 1000
+             )",
+            params![],
+        )?;
+
+        Ok(())
+    }
+
+    /// Get cached embedding
+    pub fn get_cached_embedding(&self, key: &str) -> Result<Option<Vec<f32>>> {
+        // Update access time for LRU
+        self.conn.execute(
+            "UPDATE embedding_cache SET last_accessed = datetime('now'), hits = hits + 1
+             WHERE key = ?1",
+            params![key],
+        )?;
+
+        let mut stmt = self.conn.prepare(
+            "SELECT embedding_json FROM embedding_cache WHERE key = ?1"
+        )?;
+
+        let result = stmt.query_row([key], |row| row.get::<_, String>(0));
+        
+        match result {
+            Ok(json_str) => {
+                let vector: Vec<f32> = serde_json::from_str(&json_str)
+                    .map_err(|e| Error::Custom(format!("JSON parse failed: {}", e)))?;
+                Ok(Some(vector))
+            }
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(Error::Custom(e.to_string())),
+        }
+    }
+
+    /// Rebuild FTS5 index (safe reindex)
+    pub fn rebuild_fts_index(&self) -> Result<()> {
+        self.conn.execute_batch("
+            INSERT INTO memory_fts(memory_fts) VALUES('rebuild');
+        ")?;
+        Ok(())
+    }
+
+    /// Get memory stats
+    pub fn get_memory_stats(&self) -> Result<MemoryStats> {
+        let mut stmt = self.conn.prepare(
+            "SELECT 
+                (SELECT COUNT(*) FROM memory_chunks) as chunks,
+                (SELECT COUNT(*) FROM embeddings) as embeddings,
+                (SELECT COUNT(*) FROM embedding_cache) as cache_size
+            "
+        )?;
+
+        stmt.query_row([], |row| {
+            Ok(MemoryStats {
+                chunk_count: row.get(0)?,
+                embedding_count: row.get(1)?,
+                cache_size: row.get(2)?,
+            })
+        }).map_err(|e| Error::Custom(e.to_string()))
     }
 
     // === Learning: Raw SQL Execution ===
@@ -338,4 +591,48 @@ mod tests {
         let value = agent.get_config("test_key").unwrap();
         assert_eq!(value, Some("test_value".to_string()));
     }
+}
+
+// ============== Memory System Types ==============
+
+/// Search result with hybrid scoring
+#[derive(Debug, Clone)]
+pub struct MemorySearchResult {
+    pub id: i64,
+    pub content: String,
+    pub source: String,
+    pub keyword_score: f64,  // BM25 score (negative, lower is better)
+    pub vector_score: f64,   // Cosine similarity (0-1)
+    pub combined_score: f64, // Weighted merge
+}
+
+/// Memory statistics
+#[derive(Debug, Clone)]
+pub struct MemoryStats {
+    pub chunk_count: i64,
+    pub embedding_count: i64,
+    pub cache_size: i64,
+}
+
+/// Cosine similarity between two vectors
+fn cosine_similarity(a: &[f32], b: &[f32]) -> f64 {
+    if a.len() != b.len() || a.is_empty() {
+        return 0.0;
+    }
+
+    let mut dot_product = 0.0;
+    let mut norm_a = 0.0;
+    let mut norm_b = 0.0;
+
+    for (x, y) in a.iter().zip(b.iter()) {
+        dot_product += (*x as f64) * (*y as f64);
+        norm_a += (*x as f64).powi(2);
+        norm_b += (*y as f64).powi(2);
+    }
+
+    if norm_a == 0.0 || norm_b == 0.0 {
+        return 0.0;
+    }
+
+    dot_product / (norm_a.sqrt() * norm_b.sqrt())
 }
