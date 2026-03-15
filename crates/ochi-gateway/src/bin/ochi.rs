@@ -17,13 +17,25 @@ use std::fs;
 #[command(name = "ochi")]
 #[command(author = "Ochi Team")]
 #[command(version = "0.1.0")]
-#[command(about = "Ochi CLI - AI-powered coding assistant", long_about = None)]
+#[command(about = "Ochi CLI - AI-powered coding assistant (Local Ollama + Cloud)", long_about = None)]
 struct Cli {
-    #[arg(short, long, default_value = "llama-3.3-70b-versatile")]
+    /// Model to use
+    /// Local: qwen2.5:0.5b, qwen2.5:3b
+    /// Cloud: llama-3.3-70b-versatile (requires --api-key)
+    #[arg(short, long, default_value = "qwen2.5:3b")]
     model: String,
 
+    /// Ollama base URL (for local models)
+    #[arg(long, default_value = "http://localhost:11434", env = "OLLAMA_HOST")]
+    ollama_url: String,
+
+    /// Groq API key (for cloud models, optional)
     #[arg(short, long, env = "GROQ_API_KEY", default_value = "")]
     api_key: String,
+
+    /// Use local Ollama instead of cloud
+    #[arg(short, long)]
+    local: bool,
 
     #[command(subcommand)]
     command: Option<Commands>,
@@ -79,15 +91,19 @@ struct OchiClient {
     client: Client,
     api_key: String,
     model: String,
+    ollama_url: String,
+    use_local: bool,
     messages: Vec<ChatMessage>,
 }
 
 impl OchiClient {
-    fn new(api_key: String, model: String) -> Self {
+    fn new(api_key: String, model: String, ollama_url: String, use_local: bool) -> Self {
         Self {
             client: Client::new(),
             api_key,
             model,
+            ollama_url,
+            use_local,
             messages: vec![],
         }
     }
@@ -99,7 +115,57 @@ impl OchiClient {
             content: user_input.to_string(),
         });
 
-        // Call Groq API
+        let response = if self.use_local || self.api_key.is_empty() {
+            // Use local Ollama
+            self.call_ollama().await?
+        } else {
+            // Use Groq cloud
+            self.call_groq().await?
+        };
+
+        // Add AI response to history
+        self.messages.push(ChatMessage {
+            role: "assistant".to_string(),
+            content: response.clone(),
+        });
+
+        Ok(response)
+    }
+
+    async fn call_ollama(&self) -> Result<String, Box<dyn std::error::Error>> {
+        // Ollama API: POST /api/chat
+        let payload = serde_json::json!({
+            "model": self.model,
+            "messages": self.messages,
+            "stream": false,
+        });
+
+        let response = self
+            .client
+            .post(format!("{}/api/chat", self.ollama_url))
+            .header("Content-Type", "application/json")
+            .json(&payload)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let text = response.text().await?;
+            return Err(format!("Ollama Error {}: {}", status, text).into());
+        }
+
+        // Ollama response format: { "message": { "content": "..." }, ... }
+        let ollama_response: serde_json::Value = response.json().await?;
+        
+        if let Some(content) = ollama_response["message"]["content"].as_str() {
+            Ok(content.to_string())
+        } else {
+            Err("No response from Ollama".into())
+        }
+    }
+
+    async fn call_groq(&self) -> Result<String, Box<dyn std::error::Error>> {
+        // Groq API: POST /openai/v1/chat/completions
         let response = self
             .client
             .post("https://api.groq.com/openai/v1/chat/completions")
@@ -117,23 +183,15 @@ impl OchiClient {
         if !response.status().is_success() {
             let status = response.status();
             let text = response.text().await?;
-            return Err(format!("API Error {}: {}", status, text).into());
+            return Err(format!("Groq Error {}: {}", status, text).into());
         }
 
         let chat_response: ChatResponse = response.json().await?;
 
         if let Some(choice) = &chat_response.choices.first() {
-            let content = choice.message.content.clone();
-            
-            // Add AI response to history
-            self.messages.push(ChatMessage {
-                role: "assistant".to_string(),
-                content: content.clone(),
-            });
-
-            Ok(content)
+            Ok(choice.message.content.clone())
         } else {
-            Err("No response from API".into())
+            Err("No response from Groq".into())
         }
     }
 
@@ -187,39 +245,39 @@ Type your message or code request:
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
-    // Check API key
-    let api_key = if cli.api_key.is_empty() {
-        eprintln!("❌ Error: GROQ_API_KEY not set!");
-        eprintln!();
-        eprintln!("Set it via:");
-        eprintln!("  - Environment variable: export GROQ_API_KEY=your_key");
-        eprintln!("  - CLI argument: ochi -a your_key <command>");
-        eprintln!();
-        eprintln!("Get your free API key at: https://console.groq.com/keys");
-        std::process::exit(1);
+    // Auto-detect: if no API key, use local Ollama
+    let use_local = cli.local || cli.api_key.is_empty();
+    
+    if use_local {
+        println!("🦀 Ochi CLI - Local Mode (Ollama)");
+        println!("   Model: {}", cli.model);
+        println!("   URL: {}", cli.ollama_url);
+        println!();
     } else {
-        cli.api_key
-    };
+        println!("🦀 Ochi CLI - Cloud Mode (Groq)");
+        println!("   Model: {}", cli.model);
+        println!();
+    }
 
     match &cli.command {
         Some(Commands::Chat) => {
-            run_interactive_mode(api_key, cli.model).await?;
+            run_interactive_mode(cli.api_key, cli.model, cli.ollama_url, use_local).await?;
         }
         Some(Commands::Code { prompt }) => {
-            run_code_mode(api_key, cli.model, prompt).await?;
+            run_code_mode(cli.api_key, cli.model, cli.ollama_url, use_local, prompt).await?;
         }
         Some(Commands::Read { file }) => {
-            run_read_mode(api_key, cli.model, file).await?;
+            run_read_mode(cli.api_key, cli.model, cli.ollama_url, use_local, file).await?;
         }
         Some(Commands::Scan { path }) => {
-            run_scan_mode(api_key, cli.model, path).await?;
+            run_scan_mode(cli.api_key, cli.model, cli.ollama_url, use_local, path).await?;
         }
         Some(Commands::Ask { question }) => {
-            run_quick_ask(api_key, cli.model, question).await?;
+            run_quick_ask(cli.api_key, cli.model, cli.ollama_url, use_local, question).await?;
         }
         None => {
             // Default to interactive chat
-            run_interactive_mode(api_key, cli.model).await?;
+            run_interactive_mode(cli.api_key, cli.model, cli.ollama_url, use_local).await?;
         }
     }
 
@@ -229,10 +287,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 async fn run_interactive_mode(
     api_key: String,
     model: String,
+    ollama_url: String,
+    use_local: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     print_banner();
 
-    let mut client = OchiClient::new(api_key, model);
+    let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
     let stdin = io::stdin();
 
     loop {
@@ -254,7 +314,7 @@ async fn run_interactive_mode(
         }
 
         if input.eq_ignore_ascii_case("clear") || input.eq_ignore_ascii_case("/clear") {
-            client.clear_history();
+            client.messages.clear();
             println!("✨ Conversation cleared\n");
             continue;
         }
@@ -281,13 +341,15 @@ async fn run_interactive_mode(
 async fn run_code_mode(
     api_key: String,
     model: String,
+    ollama_url: String,
+    use_local: bool,
     prompt: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🦀 Ochi Code Generator\n");
     println!("📝 Prompt: {}\n", prompt);
     println!("⏳ Generating code...\n");
 
-    let mut client = OchiClient::new(api_key, model);
+    let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
 
     match client.code(prompt).await {
         Ok(response) => {
@@ -304,6 +366,8 @@ async fn run_code_mode(
 async fn run_read_mode(
     api_key: String,
     model: String,
+    ollama_url: String,
+    use_local: bool,
     file: &PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("📖 Reading file: {:?}\n", file);
@@ -314,7 +378,7 @@ async fn run_read_mode(
     println!("📄 File content ({} bytes)\n", content.len());
     println!("⏳ Analyzing...\n");
 
-    let mut client = OchiClient::new(api_key, model);
+    let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
     
     let prompt = format!(
         "Analyze this code file and provide:\n\
@@ -341,6 +405,8 @@ async fn run_read_mode(
 async fn run_scan_mode(
     api_key: String,
     model: String,
+    ollama_url: String,
+    use_local: bool,
     path: &PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🔍 Scanning project: {:?}\n", path);
@@ -369,7 +435,7 @@ async fn run_scan_mode(
 
     println!("\n⏳ Analyzing project structure...\n");
 
-    let mut client = OchiClient::new(api_key, model);
+    let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
     
     let prompt = format!(
         "Analyze this Rust project structure:\n\n\
@@ -401,12 +467,14 @@ async fn run_scan_mode(
 async fn run_quick_ask(
     api_key: String,
     model: String,
+    ollama_url: String,
+    use_local: bool,
     question: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("❓ Question: {}\n", question);
     println!("⏳ Getting answer...\n");
 
-    let mut client = OchiClient::new(api_key, model);
+    let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
 
     match client.chat(question).await {
         Ok(response) => {
