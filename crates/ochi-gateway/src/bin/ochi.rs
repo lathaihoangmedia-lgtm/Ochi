@@ -778,46 +778,106 @@ async fn run_edit_mode(
     }
 
     let current_content = fs::read_to_string(file)?;
-    println!("📄 Current content ({} bytes)\n", current_content.len());
+    let original_len = current_content.len();
+    
+    println!("📄 Current content ({} bytes)\n", original_len);
     println!("⏳ Generating edit...\n");
 
     let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
     
+    // Enhanced prompt with strict output requirements (inspired by Claude Code)
     let edit_prompt = format!(
-        "Edit the following file content based on the instruction.\n\n\
-         File: {}\n\n\
-         Current content:\n```\n{}\n```\n\n\
-         Edit instruction: {}\n\n\
-         IMPORTANT: Return ONLY the complete edited content.\n\
-         Do NOT include explanations or markdown code blocks.\n\
-         Return the FULL file content after edits.",
+        "You are editing a file. Follow these rules EXACTLY:\n\n\
+         FILE: {}\n\n\
+         CURRENT CONTENT ({} bytes):\n\
+         ```\n{}\n```\n\n\
+         EDIT INSTRUCTION: {}\n\n\
+         OUTPUT RULES (CRITICAL):\n\
+         1. Return ONLY the COMPLETE edited file content\n\
+         2. NO markdown code blocks (no ```)\n\
+         3. NO explanations or comments outside the code\n\
+         4. NO 'Here is the edited code' introductions\n\
+         5. Preserve ALL existing code not mentioned in the instruction\n\
+         6. Return FULL file, not just changes\n\
+         7. If adding code, integrate it seamlessly\n\
+         8. Maintain original formatting and style\n\n\
+         EXAMPLE OF CORRECT OUTPUT:\n\
+         fn main() {{\n    println!(\"Hello\");\n}}\n\n\
+         EXAMPLE OF WRONG OUTPUT:\n\
+         ```rust\nfn main() {{...}}\n```\n← WRONG! No markdown!\n\n\
+         Now return the edited file content:",
         file.display(),
+        original_len,
         current_content,
         prompt
     );
 
     match client.chat(&edit_prompt).await {
         Ok(new_content) => {
-            // Clean up markdown code blocks
-            let clean_content = new_content
-                .trim()
-                .strip_prefix("```")
-                .and_then(|s| s.split_once("```\n"))
-                .map(|(_, c)| c.split_once('\n').map(|(_, c)| c).unwrap_or(c))
-                .unwrap_or(&new_content);
+            // Clean up markdown code blocks (aggressive cleanup)
+            let clean_content = cleanup_markdown_blocks(&new_content);
+            
+            // VALIDATION: Check if content is valid
+            if clean_content.trim().is_empty() {
+                eprintln!("❌ ERROR: AI returned empty content!");
+                eprintln!("   This happens when AI only returns markdown blocks or descriptions.");
+                eprintln!("   Try again with a more specific prompt.");
+                return Ok(());
+            }
+            
+            if clean_content.len() < original_len / 4 {
+                // Content is less than 25% of original - likely invalid
+                eprintln!("⚠️  WARNING: New content is much smaller than original!");
+                eprintln!("   Original: {} bytes", original_len);
+                eprintln!("   New: {} bytes ({}% of original)", 
+                    clean_content.len(),
+                    (clean_content.len() * 100) / original_len);
+                eprintln!();
+                eprintln!("   This might indicate AI returned description instead of code.");
+                eprintln!("   Preview of new content:");
+                eprintln!("   ---");
+                for line in clean_content.lines().take(5) {
+                    eprintln!("   {}", line);
+                }
+                if clean_content.lines().count() > 5 {
+                    eprintln!("   ...");
+                }
+                eprintln!("   ---");
+                eprintln!();
+                eprint!("   Continue with this edit? (y/n): ");
+                io::stdout().flush()?;
+                
+                let mut confirm = String::new();
+                io::stdin().read_line(&mut confirm)?;
+                if confirm.trim().to_lowercase() != "y" {
+                    println!("❌ Edit cancelled by user.");
+                    return Ok(());
+                }
+            }
+            
+            // Create backup before writing
+            let backup_path = format!("{}.backup", file.display());
+            fs::write(&backup_path, &current_content)?;
+            println!("💾 Backup created: {}", backup_path);
 
             // Write edited content
-            fs::write(file, clean_content)?;
+            fs::write(file, &clean_content)?;
             println!("✅ Successfully edited {:?}", file);
+            println!("📊 Original size: {} bytes", original_len);
             println!("📊 New size: {} bytes", clean_content.len());
             
             // Show diff summary
-            let diff_lines = clean_content.lines().count() as i32 - current_content.lines().count() as i32;
-            if diff_lines > 0 {
-                println!("📈 Added {} lines", diff_lines);
-            } else if diff_lines < 0 {
-                println!("📉 Removed {} lines", -diff_lines);
+            let diff_bytes = clean_content.len() as i32 - original_len as i32;
+            if diff_bytes > 0 {
+                println!("📈 Added {} bytes", diff_bytes);
+            } else if diff_bytes < 0 {
+                println!("📉 Removed {} bytes", -diff_bytes);
+            } else {
+                println!("📊 Same size");
             }
+            
+            // Auto-remove backup if successful (keep for 24h in real impl)
+            // fs::remove_file(&backup_path).ok();
         }
         Err(e) => {
             eprintln!("❌ Error: {}", e);
@@ -825,6 +885,32 @@ async fn run_edit_mode(
     }
 
     Ok(())
+}
+
+// Helper function to aggressively clean markdown blocks
+fn cleanup_markdown_blocks(content: &str) -> String {
+    let mut result = content.trim().to_string();
+    
+    // Remove leading/trailing markdown code blocks
+    if result.starts_with("```") {
+        // Find the end of the first line (language specifier)
+        if let Some(first_newline) = result.find('\n') {
+            result = result[first_newline + 1..].to_string();
+        }
+    }
+    
+    // Remove trailing markdown code blocks
+    if result.ends_with("```") {
+        result = result[..result.len() - 3].to_string();
+    }
+    
+    // Remove any remaining standalone ``` lines
+    result = result.lines()
+        .filter(|line| !line.trim().starts_with("```"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    
+    result.trim().to_string()
 }
 
 async fn run_command_mode(command: String) -> Result<(), Box<dyn std::error::Error>> {
