@@ -6,10 +6,24 @@ authors.workspace = true
 license.workspace = true
 description = "Gateway/API routing layer for Ochi"
 
+[[bin]]
+name = "ochi"
+path = "src/bin/ochi.rs"
+
 [dependencies]
 ochi-core = { path = "../ochi-core" }
 ochi-runtime = { path = "../ochi-runtime" }
 ochi-trung-cung = { path = "../ochi-trung-cung", default-features = false }
+
+# CLI
+clap = { version = "4.4", features = ["derive", "env"] }
+crossterm = "0.27"
+
+# HTTP & API
+reqwest = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 [features]
 default = []

@@ -54,7 +54,21 @@ temp/
 .cache/
 .archive/
 refs/
+reference/
+references/
+*.reference
+*.references
 
 # Documentation build
 docs/book/
 site/
+
+# Markdown files - exclude detailed docs for sensitive components
+*.md
+!README.md
+!AGENTS.md
+!MIGRATION-CANDLE-OLLAMA.md
+!QUICKSTART.md
+!SETUP.md
+!SETUP-CUDA.md
+!LICENSE
