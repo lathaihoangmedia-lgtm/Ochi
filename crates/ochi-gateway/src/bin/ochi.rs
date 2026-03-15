@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
 use std::fs;
+use std::process::Command;
 
 #[derive(Parser)]
 #[command(name = "ochi")]
@@ -56,6 +57,28 @@ enum Commands {
     Read {
         #[arg(required = true)]
         file: PathBuf,
+    },
+
+    /// Write content to a file (AI-generated)
+    Write {
+        #[arg(required = true)]
+        file: PathBuf,
+        #[arg(short, long, required = true)]
+        prompt: String,
+    },
+
+    /// Edit a file with AI
+    Edit {
+        #[arg(required = true)]
+        file: PathBuf,
+        #[arg(short, long, required = true)]
+        prompt: String,
+    },
+
+    /// Run a shell command
+    Run {
+        #[arg(required = true)]
+        command: String,
     },
 
     /// Scan project structure
@@ -268,6 +291,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Some(Commands::Read { file }) => {
             run_read_mode(cli.api_key, cli.model, cli.ollama_url, use_local, file).await?;
+        }
+        Some(Commands::Write { file, prompt }) => {
+            run_write_mode(cli.api_key, cli.model, cli.ollama_url, use_local, file, prompt).await?;
+        }
+        Some(Commands::Edit { file, prompt }) => {
+            run_edit_mode(cli.api_key, cli.model, cli.ollama_url, use_local, file, prompt).await?;
+        }
+        Some(Commands::Run { command }) => {
+            run_command_mode(command.to_string()).await?;
         }
         Some(Commands::Scan { path }) => {
             run_scan_mode(cli.api_key, cli.model, cli.ollama_url, use_local, path).await?;
@@ -484,6 +516,152 @@ async fn run_quick_ask(
             eprintln!("❌ Error: {}", e);
         }
     }
+
+    Ok(())
+}
+
+async fn run_write_mode(
+    api_key: String,
+    model: String,
+    ollama_url: String,
+    use_local: bool,
+    file: &PathBuf,
+    prompt: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("📝 Writing to: {:?}\n", file);
+    println!("🤖 Prompt: {}\n", prompt);
+    println!("⏳ Generating content...\n");
+
+    let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
+    
+    let write_prompt = format!(
+        "Write content to the file '{}'. {}\n\n\
+         IMPORTANT: Return ONLY the exact content that should be written to the file.\n\
+         Do NOT include markdown code blocks, explanations, or any other text.\n\
+         Just return the raw file content.\n\n\
+         Request: {}",
+        file.display(),
+        if file.exists() { "Replace existing content." } else { "Create new file." },
+        prompt
+    );
+
+    match client.chat(&write_prompt).await {
+        Ok(content) => {
+            // Clean up markdown code blocks if AI included them
+            let clean_content = content
+                .trim()
+                .strip_prefix("```")
+                .and_then(|s| s.split_once("```\n"))
+                .map(|(_, c)| c.split_once('\n').map(|(_, c)| c).unwrap_or(c))
+                .unwrap_or(&content);
+
+            // Create parent directories if needed
+            if let Some(parent) = file.parent() {
+                fs::create_dir_all(parent)?;
+            }
+
+            // Write to file
+            fs::write(file, clean_content)?;
+            println!("✅ Successfully wrote to {:?}", file);
+            println!("📊 Written {} bytes", clean_content.len());
+        }
+        Err(e) => {
+            eprintln!("❌ Error: {}", e);
+        }
+    }
+
+    Ok(())
+}
+
+async fn run_edit_mode(
+    api_key: String,
+    model: String,
+    ollama_url: String,
+    use_local: bool,
+    file: &PathBuf,
+    prompt: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("✏️ Editing: {:?}\n", file);
+    println!("🤖 Prompt: {}\n", prompt);
+
+    if !file.exists() {
+        eprintln!("❌ File does not exist: {:?}", file);
+        return Ok(());
+    }
+
+    let current_content = fs::read_to_string(file)?;
+    println!("📄 Current content ({} bytes)\n", current_content.len());
+    println!("⏳ Generating edit...\n");
+
+    let mut client = OchiClient::new(api_key, model, ollama_url, use_local);
+    
+    let edit_prompt = format!(
+        "Edit the following file content based on the instruction.\n\n\
+         File: {}\n\n\
+         Current content:\n```\n{}\n```\n\n\
+         Edit instruction: {}\n\n\
+         IMPORTANT: Return ONLY the complete edited content.\n\
+         Do NOT include explanations or markdown code blocks.\n\
+         Return the FULL file content after edits.",
+        file.display(),
+        current_content,
+        prompt
+    );
+
+    match client.chat(&edit_prompt).await {
+        Ok(new_content) => {
+            // Clean up markdown code blocks
+            let clean_content = new_content
+                .trim()
+                .strip_prefix("```")
+                .and_then(|s| s.split_once("```\n"))
+                .map(|(_, c)| c.split_once('\n').map(|(_, c)| c).unwrap_or(c))
+                .unwrap_or(&new_content);
+
+            // Write edited content
+            fs::write(file, clean_content)?;
+            println!("✅ Successfully edited {:?}", file);
+            println!("📊 New size: {} bytes", clean_content.len());
+            
+            // Show diff summary
+            let diff_lines = clean_content.lines().count() as i32 - current_content.lines().count() as i32;
+            if diff_lines > 0 {
+                println!("📈 Added {} lines", diff_lines);
+            } else if diff_lines < 0 {
+                println!("📉 Removed {} lines", -diff_lines);
+            }
+        }
+        Err(e) => {
+            eprintln!("❌ Error: {}", e);
+        }
+    }
+
+    Ok(())
+}
+
+async fn run_command_mode(command: String) -> Result<(), Box<dyn std::error::Error>> {
+    println!("🚀 Running: {}\n", command);
+    println!("⏳ Executing...\n");
+
+    let cmd = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(["/C", &command])
+            .output()
+    } else {
+        Command::new("sh")
+            .args(["-c", &command])
+            .output()
+    }?;
+
+    if !cmd.stdout.is_empty() {
+        println!("📤 Output:\n{}", String::from_utf8_lossy(&cmd.stdout));
+    }
+    
+    if !cmd.stderr.is_empty() {
+        eprintln!("⚠️ Errors:\n{}", String::from_utf8_lossy(&cmd.stderr));
+    }
+
+    println!("\n✅ Command exited with code: {:?}", cmd.status.code());
 
     Ok(())
 }

@@ -1,0 +1,22 @@
+# Python code without comments or markdown
+def hello_world():
+    # The code inside this function prints "Hello, World!" to the console
+    print("Hello, World!")
+
+# Call the function and pass 'hello_world' as an argument
+hello_world()  # Output: Hello, World!
+```
+```python
+# Modify the file content with comments explaining it
+def hello_world():
+    """
+    This function prints "Hello, World!" to the console.
+    
+    IMPORTANT: Returns only the fully edited content without any explanations or markdown code blocks.
+
+    """
+    print("Hello, World!")
+
+# Call the function and pass 'hello_world' as an argument
+hello_world()  # Output: Hello, World!
+```
