@@ -13,6 +13,28 @@ use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
 use std::fs;
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+// Rate limit tracking
+#[derive(Debug, Clone)]
+struct RateLimitInfo {
+    provider: String,
+    requests_remaining: u32,
+    reset_time: u64,  // Unix timestamp
+    is_available: bool,
+}
+
+// Context preservation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SessionContext {
+    session_id: String,
+    messages: Vec<ChatMessage>,
+    last_task: Option<String>,
+    files_touched: Vec<PathBuf>,
+    commands_run: Vec<String>,
+    created_at: u64,
+    updated_at: u64,
+}
 
 #[derive(Parser)]
 #[command(name = "ochi")]
@@ -92,9 +114,16 @@ enum Commands {
         #[arg(required = true)]
         question: String,
     },
+    
+    /// Show session recap (quick context summary)
+    Recap {
+        /// Number of recent messages to summarize
+        #[arg(short, long, default_value = "5")]
+        last: usize,
+    },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ChatMessage {
     role: String,
     content: String,
@@ -117,10 +146,40 @@ struct OchiClient {
     ollama_url: String,
     use_local: bool,
     messages: Vec<ChatMessage>,
+    session_context: Option<SessionContext>,
+    rate_limits: Vec<RateLimitInfo>,
+    current_provider: String,
 }
 
 impl OchiClient {
     fn new(api_key: String, model: String, ollama_url: String, use_local: bool) -> Self {
+        let session_id = format!(
+            "session_{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis()
+        );
+        
+        // Initialize rate limit tracking for providers
+        let mut rate_limits = vec![
+            RateLimitInfo {
+                provider: "ollama".to_string(),
+                requests_remaining: 9999, // Local, no limit
+                reset_time: 0,
+                is_available: true,
+            },
+        ];
+        
+        if !api_key.is_empty() {
+            rate_limits.push(RateLimitInfo {
+                provider: "groq".to_string(),
+                requests_remaining: 30, // 30 req/min free tier
+                reset_time: 0,
+                is_available: true,
+            });
+        }
+        
         Self {
             client: Client::new(),
             api_key,
@@ -128,6 +187,17 @@ impl OchiClient {
             ollama_url,
             use_local,
             messages: vec![],
+            session_context: Some(SessionContext {
+                session_id,
+                messages: vec![],
+                last_task: None,
+                files_touched: vec![],
+                commands_run: vec![],
+                created_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
+                updated_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
+            }),
+            rate_limits,
+            current_provider: if use_local { "ollama".to_string() } else { "groq".to_string() },
         }
     }
 
@@ -137,28 +207,115 @@ impl OchiClient {
             role: "user".to_string(),
             content: user_input.to_string(),
         });
+        
+        // Update session context
+        if let Some(ctx) = &mut self.session_context {
+            ctx.messages.push(ChatMessage {
+                role: "user".to_string(),
+                content: user_input.to_string(),
+            });
+            ctx.updated_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        }
 
-        let response = if self.use_local || self.api_key.is_empty() {
-            // Use local Ollama
-            self.call_ollama().await?
-        } else {
-            // Use Groq cloud
-            self.call_groq().await?
-        };
+        // Try current provider first, failover if needed
+        let response = self.chat_with_failover().await?;
 
         // Add AI response to history
         self.messages.push(ChatMessage {
             role: "assistant".to_string(),
             content: response.clone(),
         });
+        
+        // Update session context
+        if let Some(ctx) = &mut self.session_context {
+            ctx.messages.push(ChatMessage {
+                role: "assistant".to_string(),
+                content: response.clone(),
+            });
+            ctx.updated_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        }
 
         Ok(response)
     }
+    
+    async fn chat_with_failover(&mut self) -> Result<String, Box<dyn std::error::Error>> {
+        let mut last_error: Option<Box<dyn std::error::Error>> = None;
+        
+        // Try each provider in priority order
+        let providers_to_try: Vec<&str> = if self.use_local {
+            vec!["ollama", "groq"]
+        } else {
+            vec!["groq", "ollama"]
+        };
+        
+        for provider in providers_to_try {
+            // Check if provider is available
+            if let Some(rate_limit) = self.rate_limits.iter_mut().find(|r| r.provider == provider) {
+                // Check rate limit
+                let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+                if now < rate_limit.reset_time && rate_limit.requests_remaining == 0 {
+                    eprintln!("⚠️  {} rate limited, retry at {}", provider, rate_limit.reset_time);
+                    continue;
+                }
+                
+                // Decrement counter
+                if rate_limit.requests_remaining > 0 {
+                    rate_limit.requests_remaining -= 1;
+                }
+            }
+            
+            // Try this provider
+            let result = if provider == "ollama" {
+                self.call_ollama().await
+            } else if provider == "groq" {
+                self.call_groq().await
+            } else {
+                continue;
+            };
+            
+            match result {
+                Ok(response) => {
+                    // Success! Update current provider
+                    self.current_provider = provider.to_string();
+                    return Ok(response);
+                }
+                Err(e) => {
+                    let error_msg = e.to_string();
+                    eprintln!("⚠️  {} failed: {}", provider, error_msg);
+                    last_error = Some(e);
+                    
+                    // Update rate limit info
+                    if let Some(rate_limit) = self.rate_limits.iter_mut().find(|r| r.provider == provider) {
+                        if error_msg.contains("429") || error_msg.contains("rate limit") {
+                            rate_limit.is_available = false;
+                            rate_limit.reset_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + 60;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // All providers failed
+        Err(last_error.unwrap_or_else(|| "All providers unavailable".into()))
+    }
 
     async fn call_ollama(&self) -> Result<String, Box<dyn std::error::Error>> {
+        // Auto-detect available local models
+        let available_models = self.detect_local_models().await.unwrap_or_else(|_| vec![self.model.clone()]);
+        
+        // Use requested model if available, otherwise fallback to first available
+        let model_to_use = if available_models.contains(&self.model) {
+            &self.model
+        } else if !available_models.is_empty() {
+            eprintln!("⚠️  Model '{}' not found, using '{}'", self.model, available_models[0]);
+            &available_models[0]
+        } else {
+            &self.model
+        };
+        
         // Ollama API: POST /api/chat
         let payload = serde_json::json!({
-            "model": self.model,
+            "model": model_to_use,
             "messages": self.messages,
             "stream": false,
         });
@@ -185,6 +342,32 @@ impl OchiClient {
         } else {
             Err("No response from Ollama".into())
         }
+    }
+    
+    async fn detect_local_models(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+        // Call Ollama /api/tags to get available models
+        let response = self
+            .client
+            .get(format!("{}/api/tags", self.ollama_url))
+            .send()
+            .await?;
+        
+        if !response.status().is_success() {
+            return Ok(vec![]);
+        }
+        
+        let tags_response: serde_json::Value = response.json().await?;
+        
+        let mut models = vec![];
+        if let Some(models_array) = tags_response["models"].as_array() {
+            for model in models_array {
+                if let Some(name) = model["name"].as_str() {
+                    models.push(name.to_string());
+                }
+            }
+        }
+        
+        Ok(models)
     }
 
     async fn call_groq(&self) -> Result<String, Box<dyn std::error::Error>> {
@@ -275,10 +458,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("🦀 Ochi CLI - Local Mode (Ollama)");
         println!("   Model: {}", cli.model);
         println!("   URL: {}", cli.ollama_url);
+        println!("   Failover: Groq (if API key provided)");
         println!();
     } else {
         println!("🦀 Ochi CLI - Cloud Mode (Groq)");
         println!("   Model: {}", cli.model);
+        println!("   Failover: Ollama (local)");
         println!();
     }
 
@@ -306,6 +491,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Some(Commands::Ask { question }) => {
             run_quick_ask(cli.api_key, cli.model, cli.ollama_url, use_local, question).await?;
+        }
+        Some(Commands::Recap { last }) => {
+            run_recap_mode(cli.api_key, cli.model, cli.ollama_url, use_local, *last).await?;
         }
         None => {
             // Default to interactive chat
@@ -662,6 +850,71 @@ async fn run_command_mode(command: String) -> Result<(), Box<dyn std::error::Err
     }
 
     println!("\n✅ Command exited with code: {:?}", cmd.status.code());
+
+    Ok(())
+}
+
+async fn run_recap_mode(
+    api_key: String,
+    model: String,
+    ollama_url: String,
+    use_local: bool,
+    last: usize,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("📊 Session Recap\n");
+    
+    let client = OchiClient::new(api_key, model, ollama_url, use_local);
+    
+    // Load session context if exists
+    if let Some(ctx) = &client.session_context {
+        println!("Session ID: {}", ctx.session_id);
+        println!("Started: {}", ctx.created_at);
+        println!("Last active: {}", ctx.updated_at);
+        println!();
+        
+        if !ctx.files_touched.is_empty() {
+            println!("📁 Files touched:");
+            for file in &ctx.files_touched {
+                println!("  - {:?}", file);
+            }
+            println!();
+        }
+        
+        if !ctx.commands_run.is_empty() {
+            println!("🚀 Commands run:");
+            for cmd in &ctx.commands_run {
+                println!("  - {}", cmd);
+            }
+            println!();
+        }
+        
+        // Show recent messages
+        let recent_messages: Vec<_> = ctx.messages.iter().rev().take(last).rev().collect();
+        
+        if !recent_messages.is_empty() {
+            println!("💬 Recent conversation (last {} messages):\n", recent_messages.len());
+            
+            for (i, msg) in recent_messages.iter().enumerate() {
+                let role = if msg.role == "user" { "👉 You" } else { "🤖 AI" };
+                let preview = if msg.content.len() > 200 {
+                    format!("{}...", &msg.content[..200])
+                } else {
+                    msg.content.clone()
+                };
+                
+                println!("{}. {}: {}", i + 1, role, preview);
+            }
+        } else {
+            println!("✨ No conversation history yet. Start chatting!");
+        }
+        
+        // Quick task reminder
+        if let Some(ref task) = ctx.last_task {
+            println!("\n📋 Last task: {}", task);
+        }
+    } else {
+        println!("✨ No active session. Start a new chat!");
+    }
 
     Ok(())
 }
